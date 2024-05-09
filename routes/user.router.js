@@ -5,7 +5,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
     GetUsers, SocialLogin,
     SendPasswordResetEmail, ResetPassword, encrypt,  GetUserNotifications,
     SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists,
-    UploadIntroVideo} from "../controllers/user.controller.js";
+    UploadIntroVideo, UploadUserMedia} from "../controllers/user.controller.js";
 
 
 
@@ -17,6 +17,7 @@ userRouter.post("/update_profile", verifyJwtToken, UpdateProfile);
 userRouter.get("/users", verifyJwtToken, GetUsers);
 userRouter.get("/notifications", verifyJwtToken, GetUserNotifications);
 userRouter.post("/upload_intro_video", verifyJwtToken, UploadIntroVideo);
+userRouter.post("/upload_user_media", verifyJwtToken, UploadUserMedia);
 userRouter.post("/send_reset_email", SendPasswordResetEmail);
 userRouter.post("/update_password", ResetPassword);
 

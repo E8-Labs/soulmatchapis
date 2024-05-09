@@ -1,5 +1,5 @@
 import dbConfig from "../config/db.config.js";
-import passwordresetcodeModel from "./passwordresetcode.model.js";
+import passwordresetcodeModel from "./user/passwordresetcode.model.js";
 
 import  Sequelize from "sequelize";
 //console.log("Connecting DB")
@@ -25,15 +25,16 @@ db.sequelize = sequelize;
 
 
 
-import UserModel from "./user.model.js";
+import UserModel from "./user/user.model.js";
 
 
 import chatModel from "./chat/chat.model.js";
 import messageModel from "./chat/message.model.js";
 
-import DailyLoginModel from "./dailylogin.model.js";
+import DailyLoginModel from "./user/dailylogin.model.js";
 import NotificationModel from "./notification.model.js";
-import emailVerificationCodeModel from "./emailverificationcode.model.js";
+import emailVerificationCodeModel from "./user/emailverificationcode.model.js";
+import UserMediaModel from "./user/usermedia.model.js";
 
 
 
@@ -57,7 +58,12 @@ db.dailyLogin = DailyLoginModel(sequelize, Sequelize);
 db.dailyLogin.belongsTo(db.user);
 db.user.hasMany(db.dailyLogin);
 
+db.userMedia = UserMediaModel(sequelize, Sequelize);
+db.userMedia.belongsTo(db.user);
+db.user.hasMany(db.userMedia);
+
 db.notification = NotificationModel(sequelize, Sequelize);
+
 
 
 export default db;

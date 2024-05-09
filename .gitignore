@@ -2,3 +2,5 @@
 /.env
 *.env
 /uploads
+/.env.example
+*.env.example

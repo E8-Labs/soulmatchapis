@@ -115,21 +115,21 @@ export const UploadIntroVideo = async (req, res) => {
                 if (mime === "video/mp4") {
                     const fileContent = req.file.buffer;
                     const fieldname = req.file.fieldname;
-                    uploadMedia(fieldname, fileContent, mime, async(uploadedFile, error) => {
+                    uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
                         console.log("File uploaded to ", uploadedFile)
                         console.log("Error Uploading ", error)
                         user.intro_video = uploadedFile
                         let saved = await user.save();
-                        if(saved){
+                        if (saved) {
                             let u = await UserProfileFullResource(user)
                             res.send({ status: true, message: "Intro video saved", data: u });
                         }
-                        else{
+                        else {
                             res.send({ status: false, message: "Error saving intro", data: null });
                         }
-                        
+
                     })
-                    
+
                 }
                 else {
                     res.send({ status: false, message: "Invalid video file", data: null });
@@ -354,7 +354,7 @@ export const GetUserNotifications = async (req, res) => {
 }
 
 
-function uploadMedia(fieldname, fileContent, mime="image/jpeg", completion) {
+function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
     const s3 = new S3({
         accessKeyId: process.env.AccessKeyId,
         secretAccessKey: process.env.SecretAccessKey,
@@ -378,6 +378,52 @@ function uploadMedia(fieldname, fileContent, mime="image/jpeg", completion) {
             completion(d.Location, null);
         }
     });
+}
+
+export async function UploadUserMedia(req, res) {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id)
+            if (user) {
+                if (typeof (req.file) !== 'undefined') {
+                    // console.log(req.file)
+                    let mime = req.file.mimetype;
+                    // console.log("file type", mime)
+                    const fileContent = req.file.buffer;
+                    const fieldname = req.file.fieldname;
+                    uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                        console.log("File uploaded to User Media", uploadedFile)
+                        let type = mime.includes("video") ? "video" : "image"
+                        let created = await db.userMedia.create({
+                            UserId: user.id,
+                            type: type,
+                            url: uploadedFile,
+                            caption: req.body.caption
+                        })
+                        if (created) {
+                            
+                            res.send({ status: true, message: "Media saved", data: created });
+                        }
+                        else {
+                            res.send({ status: false, message: "Error saving media", data: null });
+                        }
+
+                    })
+
+
+                }
+                else {
+                    res.send({ status: false, message: "Please upload image/video" })
+                }
+            }
+            else {
+                res.send({ status: false, message: "Unauthenticated user", data: null })
+            }
+        }
+        else {
+            res.send({ status: false, message: "Unauthenticated user", data: null })
+        }
+    })
 }
 
 
@@ -405,46 +451,56 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.state !== 'undefined') {
                     user.state = req.body.state;
                 }
-                if (typeof req.body.city !== 'undefined') {
-                    user.city = req.body.city;
+                if (typeof req.body.height_inches !== 'undefined') {
+                    user.height_inches = req.body.height_inches;
                 }
-                if (typeof req.body.race !== 'undefined') {
-                    user.race = req.body.race;
+
+                if (typeof req.body.height_feet !== 'undefined') {
+                    user.height_feet = req.body.height_feet;
                 }
-                if (typeof req.body.gender !== 'undefined') {
-                    user.gender = req.body.gender;
+
+                if (typeof req.body.age !== 'undefined') {
+                    user.age = req.body.age;
                 }
-                if (typeof req.body.veteran !== 'undefined') {
-                    user.veteran = req.body.veteran;
+
+                if (typeof req.body.zodiac !== 'undefined') {
+                    user.zodiac = req.body.zodiac;
                 }
-                if (typeof req.body.lgbtq !== 'undefined') {
-                    user.lgbtq = req.body.lgbtq;
+
+                if (typeof req.body.school !== 'undefined') {
+                    user.school = req.body.school;
                 }
-                if (typeof req.body.title !== 'undefined') {
-                    user.title = req.body.title;
-                }
+
                 if (typeof req.body.company !== 'undefined') {
                     user.company = req.body.company;
                 }
+
+                if (typeof req.body.job_title !== 'undefined') {
+                    user.job_title = req.body.job_title;
+                }
+
+
+                if (typeof req.body.city !== 'undefined') {
+                    user.city = req.body.city;
+                }
+                if (typeof req.body.lat !== 'undefined') {
+                    user.lat = req.body.lat;
+                }
+                if (typeof req.body.lang !== 'undefined') {
+                    user.lang = req.body.lang;
+                }
+                
+                if (typeof req.body.gender !== 'undefined') {
+                    user.gender = req.body.gender;
+                }
+                
                 if (typeof req.body.first_name !== 'undefined') {
                     user.first_name = req.body.first_name;
                 }
                 if (typeof req.body.last_name !== 'undefined') {
                     user.last_name = req.body.last_name;
                 }
-                if (typeof req.body.industry !== 'undefined') {
-                    user.industry = req.body.industry;
-                }
-                if (typeof req.body.countries !== 'undefined') {
-                    console.log("Have Countries ", req.body.countries)
-                    user.countries = req.body.countries;
-                }
-                if (typeof req.body.pronouns !== 'undefined') {
-                    user.pronouns = req.body.pronouns;
-                }
-                if (typeof req.body.dob !== 'undefined') {
-                    user.dob = req.body.dob;
-                }
+                
 
                 const saved = await user.save();
                 let u = await UserProfileFullResource(user)

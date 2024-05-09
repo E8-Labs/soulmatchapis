@@ -26,14 +26,27 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         default: ''
       },
-      title: {
+      job_title: {
         type: Sequelize.STRING,
         default: ''
       },
-      industry: {
+      height_inches: {
+        type: Sequelize.INTEGER,
+        default: null
+      },
+      height_feet: {
+        type: Sequelize.INTEGER,
+        default: null
+      },
+      zodiac: {
         type: Sequelize.STRING,
         default: ''
       },
+      school: {
+        type: Sequelize.STRING,
+        default: ''
+      },
+      
       city: {
         type: Sequelize.STRING,
         default: ''
@@ -42,23 +55,22 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         default: ''
       },
+      lat: {
+        type: Sequelize.DOUBLE,
+        allowNull: true,
+        default: null
+      },
+      lang: {
+        type: Sequelize.DOUBLE,
+        allowNull: true,
+        default: null
+      },
       gender:{
         type:Sequelize.STRING,
         values: ['Male', 'Female', 'None'],
         default: 'Male'
       },
-      race:{
-        type:Sequelize.STRING,
-        default: ''// ethnicity
-      },
-      lgbtq:{
-        type:Sequelize.STRING,
-        default: ''// yes, no, prefer not to say
-      },
-      veteran:{
-        type:Sequelize.STRING,
-        default: ''// yes, no, prefer not to say
-      },
+      
       fcm_token:{
         type:Sequelize.STRING,
         default: ''
@@ -80,10 +92,7 @@ const UserModel = (sequelize, Sequelize) => {
         values: ['user', 'admin'],
         default: 'user'
       },
-      points: {
-        type: Sequelize.INTEGER,
-        default: 0
-      },
+      
       enc_key: {
         type: Sequelize.BLOB,
         allowNull: true
@@ -92,14 +101,7 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.BLOB,
         allowNull: true
       },
-      countries: {
-        type: Sequelize.STRING,
-        default: ""
-      },
-      pronouns: {
-        type: Sequelize.STRING,
-        default: ""
-      },
+      
       dob: {
         type: Sequelize.STRING,
         default: ""
