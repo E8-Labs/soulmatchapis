@@ -732,6 +732,7 @@ export const SendEmailVerificationCode = async (req, res) => {
             email: email
         }
     })
+    console.log("User is ", user)
     if (user) {
         res.send({ status: false, data: null, message: "Email already taken" })
     }
@@ -762,7 +763,7 @@ export const SendEmailVerificationCode = async (req, res) => {
                 to: email, // List of recipients
                 subject: "Verification Code", // Subject line
                 text: `${randomCode}`, // Plain text body
-                html: `<html><b>Hello,${user.first_name}</b>This is your reset code. <b>${randomCode}</b> </html>`, // HTML body
+                html: `<html><b>Hello there, </b>This is your reset code. <b>${randomCode}</b> </html>`, // HTML body
             };
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
