@@ -112,7 +112,7 @@ export const UploadIntroVideo = async (req, res) => {
                 // console.log(req.file)
                 let mime = req.file.mimetype;
                 console.log("file type", mime)
-                if (mime === "video/mp4") {
+                if (mime.includes("video")) {
                     const fileContent = req.file.buffer;
                     const fieldname = req.file.fieldname;
                     uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
