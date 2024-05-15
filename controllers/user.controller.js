@@ -111,7 +111,7 @@ export const UploadIntroVideo = async (req, res) => {
             if (typeof (req.file) !== 'undefined' && user) {
                 // console.log(req.file)
                 let mime = req.file.mimetype;
-                // console.log("file type", mime)
+                console.log("file type", mime)
                 if (mime === "video/mp4") {
                     const fileContent = req.file.buffer;
                     const fieldname = req.file.fieldname;
@@ -132,7 +132,7 @@ export const UploadIntroVideo = async (req, res) => {
 
                 }
                 else {
-                    res.send({ status: false, message: "Invalid video file", data: null });
+                    res.send({ status: false, message: "Invalid video file " + mime, data: null });
                 }
 
             }
