@@ -2,7 +2,7 @@ import express from "express";
 const userRouter = express.Router();
 import {verifyJwtToken}  from "../middleware/jwtmiddleware.js";
 import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile, 
-    GetUsers, SocialLogin,
+    Discover, SocialLogin,
     SendPasswordResetEmail, ResetPassword, encrypt,  GetUserNotifications,
     SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists,
     UploadIntroVideo, UploadUserMedia} from "../controllers/user.controller.js";
@@ -14,7 +14,7 @@ userRouter.post("/login", LoginUser);
 userRouter.post("/social_login", SocialLogin);
 userRouter.post("/get_profile", verifyJwtToken, GetUserProfile);
 userRouter.post("/update_profile", verifyJwtToken, UpdateProfile);
-userRouter.get("/users", verifyJwtToken, GetUsers);
+userRouter.get("/discover", verifyJwtToken, Discover);
 userRouter.get("/notifications", verifyJwtToken, GetUserNotifications);
 userRouter.post("/upload_intro_video", verifyJwtToken, UploadIntroVideo);
 userRouter.post("/upload_user_media", verifyJwtToken, UploadUserMedia);

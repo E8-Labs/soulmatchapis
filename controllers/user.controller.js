@@ -547,7 +547,7 @@ export const GetUserProfile = (req, res) => {
 }
 
 
-export const GetUsers = (req, res) => {
+export const Discover = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             ////console.log("Auth data ", authData)
@@ -560,6 +560,9 @@ export const GetUsers = (req, res) => {
                 where: {
                     role: {
                         [Op.ne]: UserRole.RoleAdmin
+                    },
+                    UserId:{
+                        [Op.ne]: userid
                     }
                 }
             });
@@ -629,9 +632,9 @@ function generateRandomCode(length) {
 }
 
 
-export const SendPasswordResetEmail = (req, res) => {
+export const SendPasswordResetEmail = async(req, res) => {
     let email = req.body.email;
-    let user = db.user.findOne({
+    let user = await db.user.findOne({
         where: {
             email: email
         }
