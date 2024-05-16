@@ -28,6 +28,10 @@ const upload = multer();
 // });
 
 const uploadImg = upload.single("image");//multer({storage: storage}).single('image');
+const uploadFiles = multer().fields([
+  { name: 'media', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 }
+]);
 
 
 
@@ -40,6 +44,7 @@ app.use(express.json());
 import db from "./models/index.js";
 import chatRouter from "./routes/chat.router.js";
 import adminRouter from "./routes/admin.router.js";
+import mediaRouter from "./routes/media.router.js";
 
 db.sequelize.authenticate().then(() => {
   console.log("Connected to the database!");
@@ -55,6 +60,7 @@ db.sequelize.sync({ alter: true })//{alter: true}
 
 
 app.use("/api/users", uploadImg, userRouter);
+app.use("/api/media", uploadFiles, mediaRouter);
 app.use("/api/chat", verifyJwtToken, chatRouter);//verifyJwtToken
 app.use("/api/admin", verifyJwtToken, adminRouter);//verifyJwtToken
 

@@ -6,7 +6,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
     SendPasswordResetEmail, ResetPassword, encrypt,  GetUserNotifications,
     SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists,
     UploadIntroVideo, UploadUserMedia} from "../controllers/user.controller.js";
-    import {UploadIntroVideoInVideoController} from '../controllers/video.controller.js'
+    import {UploadIntroVideoInVideoController, UploadIntroVideos} from '../controllers/video.controller.js'
 
 
 
@@ -17,8 +17,8 @@ userRouter.post("/get_profile", verifyJwtToken, GetUserProfile);
 userRouter.post("/update_profile", verifyJwtToken, UpdateProfile);
 userRouter.get("/discover", verifyJwtToken, Discover);
 userRouter.get("/notifications", verifyJwtToken, GetUserNotifications);
-userRouter.post("/upload_intro_video", verifyJwtToken, UploadIntroVideoInVideoController);
-userRouter.post("/upload_user_media", verifyJwtToken, UploadUserMedia);
+userRouter.post("/upload_intro_video", verifyJwtToken, UploadIntroVideos);
+// userRouter.post("/upload_user_media", verifyJwtToken, UploadUserMedia);
 userRouter.post("/send_reset_email", SendPasswordResetEmail);
 userRouter.post("/update_password", ResetPassword);
 

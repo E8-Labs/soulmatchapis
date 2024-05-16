@@ -9,6 +9,12 @@ import path from 'path';
 import { promisify } from 'util';
 
 
+import UserRole from "../models/userrole.js";
+
+import UserProfileFullResource from "../resources/userprofilefullresource.js";
+import NotificationResource from "../resources/notification.resource.js";
+
+
 // Promisify fs functions for easier async/await usage
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
@@ -133,3 +139,234 @@ export const UploadIntroVideoInVideoController = async (req, res) => {
     }
   });
 };
+
+
+export const UploadIntroVideos = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id);
+            console.log("User is ", user);
+
+            if (req.files && req.files.media && req.files.media.length > 0 && user) {
+                let uploadedFileUrl = null;
+                let thumbUrl = null;
+                let file = req.files.media[0]
+                let thumb = null
+                if(req.files.thumbnail.length > 0){
+                    thumb = req.files.thumbnail[0]
+                }
+                console.log("Media files ", file)
+                console.log("Thumb files ", thumb)
+                // return
+                // for (const file of req.files) {
+                    
+                    let mime = file.mimetype;
+                    console.log("File type", mime);
+
+                    if (mime.includes("video")) {
+                        const fileContent = file.buffer;
+                        const fieldname = file.fieldname;
+
+                        await new Promise((resolve, reject) => {
+                            uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                                if (error) {
+                                    console.log("Error Uploading ", error);
+                                    reject(error);
+                                } else {
+                                    console.log("File uploaded to ", uploadedFile);
+                                    uploadedFileUrl = uploadedFile;
+                                    // uploadedFiles.push(uploadedFile);
+                                    resolve();
+                                }
+                            });
+                        });
+
+                        let thumbContent = thumb.buffer;
+                        let thumbMime = thumb.mimetype;
+                        await new Promise((resolve, reject) => {
+                            uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
+                                if (error) {
+                                    console.log("Error Uploading thumb", error);
+                                    reject(error);
+                                } else {
+                                    console.log("Thumbnail uploaded to ", uploadedFile);
+                                    thumbUrl = uploadedFile;
+                                    // uploadedFiles.push(uploadedFile);
+                                    resolve();
+                                }
+                            });
+                        });
+
+
+                    } else {
+                        res.send({ status: false, message: "Invalid video file " + mime, data: null });
+                        return;
+                    }
+                // }
+                    user.intro_thumbnail_url = thumbUrl;
+                    user.intro_video = uploadedFileUrl;
+                // user.intro_videos = uploadedFiles; // Assuming intro_videos is an array field in your user model
+                let saved = await user.save();
+
+                if (saved) {
+                    let u = await UserProfileFullResource(user);
+                    res.send({ status: true, message: "Intro videos saved", data: u });
+                } else {
+                    res.send({ status: false, message: "Error saving intro videos", data: null });
+                }
+            } else {
+                res.send({ status: false, message: "Please upload videos" });
+            }
+        } else {
+            res.send({ status: false, message: "Unauthenticated user" });
+        }
+    });
+};
+
+
+//upload user media files
+export async function UploadUserMedia(req, res) {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id)
+            if (user) {
+                if (req.files && req.files.media && req.files.media.length > 0) {
+                    
+                    let file = req.files.media[0]
+                    let thumb = null
+                    if(req.files.thumbnail && req.files.thumbnail.length > 0){
+                        thumb = req.files.thumbnail[0]
+                    }
+                    console.log("Media files ", file)
+                    console.log("Thumb files ", thumb)
+                    // return
+                    // for (const file of req.files) {
+                        
+                    let mime = file.mimetype;
+                    console.log("File type", mime);
+
+                    if (mime.includes("video")) {
+                        let uploadedFileUrl = null;
+                        let thumbUrl = null;
+                        const fileContent = file.buffer;
+                        const fieldname = file.fieldname;
+
+                        await new Promise((resolve, reject) => {
+                            uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                                if (error) {
+                                    console.log("Error Uploading ", error);
+                                    reject(error);
+                                } else {
+                                    console.log("File uploaded to ", uploadedFile);
+                                    uploadedFileUrl = uploadedFile;
+                                    // uploadedFiles.push(uploadedFile);
+                                    resolve();
+                                }
+                            });
+                        });
+
+                        let thumbContent = thumb.buffer;
+                        let thumbMime = thumb.mimetype;
+                        await new Promise((resolve, reject) => {
+                            uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
+                                if (error) {
+                                    console.log("Error Uploading thumb", error);
+                                    reject(error);
+                                } else {
+                                    console.log("Thumbnail uploaded to ", uploadedFile);
+                                    thumbUrl = uploadedFile;
+                                    // uploadedFiles.push(uploadedFile);
+                                    resolve();
+                                }
+                            });
+                        });
+                        let type = mime.includes("video") ? "video" : "image"
+                        let created = await db.userMedia.create({
+                            UserId: user.id,
+                            type: type,
+                            url: uploadedFileUrl,
+                            caption: req.body.caption,
+                            thumb_url: thumbUrl,
+                        })
+                        if (created) {
+                            
+                            res.send({ status: true, message: "Media saved", data: created });
+                        }
+                        else {
+                            res.send({ status: false, message: "Error saving media", data: null });
+                        }
+
+                    }
+                    else{
+                        
+
+
+                        // console.log("file type", mime)
+                        const fileContent = file.buffer;
+                        const fieldname = file.fieldname;
+                        uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                            console.log("File uploaded to User Media", uploadedFile)
+                            let type = mime.includes("video") ? "video" : "image"
+                            let created = await db.userMedia.create({
+                                UserId: user.id,
+                                type: type,
+                                url: uploadedFile,
+                                caption: req.body.caption
+                            })
+                            if (created) {
+                                
+                                res.send({ status: true, message: "Media saved", data: created });
+                            }
+                            else {
+                                res.send({ status: false, message: "Error saving media", data: null });
+                            }
+    
+                        })
+                    }
+                    
+
+
+                }
+                else {
+                    res.send({ status: false, message: "Please upload image/video" })
+                }
+            }
+            else {
+                res.send({ status: false, message: "Unauthenticated user", data: null })
+            }
+        }
+        else {
+            res.send({ status: false, message: "Unauthenticated user", data: null })
+        }
+    })
+}
+
+
+
+
+//function to upload to AWS
+function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
+    const s3 = new S3({
+        accessKeyId: process.env.AccessKeyId,
+        secretAccessKey: process.env.SecretAccessKey,
+        region: process.env.Region
+    })
+    const params = {
+        Bucket: process.env.Bucket,
+        Key: fieldname + "Profile" + Date.now(),
+        Body: fileContent,
+        ContentDisposition: 'inline',
+        ContentType: mime
+        // ACL: 'public-read',
+    }
+    const result = s3.upload(params, async (err, d) => {
+        if (err) {
+            completion(null, err.message);
+            // return null
+        }
+        else {
+            // user.profile_image = d.Location;
+            completion(d.Location, null);
+        }
+    });
+}

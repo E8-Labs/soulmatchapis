@@ -88,6 +88,7 @@ async function getUserData(user, currentUser = null) {
         height_feet: user.height_feet,
         school: user.school,
         intro_video: user.intro_video,
+        intro_video_thumbnail: user.intro_thumbnail_url,
         profile_completion: profileCompletion,
         profile_completion_comment: comment,
     }

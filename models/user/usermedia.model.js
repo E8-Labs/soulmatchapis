@@ -4,6 +4,9 @@ const UserMediaModel  = (sequelize, Sequelize) => {
       url: {
         type: Sequelize.STRING,
       },
+      thumb_url: {
+        type: Sequelize.STRING,
+      },
       caption: {
         type: Sequelize.STRING,
       },
