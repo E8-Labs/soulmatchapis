@@ -23,6 +23,26 @@ import UserRole from "../models/userrole.js";
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
 import NotificationResource from "../resources/notification.resource.js";
 
+const generateThumbnail = (videoPath, thumbnailPath) => {
+    return new Promise((resolve, reject) => {
+      ffmpeg(videoPath)
+        .on('end', () => {
+          console.log('Screenshot taken');
+          resolve(thumbnailPath);
+        })
+        .on('error', (err) => {
+          console.log('An error occurred: ' + err.message);
+          reject(err);
+        })
+        .screenshots({
+          count: 1,
+          folder: path.dirname(thumbnailPath),
+          filename: path.basename(thumbnailPath),
+          size: '320x240'
+        });
+    });
+  };
+
 export const RegisterUser = async (req, res) => {
 
     //console.log("Checking user")

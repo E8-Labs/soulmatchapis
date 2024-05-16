@@ -22,6 +22,10 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         default: ''
       },
+      intro_thumbnail_url:{
+        type: Sequelize.STRING,
+        default: ''
+      },
       company: {
         type: Sequelize.STRING,
         default: ''
