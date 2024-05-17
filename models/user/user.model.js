@@ -34,6 +34,10 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         default: ''
       },
+      age: {
+        type: Sequelize.INTEGER,
+        default: null
+      },
       height_inches: {
         type: Sequelize.INTEGER,
         default: null
