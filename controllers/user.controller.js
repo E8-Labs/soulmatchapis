@@ -567,39 +567,180 @@ export const GetUserProfile = (req, res) => {
 }
 
 
+
+
 export const Discover = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
-            ////console.log("Auth data ", authData)
-            let userid = authData.user.id;
-            let offset = 0;
-            if (typeof req.query.offset !== 'undefined') {
-                offset = req.query.offset;
-            }
-            const user = await User.findAll({
-                where: {
-                    role: {
-                        [Op.ne]: UserRole.RoleAdmin
+            const userId = authData.user.id; // User making the request
+
+            try {
+                // Fetch all user profiles except where specific conditions are met
+                const excludedUserIds = await db.profileLikes.findAll({
+                    where: {
+                        [db.Sequelize.Op.or]: [
+                            { from: userId, status: 'liked' }, // Profiles I have liked
+                            { from: userId, status: 'rejected' }, // Profiles I have rejected
+                            { to: userId, status: 'rejected' } // Profiles that have rejected me
+                        ]
                     },
-                    UserId:{
-                        [Op.ne]: userid
+                    attributes: ['to', 'from'] // Fetch only user IDs
+                });
+
+                // Flatten the list of user IDs to exclude
+                let idsToExclude = excludedUserIds.map(like => {
+                    // Include both 'from' and 'to' IDs to cover all conditions
+                    return like.from === userId ? like.to : like.from;
+                });
+                idsToExclude.push(userId); // Also exclude the current user's profile
+
+                // Find all other users
+                const users = await db.user.findAll({
+                    where: {
+                        id: { [db.Sequelize.Op.notIn]: idsToExclude }
                     }
-                }
-            });
-            if (user) {
-                let u = await UserProfileFullResource(user);
-                res.send({ status: true, message: "Profiles ", data: u })
+                });
+
+                // Send the result
+                let u = await UserProfileFullResource(users);
+                res.send({ status: true, message: "User profiles discovered", data: u });
+            } catch (err) {
+                console.error('Error fetching user profiles:', err);
+                res.send({ status: false, message: "Failed to fetch user profiles", data: null });
             }
-            else {
-                res.send({ status: false, message: "No Profile found", data: null })
+        } else if (error) {
+            console.error('JWT verification error:', error);
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        } else {
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        }
+    });
+};
+
+
+
+
+export const GetProfilesWhoLikedMe = (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            const userId = authData.user.id; // User making the request
+
+            try {
+                // Fetch all entries where the current user is 'to' and the status is 'liked'
+                const likes = await db.profileLikes.findAll({
+                    where: {
+                        to: userId,
+                        status: 'liked'
+                    },
+                    // include: [{
+                    //     model: db.user, // Assumes you have a User model and it's related to ProfileLikes as 'User'
+                    //     as: 'FromUser', // This alias must match the association alias you've set up in your models
+                    //     attributes: ['id', 'first_name', 'last_name', 'email', 'profile_image'] // Customize attributes as needed
+                    // }]
+                });
+
+                // Map the results to get only user data
+                const ids = likes.map(like => like.from);
+                const usersWhoLikedMe = await db.user.findAll({
+                    where: {
+                        id: {
+                            [db.Sequelize.Op.in]: ids // Uses the `IN` operator to filter by the array of IDs
+                        }
+                    },
+                    // attributes: ['id', 'first_name', 'last_name', 'email', 'profile_image'] // Customize attributes as needed
+                });
+        
+                // Send the result
+                let u = await UserProfileFullResource(usersWhoLikedMe);
+                res.send({ status: true, message: "Profiles who liked my profile", data: u });
+            } catch (err) {
+                console.error('Error fetching profiles who liked me:', err);
+                res.send({ status: false, message: "Failed to fetch profiles", data: null });
+            }
+        } else if (error) {
+            console.error('JWT verification error:', error);
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        } else {
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        }
+    });
+};
+
+
+
+
+export const LikeProfile = (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            const fromUserId = authData.user.id; // User making the request
+            const toUserId = req.body.user_id; // User being liked
+            const status = req.body.status; // Should be 'liked' or 'rejected'
+
+            // Validate the provided status
+            if (!['liked', 'rejected'].includes(status)) {
+                return res.send({ status: false, message: "Invalid status provided", data: null });
             }
 
+            try {
+                // Check or create like entry
+                let likeEntry = await db.profileLikes.findOrCreate({
+                    where: { from: fromUserId, to: toUserId },
+                    defaults: { status }
+                });
+
+                // If entry existed and status is being updated
+                if (!likeEntry[1] && likeEntry[0].status !== status) {
+                    likeEntry[0].status = status;
+                    await likeEntry[0].save();
+                }
+
+                let matchCreated = false; // To track if a match has been created
+
+                // If the current status is 'liked', check for reciprocal like
+                if (status === 'liked') {
+                    let reciprocalLike = await db.profileLikes.findOne({
+                        where: {
+                            from: toUserId,
+                            to: fromUserId,
+                            status: 'liked'
+                        }
+                    });
+
+                    if (reciprocalLike) {
+                        // Create match if both have liked each other
+                        const [matchEntry, created] = await db.profileMatches.findOrCreate({
+                            where: {
+                                user_1_id: fromUserId < toUserId ? fromUserId : toUserId,
+                                user_2_id: fromUserId > toUserId ? fromUserId : toUserId
+                            },
+                            defaults: { status: 'matched' }
+                        });
+                        matchCreated = created; // Set true if a new match entry was created
+                    }
+                }
+
+                // Response includes match status
+                res.send({
+                    status: true,
+                    message: "Profile like status updated successfully",
+                    data: likeEntry[0],
+                    match: matchCreated // Indicates if a new match was created
+                });
+            } catch (err) {
+                console.error('Error updating profile like status:', err);
+                res.send({ status: false, message: "Failed to update profile like status", data: null });
+            }
+        } else if (error) {
+            console.error('JWT verification error:', error);
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        } else {
+            res.send({ status: false, message: "Unauthenticated user", data: null });
         }
-        else {
-            res.send({ status: false, message: "Unauthenticated user", data: null })
-        }
-    })
-}
+    });
+};
+
+
+
 
 
 

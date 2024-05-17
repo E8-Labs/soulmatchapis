@@ -35,6 +35,8 @@ import DailyLoginModel from "./user/dailylogin.model.js";
 import NotificationModel from "./notification.model.js";
 import emailVerificationCodeModel from "./user/emailverificationcode.model.js";
 import UserMediaModel from "./user/usermedia.model.js";
+import ProfileLikesModel from "./profilelikes.model.js";
+import ProfileMatchesModel from "./profilematches.model.js";
 
 
 
@@ -64,6 +66,17 @@ db.user.hasMany(db.userMedia);
 
 db.notification = NotificationModel(sequelize, Sequelize);
 
+
+db.profileLikes = ProfileLikesModel(sequelize, Sequelize);
+if (db.profileLikes.associate) {
+  db.profileLikes.associate(db);
+}
+
+
+db.profileMatches = ProfileMatchesModel(sequelize, Sequelize);
+if (db.profileMatches.associate) {
+  db.profileMatches.associate(db);
+}
 
 
 export default db;

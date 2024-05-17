@@ -2,6 +2,7 @@ let NotificationModel = (sequelize, Sequelize) => {
     const Model = sequelize.define("Notification", {
         from:{
             type: Sequelize.INTEGER,
+            
         },
       to: {
         type: Sequelize.INTEGER,

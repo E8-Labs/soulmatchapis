@@ -140,6 +140,49 @@ export const UploadIntroVideoInVideoController = async (req, res) => {
   });
 };
 
+export const DeleteMedia = async(req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id);
+            if(typeof req.body.media_id !== 'undefined'){
+                let deleted = await db.userMedia.destroy({
+                    where: {
+                        id: req.body.media_id
+                    }
+                })
+                if(deleted){
+                    let media = await db.userMedia.findAll({
+                        where: {
+                            UserId: user.id
+                        }
+                    })
+                    res.send({ status: true, message: "Media deleted", data: media });
+                }
+            }
+            else if(typeof req.body.media_url !== 'undefined'){
+                
+                let deleted = await db.userMedia.destroy({
+                    where: {
+                        url: req.body.media_url
+                    }
+                })
+                console.log("Media url is not undefined ", deleted)
+                if(deleted){
+                    let media = await db.userMedia.findAll({
+                        where: {
+                            UserId: user.id
+                        }
+                    })
+                    res.send({ status: true, message: "Media deleted", data: media });
+                }
+            }
+        }
+        else{
+            res.send({ status: false, message: "Unauthenticated user" });
+        }
+    })
+}
+
 
 export const UploadIntroVideos = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
