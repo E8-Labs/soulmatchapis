@@ -5,7 +5,7 @@ import {verifyJwtToken}  from "../middleware/jwtmiddleware.js";
 import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile, 
     Discover, SocialLogin, LikeProfile, GetProfilesWhoLikedMe, FindAllMyMatches,
     SendPasswordResetEmail, ResetPassword, encrypt,  GetUserNotifications,
-    SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists, AllQuestions,
+    SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists, AllQuestions, AddQuestion,
     UploadIntroVideo, UploadUserMedia} from "../controllers/user.controller.js";
     import {UploadIntroVideoInVideoController, UploadIntroVideos} from '../controllers/video.controller.js'
 
@@ -22,6 +22,7 @@ userRouter.get("/my_matches", verifyJwtToken, FindAllMyMatches);
 userRouter.get("/notifications", verifyJwtToken, GetUserNotifications);
 
 userRouter.get("/questions", verifyJwtToken, AllQuestions);
+userRouter.post("/add_question", AddQuestion);
 
 userRouter.post("/upload_intro_video", verifyJwtToken, UploadIntroVideos);
 // userRouter.post("/upload_user_media", verifyJwtToken, UploadUserMedia);

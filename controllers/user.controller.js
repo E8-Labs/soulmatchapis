@@ -823,6 +823,39 @@ export const AllQuestions =  async (req, res) => {
 
 
 
+export const AddQuestion = async (req, res) => {
+    const { title, text } = req.body;
+
+    // Validate the input
+    if (!title || !text) {
+        return res.status(400).json({
+            status: false,
+            message: "Both title and text are required to create a question."
+        });
+    }
+
+    try {
+        // Create a new question in the database
+        const newQuestion = await db.Questions.create({
+            title,
+            text
+        });
+
+        res.status(201).json({
+            status: true,
+            message: "Question added successfully",
+            data: newQuestion
+        });
+    } catch (error) {
+        console.error('Error adding question:', error);
+        res.status(500).json({
+            status: false,
+            message: "Failed to add question",
+            error: error.message
+        });
+    }
+}
+
 
 
 
