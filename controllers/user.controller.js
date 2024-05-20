@@ -836,7 +836,7 @@ export const AddQuestion = async (req, res) => {
 
     try {
         // Create a new question in the database
-        const newQuestion = await db.Questions.create({
+        const newQuestion = await db.profileQuestions.create({
             title,
             text
         });
