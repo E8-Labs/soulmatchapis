@@ -118,6 +118,17 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.DOUBLE,
         allowNull: false,
         defaultValue: 0
+      },
+      interested_gender: {
+        type: Sequelize.STRING,
+      },
+      interested_min_age: {
+        type: Sequelize.INTEGER,
+        // defaultValue: 15
+      },
+      interested_max_age: {
+        type: Sequelize.INTEGER,
+        // defaultValue: 60
       }
       
     }, 

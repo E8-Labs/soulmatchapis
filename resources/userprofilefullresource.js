@@ -68,6 +68,13 @@ async function getUserData(user, currentUser = null) {
         profileCompletion = 9;// user have completed work screen
         comment = "Take user to Add interests screen";
     }
+
+
+    let answers = await db.userAnswers.findAll({
+        where: {
+            UserId: user.id
+        }
+    })
     
     const UserFullResource = {
         id: user.id,
@@ -94,6 +101,7 @@ async function getUserData(user, currentUser = null) {
         intro_video_thumbnail: user.intro_thumbnail_url,
         profile_completion: profileCompletion,
         profile_completion_comment: comment,
+        answers: answers,
     }
 
 

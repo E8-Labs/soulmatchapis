@@ -520,6 +520,18 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.last_name !== 'undefined') {
                     user.last_name = req.body.last_name;
                 }
+
+                if (typeof req.body.interested_gender !== 'undefined') {
+                    user.interested_gender = req.body.interested_gender;
+                }
+
+                if (typeof req.body.interested_min_age !== 'undefined') {
+                    user.interested_min_age = req.body.interested_min_age;
+                }
+
+                if (typeof req.body.interested_max_age !== 'undefined') {
+                    user.interested_max_age = req.body.interested_max_age;
+                }
                 
 
                 const saved = await user.save();
@@ -669,6 +681,50 @@ export const GetProfilesWhoLikedMe = (req, res) => {
 
 
 
+export const FindAllMyMatches = (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            const userId = authData.user.id; // User making the request
+
+            try {
+                // Fetch all matches where the current user is involved with status 'matched'
+                const matches = await db.profileMatches.findAll({
+                    where: {
+                        [db.Sequelize.Op.or]: [
+                            { user_1_id: userId },
+                            { user_2_id: userId }
+                        ],
+                        status: 'matched'
+                    }
+                });
+
+                // Map the results to get the IDs of the other user in each match
+                const ids = matches.map(match => match.user_1_id === userId ? match.user_2_id : match.user_1_id);
+
+                // Fetch profiles of users matched with
+                const matchedUsers = await db.user.findAll({
+                    where: {
+                        id: { [db.Sequelize.Op.in]: ids }
+                    }
+                });
+
+                // Use a helper function to get full profile resources if available
+                let fullProfileResources = await UserProfileFullResource(matchedUsers);
+                res.send({ status: true, message: "Matched profiles retrieved successfully", data: fullProfileResources });
+            } catch (err) {
+                console.error('Error fetching matched profiles:', err);
+                res.send({ status: false, message: "Failed to fetch matched profiles", data: null });
+            }
+        } else if (error) {
+            console.error('JWT verification error:', error);
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        } else {
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        }
+    });
+};
+
+
 export const LikeProfile = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
@@ -738,6 +794,39 @@ export const LikeProfile = (req, res) => {
         }
     });
 };
+
+
+
+
+
+// Route to get all questions
+export const AllQuestions =  async (req, res) => {
+    try {
+        const questions = await db.profileQuestions.findAll({
+            attributes: ['id', 'text'] // Only fetch the id and text of each question
+        });
+
+        res.status(200).json({
+            status: true,
+            message: "Successfully retrieved all questions",
+            data: questions
+        });
+    } catch (error) {
+        console.error('Error fetching questions:', error);
+        res.status(500).json({
+            status: false,
+            message: "Failed to retrieve questions",
+            data: null
+        });
+    }
+};
+
+
+
+
+
+
+
 
 
 

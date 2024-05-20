@@ -413,3 +413,80 @@ function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
         }
     });
 }
+
+// Route to submit an answer to a question
+export const AnswerQuestion = async (req, res) => {
+    console.log("Upload answer");
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error || !authData) {
+            return res.status(401).json({
+                status: false,
+                message: "Authentication failed"
+            });
+        }
+
+        const { questionId, answerText } = req.body;
+        const files = req.files;
+
+        if (!authData.user.id || !questionId) {
+            return res.status(400).json({
+                status: false,
+                message: "Missing required user or question identification data"
+            });
+        }
+
+        try {
+            let answerImage = null, answerVideo = null, videoThumbnail = null;
+
+            if (files.media) {
+                await new Promise((resolve, reject) => {
+                    uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, (uploadedUrl, error) => {
+                        if (error) {
+                            reject(new Error("Failed to upload media"));
+                        } else {
+                            files.media[0].mimetype.includes("video") ? answerVideo = uploadedUrl : answerImage = uploadedUrl;
+                            resolve();
+                        }
+                    });
+                });
+            }
+
+            if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
+                await new Promise((resolve, reject) => {
+                    uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, (uploadedUrl, error) => {
+                        if (error) {
+                            reject(new Error("Failed to upload thumbnail"));
+                        } else {
+                            videoThumbnail = uploadedUrl;
+                            resolve();
+                        }
+                    });
+                });
+            }
+
+            const newAnswer = await db.userAnswers.create({
+                UserId: authData.user.id,
+                questionId,
+                answerText,
+                answerImage,
+                answerVideo,
+                videoThumbnail
+            });
+
+            res.status(201).json({
+                status: true,
+                message: "Answer submitted successfully",
+                data: newAnswer
+            });
+
+        } catch (uploadError) {
+            console.error('Error submitting answer:', uploadError);
+            res.status(500).json({
+                status: false,
+                message: "Failed to submit answer",
+                error: uploadError.message
+            });
+        }
+    });
+};
+

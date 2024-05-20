@@ -37,6 +37,8 @@ import emailVerificationCodeModel from "./user/emailverificationcode.model.js";
 import UserMediaModel from "./user/usermedia.model.js";
 import ProfileLikesModel from "./profilelikes.model.js";
 import ProfileMatchesModel from "./profilematches.model.js";
+import ProfileQuestionsModel from "./user/ProfileQuestions.model.js";
+import UserAnswerModel from "./user/UserAnswer.model.js";
 
 
 
@@ -77,6 +79,11 @@ db.profileMatches = ProfileMatchesModel(sequelize, Sequelize);
 if (db.profileMatches.associate) {
   db.profileMatches.associate(db);
 }
+
+db.profileQuestions = ProfileQuestionsModel(sequelize, Sequelize);
+
+db.userAnswers = UserAnswerModel(sequelize, Sequelize);
+
 
 
 export default db;
