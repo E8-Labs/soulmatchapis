@@ -803,7 +803,7 @@ export const LikeProfile = (req, res) => {
 export const AllQuestions =  async (req, res) => {
     try {
         const questions = await db.profileQuestions.findAll({
-            attributes: ['id', 'text'] // Only fetch the id and text of each question
+            attributes: ['id', 'text', 'title'] // Only fetch the id and text of each question
         });
 
         res.status(200).json({
