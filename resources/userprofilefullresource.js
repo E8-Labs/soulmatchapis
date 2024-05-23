@@ -107,7 +107,7 @@ async function getUserData(user, currentUser = null) {
         interested_max_age: user.interested_max_age,
         interested_min_age: user.interested_min_age,
         interested_gender: user.interested_gender,
-
+        media: userMedia,
     }
 
 
