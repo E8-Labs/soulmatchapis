@@ -86,6 +86,8 @@ async function getUserData(user, currentUser = null) {
         state: user.state,
         role: user.role,
         city: user.city,
+        lat: user.lat, 
+        lang: user.lang,
         provider_id: user.provider_id,
         provider_name: user.provider_name,
         dob: user.dob,
@@ -102,6 +104,10 @@ async function getUserData(user, currentUser = null) {
         profile_completion: profileCompletion,
         profile_completion_comment: comment,
         answers: answers,
+        interested_max_age: user.interested_max_age,
+        interested_min_age: user.interested_min_age,
+        interested_gender: user.interested_gender,
+
     }
 
 
