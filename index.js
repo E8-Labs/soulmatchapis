@@ -55,7 +55,7 @@ db.sequelize.authenticate().then(() => {
   });
 
 // sync
-db.sequelize.sync({ alter: true })//{alter: true}
+db.sequelize.sync({ alter: false })//{alter: true}
 
 
 
