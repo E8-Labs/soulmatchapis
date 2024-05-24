@@ -70,7 +70,7 @@ async function getUserData(user, currentUser = null) {
     }
 
 
-    let answers = await db.UserAnswer.findAll({
+    let answers = await db.userAnswers.findAll({
         where: {
             UserId: user.id
         },
