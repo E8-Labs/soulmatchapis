@@ -1,5 +1,5 @@
-let ProfileQuestionsModel = (sequelize, Sequelize) => {
-    const Questions = sequelize.define("ProfileQuestions", {
+const profileQuestionsModel = (sequelize, Sequelize) => {
+    const profileQuestions = sequelize.define("profileQuestions", {
         title: {
             type: Sequelize.STRING,
             allowNull: false,
@@ -8,11 +8,16 @@ let ProfileQuestionsModel = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: false,
         }
-    }, {
-        // Other model options go here
     });
 
-    return Questions;
+    profileQuestions.associate = (models) => {
+        profileQuestions.hasMany(models.UserAnswer, {
+            foreignKey: 'questionId',
+            as: 'userAnswers'
+        });
+    };
+
+    return profileQuestions;
 };
 
-export default ProfileQuestionsModel;
+export default profileQuestionsModel;

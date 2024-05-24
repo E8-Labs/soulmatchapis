@@ -70,16 +70,25 @@ async function getUserData(user, currentUser = null) {
     }
 
 
-    let answers = await db.userAnswers.findAll({
-        where: {
-            UserId: user.id
-        },
-        include: [{
-            model: db.profileQuestions,
-            as: 'ProfileQuestions',
-            attributes: ['title', 'text']
-        }]
-    });
+    const query = `
+    SELECT 
+        ua.*, 
+        pq.title, 
+        pq.text 
+    FROM 
+        UserAnswers ua
+    JOIN 
+        ProfileQuestions pq 
+    ON 
+        ua.questionId = pq.id
+    WHERE 
+        ua.UserId = :userId
+`;
+
+const answers = await db.sequelize.query(query, {
+    replacements: { userId: user.id },
+    type: QueryTypes.SELECT
+});
     
     
     const UserFullResource = {

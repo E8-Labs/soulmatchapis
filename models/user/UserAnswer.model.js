@@ -1,10 +1,10 @@
-let UserAnswerModel = (sequelize, Sequelize) => {
+const UserAnswerModel = (sequelize, Sequelize) => {
     const UserAnswer = sequelize.define("UserAnswer", {
         UserId: {
             type: Sequelize.INTEGER,
             allowNull: false,
             references: {
-                model: 'Users', // Adjust as necessary to match your User model's table name
+                model: 'Users',
                 key: 'id'
             }
         },
@@ -12,7 +12,7 @@ let UserAnswerModel = (sequelize, Sequelize) => {
             type: Sequelize.INTEGER,
             allowNull: false,
             references: {
-                model: 'ProfileQuestions', // Now correctly referencing the ProfileQuestions table
+                model: 'profileQuestions',
                 key: 'id'
             }
         },
@@ -21,29 +21,27 @@ let UserAnswerModel = (sequelize, Sequelize) => {
             allowNull: true,
         },
         answerImage: {
-            type: Sequelize.STRING, // URL to the image
+            type: Sequelize.STRING,
             allowNull: true,
         },
         answerVideo: {
-            type: Sequelize.STRING, // URL to the video
+            type: Sequelize.STRING,
             allowNull: true,
         },
         videoThumbnail: {
-            type: Sequelize.STRING, // URL to the video thumbnail
+            type: Sequelize.STRING,
             allowNull: true,
         }
-    }, {
-        // Other model options go here
     });
- 
+
     UserAnswer.associate = (models) => {
         UserAnswer.belongsTo(models.User, {
             foreignKey: 'UserId',
             as: 'User'
         });
-        UserAnswer.belongsTo(models.ProfileQuestions, {
+        UserAnswer.belongsTo(models.profileQuestions, {
             foreignKey: 'questionId',
-            as: 'ProfileQuestions'
+            as: 'profileQuestions'
         });
     };
 

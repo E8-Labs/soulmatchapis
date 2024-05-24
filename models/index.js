@@ -37,7 +37,7 @@ import emailVerificationCodeModel from "./user/emailverificationcode.model.js";
 import UserMediaModel from "./user/usermedia.model.js";
 import ProfileLikesModel from "./profilelikes.model.js";
 import ProfileMatchesModel from "./profilematches.model.js";
-import ProfileQuestionsModel from "./user/ProfileQuestions.model.js";
+import profileQuestionsModel from "./user/profileQuestions.model.js";
 import UserAnswerModel from "./user/UserAnswer.model.js";
 
 
@@ -80,10 +80,14 @@ if (db.profileMatches.associate) {
   db.profileMatches.associate(db);
 }
 
-db.profileQuestions = ProfileQuestionsModel(sequelize, Sequelize);
+db.profileQuestions = profileQuestionsModel(sequelize, Sequelize);
 
 db.userAnswers = UserAnswerModel(sequelize, Sequelize);
 
-
+// Object.keys(db).forEach(modelName => {
+//   if (db[modelName].associate) {
+//       db[modelName].associate(db);
+//   }
+// });
 
 export default db;
