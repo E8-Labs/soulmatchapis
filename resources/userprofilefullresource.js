@@ -68,6 +68,11 @@ async function getUserData(user, currentUser = null) {
         profileCompletion = 9;// user have completed work screen
         comment = "Take user to Add interests screen";
     }
+    if((user.interested_min_age != "" && user.interested_min_age != null) && (user.interested_max_age != "" && user.interested_max_age != null)
+        && (user.interested_gender != "" && user.interested_gender != null)){
+        profileCompletion = 10;// user have completed Interests screen
+        comment = "Take user to Location screen";
+    }
 
 
     const query = `
