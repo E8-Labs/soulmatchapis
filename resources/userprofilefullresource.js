@@ -70,11 +70,17 @@ async function getUserData(user, currentUser = null) {
     }
 
 
-    let answers = await db.userAnswers.findAll({
+    let answers = await db.UserAnswer.findAll({
         where: {
             UserId: user.id
-        }
-    })
+        },
+        include: [{
+            model: db.profileQuestions,
+            as: 'ProfileQuestions',
+            attributes: ['title', 'text']
+        }]
+    });
+    
     
     const UserFullResource = {
         id: user.id,
