@@ -41,7 +41,7 @@ let UserAnswerModel = (sequelize, Sequelize) => {
             foreignKey: 'UserId',
             as: 'User'
         });
-        UserAnswer.belongsTo(models.Question, {
+        UserAnswer.belongsTo(models.ProfileQuestions, {
             foreignKey: 'questionId',
             as: 'ProfileQuestions'
         });
