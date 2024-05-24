@@ -87,7 +87,7 @@ async function getUserData(user, currentUser = null) {
 
 const answers = await db.sequelize.query(query, {
     replacements: { userId: user.id },
-    type: QueryTypes.SELECT
+    type: db.sequelize.QueryTypes.SELECT
 });
     
     
