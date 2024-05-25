@@ -30,7 +30,7 @@ async function getUserData(user, currentUser = null) {
 
     let profileCompletion = 1;// user have completed registration, take him to intro
     let comment = ""
-    if(user.intro_video != "" && user.intro_video != null){
+    if (user.intro_video != "" && user.intro_video != null) {
         profileCompletion = 2;// user have completed intro video
         comment = "Take user to Add Media screen";
     }
@@ -39,42 +39,45 @@ async function getUserData(user, currentUser = null) {
             UserId: user.id
         }
     })
-    if(userMedia && userMedia.length > 0){
+    if (userMedia && userMedia.length > 0) {
         profileCompletion = 3;// user have completed media
         comment = "Take user to Add zodiac screen";
     }
-    if(user.zodiac != "" && user.zodiac != null){
+    if (user.zodiac != "" && user.zodiac != null) {
         profileCompletion = 4; // user have completed zodiac
         comment = "Take user to Add age screen";
     }
-    if(user.age != "" && user.age != null){
+    if (user.age != "" && user.age != null) {
         profileCompletion = 5;// user have completed age
         comment = "Take user to Add height screen";
     }
-    if(user.height_feet != "" && user.height_feet != null){
+    if (user.height_feet != "" && user.height_feet != null) {
         profileCompletion = 6;// user have completed height
         comment = "Take user to Add gender screen";
     }
-    if(user.gender != "" && user.gender != null){
+    if (user.gender != "" && user.gender != null) {
         profileCompletion = 7;// user have completed gender
         comment = "Take user to Add school screen";
     }
 
-    if(user.school != "" && user.school != null){
+    if (user.school != "" && user.school != null) {
         profileCompletion = 8;// user have completed school
         comment = "Take user to Add Work screen";
     }
-    if(user.job_title != "" && user.job_title != null){
+    if (user.job_title != "" && user.job_title != null) {
         profileCompletion = 9;// user have completed work screen
         comment = "Take user to Add interests screen";
     }
-    if((user.interested_min_age != "" && user.interested_min_age != null) && (user.interested_max_age != "" && user.interested_max_age != null)
-        && (user.interested_gender != "" && user.interested_gender != null)){
+    if ((user.interested_min_age != "" && user.interested_min_age != null) && (user.interested_max_age != "" && user.interested_max_age != null)
+        && (user.interested_gender != "" && user.interested_gender != null)) {
         profileCompletion = 10;// user have completed Interests screen
         comment = "Take user to Location screen";
     }
 
-
+    if ((user.lat != "" && user.lat != null) && (user.lang != "" && user.lang != null)) {
+        profileCompletion = 11;// user have completed Interests screen
+        comment = "Take user to Dashboard screen";
+    }
     const query = `
     SELECT 
         ua.*, 
@@ -90,12 +93,12 @@ async function getUserData(user, currentUser = null) {
         ua.UserId = :userId
 `;
 
-const answers = await db.sequelize.query(query, {
-    replacements: { userId: user.id },
-    type: db.sequelize.QueryTypes.SELECT
-});
-    
-    
+    const answers = await db.sequelize.query(query, {
+        replacements: { userId: user.id },
+        type: db.sequelize.QueryTypes.SELECT
+    });
+
+
     const UserFullResource = {
         id: user.id,
         name: user.firstname,
@@ -106,7 +109,7 @@ const answers = await db.sequelize.query(query, {
         state: user.state,
         role: user.role,
         city: user.city,
-        lat: user.lat, 
+        lat: user.lat,
         lang: user.lang,
         provider_id: user.provider_id,
         provider_name: user.provider_name,
