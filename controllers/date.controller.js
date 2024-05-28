@@ -177,3 +177,48 @@ export const addBooking = (req, res) => {
         }
     });
 };
+
+
+
+// Function to add a category
+export const addCategory = (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const { name } = req.body;
+
+        try {
+            const category = await db.Category.create({ name });
+            res.send({ status: true, message: 'Category added successfully.', data: category });
+        } catch (err) {
+            console.error('Error adding category:', err);
+            res.status(500).send({ status: false, message: 'An error occurred while adding the category.', error: err.message });
+        }
+    });
+};
+
+// Function to delete a category
+export const deleteCategory = (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const { id } = req.params;
+
+        try {
+            const result = await db.Category.destroy({ where: { id } });
+
+            if (result) {
+                res.send({ status: true, message: 'Category deleted successfully.' });
+            } else {
+                res.send({ status: false, message: 'Category not found.' });
+            }
+        } catch (err) {
+            console.error('Error deleting category:', err);
+            res.status(500).send({ status: false, message: 'An error occurred while deleting the category.', error: err.message });
+        }
+    });
+};
