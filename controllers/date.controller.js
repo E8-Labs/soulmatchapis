@@ -199,6 +199,17 @@ export const addCategory = (req, res) => {
     });
 };
 
+
+export const loadCategories = async (req, res) => {
+    try {
+        const categories = await db.Category.findAll();
+        res.send({ status: true, message: 'Categories fetched successfully.', data: categories });
+    } catch (err) {
+        console.error('Error fetching categories:', err);
+        res.status(500).send({ status: false, message: 'An error occurred while fetching categories.', error: err.message });
+    }
+};
+
 // Function to delete a category
 export const deleteCategory = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
