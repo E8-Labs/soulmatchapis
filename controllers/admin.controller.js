@@ -211,37 +211,55 @@ const countUniqueDownloads = async (days) => {
 }
 
 export const GetUsers = (req, res) => {
-    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-        if (authData) {
-            ////console.log("Auth data ", authData)
-            let userid = authData.user.id;
-            let offset = 0;
-            if (typeof req.query.offset !== 'undefined') {
-                offset = req.query.offset;
-            }
-            const user = await User.findAll({
-                where: {
-                    role: {
-                        [Op.ne]: UserRole.RoleAdmin
-                    }
-                },
-                offset: Number(offset),
-                limit: 100
-            });
-            if (user) {
-                let u = await UserProfileLiteResource(user);
-                res.send({ status: true, message: "Profiles ", data: u })
-            }
-            else {
-                res.send({ status: false, message: "No Profile found", data: null })
-            }
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+      if (authData) {
+          let userid = authData.user.id;
+          let offset = 0;
+          if (typeof req.query.offset !== 'undefined') {
+              offset = req.query.offset;
+          }
+          let searchQuery = {};
+          if (req.query.search) {
+              const searchTerm = req.query.search;
+              searchQuery = {
+                  [Op.or]: [
+                      { first_name: { [Op.like]: `%${searchTerm}%` } },
+                      { last_name: { [Op.like]: `%${searchTerm}%` } },
+                      { email: { [Op.like]: `%${searchTerm}%` } }
+                  ]
+              };
+          }
+          try {
+              const users = await db.user.findAll({
+                  where: {
+                      role: {
+                          [Op.ne]: 'admin'
+                      },
+                      status: 'active',
+                      ...searchQuery
+                  },
+                  offset: Number(offset),
+                  limit: 100
+              });
 
-        }
-        else {
-            res.send({ status: false, message: "Unauthenticated user", data: null })
-        }
-    })
-}
+              if (users.length > 0) {
+                  let userProfiles = await UserProfileLiteResource(users); // Ensure this function is defined in your project
+                  res.send({ status: true, message: "Profiles found", data: userProfiles });
+              } else {
+                  res.send({ status: false, message: "No profiles found", data: null });
+              }
+          } catch (err) {
+              console.error('Error fetching user profiles:', err);
+              res.status(500).send({ status: false, message: 'An error occurred while fetching profiles.', error: err.message });
+          }
+      } else if (error) {
+          console.error('JWT verification error:', error);
+          res.send({ status: false, message: 'Unauthenticated user', data: null });
+      } else {
+          res.send({ status: false, message: 'Unauthenticated user', data: null });
+      }
+  });
+};
 
 
 
@@ -309,3 +327,82 @@ export const SendPasswordResetEmail = (req, res) => {
         res.send({ status: false, data: null, message: "No such user" })
     }
 }
+
+
+
+export const deleteUserById = (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+      if (authData) {
+          const adminUserId = authData.user.id; // User making the request
+          const userIdToDelete = req.body.user_id; // User being deleted
+
+          try {
+              // Check if the requesting user is an admin
+              const adminUser = await db.user.findByPk(adminUserId);
+              if (!adminUser || adminUser.role !== 'admin') {
+                  return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
+              }
+
+              // Check if the user to be deleted exists
+              const userToDelete = await db.user.findByPk(userIdToDelete);
+              if (!userToDelete) {
+                  return res.status(404).send({ status: false, message: 'User not found.' });
+              }
+
+              // Delete the user
+              await db.user.destroy({
+                  where: {
+                      id: userIdToDelete
+                  }
+              });
+
+              res.send({ status: true, message: 'User deleted successfully.' });
+          } catch (err) {
+              console.error('Error deleting user:', err);
+              res.status(500).send({ status: false, message: 'An error occurred while deleting the user.', error: err.message });
+          }
+      } else if (error) {
+          console.error('JWT verification error:', error);
+          res.send({ status: false, message: 'Unauthenticated user', data: null });
+      } else {
+          res.send({ status: false, message: 'Unauthenticated user', data: null });
+      }
+  });
+};
+
+export const suspendUserById = (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+      if (authData) {
+          const adminUserId = authData.user.id; // User making the request
+          const userIdToSuspend = req.body.user_id; // User being suspended
+
+          try {
+              // Check if the requesting user is an admin
+              const adminUser = await db.user.findByPk(adminUserId);
+              if (!adminUser || adminUser.role !== 'admin') {
+                  return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
+              }
+
+              // Check if the user to be suspended exists
+              const userToSuspend = await db.user.findByPk(userIdToSuspend);
+              if (!userToSuspend) {
+                  return res.status(404).send({ status: false, message: 'User not found.' });
+              }
+
+              // Suspend the user
+              userToSuspend.status = 'suspended';
+              await userToSuspend.save();
+
+              res.send({ status: true, message: 'User suspended successfully.', data: userToSuspend });
+          } catch (err) {
+              console.error('Error suspending user:', err);
+              res.status(500).send({ status: false, message: 'An error occurred while suspending the user.', error: err.message });
+          }
+      } else if (error) {
+          console.error('JWT verification error:', error);
+          res.send({ status: false, message: 'Unauthenticated user', data: null });
+      } else {
+          res.send({ status: false, message: 'Unauthenticated user', data: null });
+      }
+  });
+};

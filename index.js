@@ -45,6 +45,7 @@ import db from "./models/index.js";
 import chatRouter from "./routes/chat.router.js";
 import adminRouter from "./routes/admin.router.js";
 import mediaRouter from "./routes/media.router.js";
+import dateRouter from "./routes/date.router.js";
 
 db.sequelize.authenticate().then(() => {
   console.log("Connected to the database!");
@@ -55,7 +56,7 @@ db.sequelize.authenticate().then(() => {
   });
 
 // sync
-db.sequelize.sync({ alter: false })//{alter: true}
+db.sequelize.sync({ alter: true })//{alter: true}
 
 
 
@@ -64,7 +65,7 @@ app.use("/api/media", uploadFiles, mediaRouter);
 app.use("/api/chat", verifyJwtToken, chatRouter);//verifyJwtToken
 app.use("/api/admin", verifyJwtToken, adminRouter);//verifyJwtToken
 
-
+app.use("/api/admin/dates", uploadImg, dateRouter);
 
 
 

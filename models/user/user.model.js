@@ -100,7 +100,11 @@ const UserModel = (sequelize, Sequelize) => {
         values: ['user', 'admin'],
         default: 'user'
       },
-      
+      status: {
+        type: Sequelize.ENUM,
+        values: ['active', 'suspended', 'deleted'],
+        default: 'active'
+      },
       enc_key: {
         type: Sequelize.BLOB,
         allowNull: true

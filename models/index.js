@@ -1,5 +1,9 @@
 import dbConfig from "../config/db.config.js";
 import passwordresetcodeModel from "./user/passwordresetcode.model.js";
+import CategoryModel from "./date/category.model.js";
+import DatePlaceModel from "./date/dateplace.model.js";
+import BookingModel from './date/Booking.model.js'
+
 
 import  Sequelize from "sequelize";
 //console.log("Connecting DB")
@@ -84,10 +88,11 @@ db.profileQuestions = ProfileQuestionsModel(sequelize, Sequelize);
 
 db.userAnswers = UserAnswerModel(sequelize, Sequelize);
 
-// Object.keys(db).forEach(modelName => {
-//   if (db[modelName].associate) {
-//       db[modelName].associate(db);
-//   }
-// });
+db.Category = CategoryModel(sequelize, Sequelize);
+db.DatePlace = DatePlaceModel(sequelize, Sequelize);
+
+db.DatePlace.associate(db);
+
+db.Booking = BookingModel(sequelize, Sequelize);
 
 export default db;
