@@ -471,6 +471,9 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.state !== 'undefined') {
                     user.state = req.body.state;
                 }
+                if (typeof req.body.role !== 'undefined') {
+                    user.role = req.body.role;
+                }
                 if (typeof req.body.height_inches !== 'undefined') {
                     user.height_inches = req.body.height_inches;
                 }
