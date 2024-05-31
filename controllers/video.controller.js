@@ -184,6 +184,26 @@ export const DeleteMedia = async(req, res) => {
 }
 
 
+export const DeleteIntroVideo = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id);
+            //delete video from aws
+            user.intro_thumbnail_url = null;//thumbUrl;
+            user.intro_video = null;//uploadedFileUrl;
+            let saved = user.save();
+            if(saved){
+                let p = await UserProfileFullResource(user);
+                res.send({ status: true, message: "User intro deleted", data: p});
+            }
+        }
+        else{
+            res.send({ status: false, message: "Unauthenticated user" });
+        }
+
+    })
+}
+
 export const UploadIntroVideos = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
