@@ -3,7 +3,7 @@ import db from "../models/index.js";
 import S3 from "aws-sdk/clients/s3.js";
 import JWT from "jsonwebtoken";
 import bcrypt from 'bcrypt';
-import AWS  from 'aws-sdk';
+import AWS from 'aws-sdk';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
@@ -23,134 +23,134 @@ const mkdir = promisify(fs.mkdir);
 
 // Configure AWS SDK
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION
 });
 
 const s3 = new AWS.S3();
 
 const generateThumbnail = (videoPath, thumbnailPath) => {
-  return new Promise((resolve, reject) => {
-    ffmpeg(videoPath)
-      .on('end', () => {
-        console.log('Screenshot taken');
-        resolve(thumbnailPath);
-      })
-      .on('error', (err) => {
-        console.log('An error occurred: ' + err.message);
-        reject(err);
-      })
-      .screenshots({
-        count: 1,
-        folder: path.dirname(thumbnailPath),
-        filename: path.basename(thumbnailPath),
-        size: '320x240'
-      });
-  });
+    return new Promise((resolve, reject) => {
+        ffmpeg(videoPath)
+            .on('end', () => {
+                console.log('Screenshot taken');
+                resolve(thumbnailPath);
+            })
+            .on('error', (err) => {
+                console.log('An error occurred: ' + err.message);
+                reject(err);
+            })
+            .screenshots({
+                count: 1,
+                folder: path.dirname(thumbnailPath),
+                filename: path.basename(thumbnailPath),
+                size: '320x240'
+            });
+    });
 };
 
 const uploadToS3 = async (filePath, bucketName, key) => {
-  return readFile(filePath)
-    .then(data => {
-      const params = {
-        Bucket: bucketName,
-        Key: key,
-        Body: data,
-        ContentType: 'image/png'
-      };
+    return readFile(filePath)
+        .then(data => {
+            const params = {
+                Bucket: bucketName,
+                Key: key,
+                Body: data,
+                ContentType: 'image/png'
+            };
 
-      return s3.upload(params).promise();
-    });
+            return s3.upload(params).promise();
+        });
 };
 const ensureDirExists = async (dir) => {
     if (!fs.existsSync(dir)) {
-      await mkdir(dir, { recursive: true });
+        await mkdir(dir, { recursive: true });
     }
-  };
-
-export const UploadIntroVideoInVideoController = async (req, res) => {
-  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-    if (authData) {
-      let user = await db.user.findByPk(authData.user.id);
-      console.log("User is ", user)
-      if (typeof (req.file) !== 'undefined' && user) {
-        let mime = req.file.mimetype;
-        if (mime.includes("video")) {
-          const fileContent = req.file.buffer;
-          const fieldname = req.file.fieldname;
-
-        //   uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
-        //     if (error) {
-        //       return res.send({ status: false, message: "Error uploading video", error });
-        //     }
-
-        //     user.intro_video = uploadedFile;
-        //     let saved = await user.save();
-
-            // if (saved) {
-              // Save the uploaded video to a temporary file
-              const tempDir = './temp';
-              const thumbnailsDir = './thumbnails';
-              await ensureDirExists(tempDir);
-              await ensureDirExists(thumbnailsDir);
-              const tempVideoPath = `./temp/${req.file.originalname}`;
-              await writeFile(tempVideoPath, fileContent);
-
-              // Generate the thumbnail
-              const thumbnailPath = `./temp/thumbnail-${path.basename(req.file.originalname, path.extname(req.file.originalname))}.png`;
-              try {
-                await generateThumbnail(tempVideoPath, thumbnailPath);
-
-                // Upload the thumbnail to S3
-                const thumbnailKey = `thumbnails/${path.basename(thumbnailPath)}`;
-                // const uploadResult = await uploadToS3(thumbnailPath, process.env.S3_BUCKET_NAME, thumbnailKey);
-
-                // Clean up temporary files
-                await unlink(tempVideoPath);
-                await unlink(thumbnailPath);
-
-                // Save the thumbnail URL to the user profile if needed
-                user.intro_thumbnail_url = thumbnailPath;// uploadResult.Location;
-                saved = await user.save();
-
-                if (saved) {
-                  let u = await UserProfileFullResource(user);
-                  res.send({ status: true, message: "Intro video and thumbnail saved", data: u });
-                } else {
-                  res.send({ status: false, message: "Error saving intro video and thumbnail", data: null });
-                }
-              } catch (err) {
-                console.error('Error generating or uploading thumbnail:', err);
-                res.send({ status: false, message: "Error generating or uploading thumbnail", error: err });
-              }
-            // } else {
-            //   res.send({ status: false, message: "Error saving intro video", data: null });
-            // }
-        //   });
-        } else {
-          res.send({ status: false, message: "Invalid video file " + mime, data: null });
-        }
-      } else {
-        res.send({ status: false, message: "Please upload a video" });
-      }
-    } else {
-      res.send({ status: false, message: "Unauthenticated user" });
-    }
-  });
 };
 
-export const DeleteMedia = async(req, res) => {
+export const UploadIntroVideoInVideoController = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             let user = await db.user.findByPk(authData.user.id);
-            if(typeof req.body.media_id !== 'undefined'){
+            console.log("User is ", user)
+            if (typeof (req.file) !== 'undefined' && user) {
+                let mime = req.file.mimetype;
+                if (mime.includes("video")) {
+                    const fileContent = req.file.buffer;
+                    const fieldname = req.file.fieldname;
+
+                    //   uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                    //     if (error) {
+                    //       return res.send({ status: false, message: "Error uploading video", error });
+                    //     }
+
+                    //     user.intro_video = uploadedFile;
+                    //     let saved = await user.save();
+
+                    // if (saved) {
+                    // Save the uploaded video to a temporary file
+                    const tempDir = './temp';
+                    const thumbnailsDir = './thumbnails';
+                    await ensureDirExists(tempDir);
+                    await ensureDirExists(thumbnailsDir);
+                    const tempVideoPath = `./temp/${req.file.originalname}`;
+                    await writeFile(tempVideoPath, fileContent);
+
+                    // Generate the thumbnail
+                    const thumbnailPath = `./temp/thumbnail-${path.basename(req.file.originalname, path.extname(req.file.originalname))}.png`;
+                    try {
+                        await generateThumbnail(tempVideoPath, thumbnailPath);
+
+                        // Upload the thumbnail to S3
+                        const thumbnailKey = `thumbnails/${path.basename(thumbnailPath)}`;
+                        // const uploadResult = await uploadToS3(thumbnailPath, process.env.S3_BUCKET_NAME, thumbnailKey);
+
+                        // Clean up temporary files
+                        await unlink(tempVideoPath);
+                        await unlink(thumbnailPath);
+
+                        // Save the thumbnail URL to the user profile if needed
+                        user.intro_thumbnail_url = thumbnailPath;// uploadResult.Location;
+                        saved = await user.save();
+
+                        if (saved) {
+                            let u = await UserProfileFullResource(user);
+                            res.send({ status: true, message: "Intro video and thumbnail saved", data: u });
+                        } else {
+                            res.send({ status: false, message: "Error saving intro video and thumbnail", data: null });
+                        }
+                    } catch (err) {
+                        console.error('Error generating or uploading thumbnail:', err);
+                        res.send({ status: false, message: "Error generating or uploading thumbnail", error: err });
+                    }
+                    // } else {
+                    //   res.send({ status: false, message: "Error saving intro video", data: null });
+                    // }
+                    //   });
+                } else {
+                    res.send({ status: false, message: "Invalid video file " + mime, data: null });
+                }
+            } else {
+                res.send({ status: false, message: "Please upload a video" });
+            }
+        } else {
+            res.send({ status: false, message: "Unauthenticated user" });
+        }
+    });
+};
+
+export const DeleteMedia = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id);
+            if (typeof req.body.media_id !== 'undefined') {
                 let deleted = await db.userMedia.destroy({
                     where: {
                         id: req.body.media_id
                     }
                 })
-                if(deleted){
+                if (deleted) {
                     let media = await db.userMedia.findAll({
                         where: {
                             UserId: user.id
@@ -159,15 +159,15 @@ export const DeleteMedia = async(req, res) => {
                     res.send({ status: true, message: "Media deleted", data: media });
                 }
             }
-            else if(typeof req.body.media_url !== 'undefined'){
-                
+            else if (typeof req.body.media_url !== 'undefined') {
+
                 let deleted = await db.userMedia.destroy({
                     where: {
                         url: req.body.media_url
                     }
                 })
                 console.log("Media url is not undefined ", deleted)
-                if(deleted){
+                if (deleted) {
                     let media = await db.userMedia.findAll({
                         where: {
                             UserId: user.id
@@ -177,7 +177,7 @@ export const DeleteMedia = async(req, res) => {
                 }
             }
         }
-        else{
+        else {
             res.send({ status: false, message: "Unauthenticated user" });
         }
     })
@@ -192,12 +192,12 @@ export const DeleteIntroVideo = async (req, res) => {
             user.intro_thumbnail_url = null;//thumbUrl;
             user.intro_video = null;//uploadedFileUrl;
             let saved = user.save();
-            if(saved){
+            if (saved) {
                 let p = await UserProfileFullResource(user);
-                res.send({ status: true, message: "User intro deleted", data: p});
+                res.send({ status: true, message: "User intro deleted", data: p });
             }
         }
-        else{
+        else {
             res.send({ status: false, message: "Unauthenticated user" });
         }
 
@@ -215,59 +215,59 @@ export const UploadIntroVideos = async (req, res) => {
                 let thumbUrl = null;
                 let file = req.files.media[0]
                 let thumb = null
-                if(req.files.thumbnail.length > 0){
+                if (req.files.thumbnail.length > 0) {
                     thumb = req.files.thumbnail[0]
                 }
                 console.log("Media files ", file)
                 console.log("Thumb files ", thumb)
                 // return
                 // for (const file of req.files) {
-                    
-                    let mime = file.mimetype;
-                    console.log("File type", mime);
 
-                    if (mime.includes("video")) {
-                        const fileContent = file.buffer;
-                        const fieldname = file.fieldname;
+                let mime = file.mimetype;
+                console.log("File type", mime);
 
-                        await new Promise((resolve, reject) => {
-                            uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
-                                if (error) {
-                                    console.log("Error Uploading ", error);
-                                    reject(error);
-                                } else {
-                                    console.log("File uploaded to ", uploadedFile);
-                                    uploadedFileUrl = uploadedFile;
-                                    // uploadedFiles.push(uploadedFile);
-                                    resolve();
-                                }
-                            });
+                if (mime.includes("video")) {
+                    const fileContent = file.buffer;
+                    const fieldname = file.fieldname;
+
+                    await new Promise((resolve, reject) => {
+                        uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                            if (error) {
+                                console.log("Error Uploading ", error);
+                                reject(error);
+                            } else {
+                                console.log("File uploaded to ", uploadedFile);
+                                uploadedFileUrl = uploadedFile;
+                                // uploadedFiles.push(uploadedFile);
+                                resolve();
+                            }
                         });
+                    });
 
-                        let thumbContent = thumb.buffer;
-                        let thumbMime = thumb.mimetype;
-                        await new Promise((resolve, reject) => {
-                            uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
-                                if (error) {
-                                    console.log("Error Uploading thumb", error);
-                                    reject(error);
-                                } else {
-                                    console.log("Thumbnail uploaded to ", uploadedFile);
-                                    thumbUrl = uploadedFile;
-                                    // uploadedFiles.push(uploadedFile);
-                                    resolve();
-                                }
-                            });
+                    let thumbContent = thumb.buffer;
+                    let thumbMime = thumb.mimetype;
+                    await new Promise((resolve, reject) => {
+                        uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
+                            if (error) {
+                                console.log("Error Uploading thumb", error);
+                                reject(error);
+                            } else {
+                                console.log("Thumbnail uploaded to ", uploadedFile);
+                                thumbUrl = uploadedFile;
+                                // uploadedFiles.push(uploadedFile);
+                                resolve();
+                            }
                         });
+                    });
 
 
-                    } else {
-                        res.send({ status: false, message: "Invalid video file " + mime, data: null });
-                        return;
-                    }
+                } else {
+                    res.send({ status: false, message: "Invalid video file " + mime, data: null });
+                    return;
+                }
                 // }
-                    user.intro_thumbnail_url = thumbUrl;
-                    user.intro_video = uploadedFileUrl;
+                user.intro_thumbnail_url = thumbUrl;
+                user.intro_video = uploadedFileUrl;
                 // user.intro_videos = uploadedFiles; // Assuming intro_videos is an array field in your user model
                 let saved = await user.save();
 
@@ -294,17 +294,17 @@ export async function UploadUserMedia(req, res) {
             let user = await db.user.findByPk(authData.user.id)
             if (user) {
                 if (req.files && req.files.media && req.files.media.length > 0) {
-                    
+
                     let file = req.files.media[0]
                     let thumb = null
-                    if(req.files.thumbnail && req.files.thumbnail.length > 0){
+                    if (req.files.thumbnail && req.files.thumbnail.length > 0) {
                         thumb = req.files.thumbnail[0]
                     }
                     console.log("Media files ", file)
                     console.log("Thumb files ", thumb)
                     // return
                     // for (const file of req.files) {
-                        
+
                     let mime = file.mimetype;
                     console.log("File type", mime);
 
@@ -352,7 +352,7 @@ export async function UploadUserMedia(req, res) {
                             thumb_url: thumbUrl,
                         })
                         if (created) {
-                            
+
                             res.send({ status: true, message: "Media saved", data: created });
                         }
                         else {
@@ -360,8 +360,8 @@ export async function UploadUserMedia(req, res) {
                         }
 
                     }
-                    else{
-                        
+                    else {
+
 
 
                         // console.log("file type", mime)
@@ -377,16 +377,16 @@ export async function UploadUserMedia(req, res) {
                                 caption: req.body.caption
                             })
                             if (created) {
-                                
+
                                 res.send({ status: true, message: "Media saved", data: created });
                             }
                             else {
                                 res.send({ status: false, message: "Error saving media", data: null });
                             }
-    
+
                         })
                     }
-                    
+
 
 
                 }
@@ -491,6 +491,26 @@ export const AnswerQuestion = async (req, res) => {
                 answerImage,
                 answerVideo,
                 videoThumbnail
+            });
+
+            const query = `
+    SELECT 
+        ua.*, 
+        pq.title, 
+        pq.text 
+    FROM 
+        UserAnswers ua
+    JOIN 
+        ProfileQuestions pq 
+    ON 
+        ua.questionId = pq.id
+    WHERE 
+        ua.UserId = :userId
+`;
+
+            const answers = await db.sequelize.query(query, {
+                replacements: { userId: authData.user.id },
+                type: db.sequelize.QueryTypes.SELECT
             });
 
             res.status(201).json({
