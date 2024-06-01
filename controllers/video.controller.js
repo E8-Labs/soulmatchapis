@@ -516,7 +516,7 @@ export const AnswerQuestion = async (req, res) => {
             res.status(201).json({
                 status: true,
                 message: "Answer submitted successfully",
-                data: newAnswer
+                data: answers
             });
 
         } catch (uploadError) {
