@@ -4,7 +4,7 @@ let NotificationModel = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-            model: 'users',
+            model: 'Users',
             key: 'id'
         }
     },
@@ -12,7 +12,7 @@ let NotificationModel = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-            model: 'users',
+            model: 'Users',
             key: 'id'
         }
     },
