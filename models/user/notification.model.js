@@ -1,15 +1,30 @@
 let NotificationModel = (sequelize, Sequelize) => {
     const Model = sequelize.define("Notification", {
-        from:{
-            type: Sequelize.INTEGER,
-            
-        },
       to: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
+    },
+    from: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
+    },
+      itemId: {
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
       notification_type: {
-        type: Sequelize.ENUM,
-        values: ['NewUser'],
+        type: Sequelize.STRING,
+      },
+      message: {
+        type: Sequelize.STRING,
       },
       is_read: {
         type: Sequelize.BOOLEAN,

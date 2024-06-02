@@ -11,6 +11,7 @@ import nodemailer from 'nodemailer'
 
 import crypto from 'crypto'
 import BookingResource from "../resources/booking.resource.js";
+import NotificationType from '../models/user/notificationtype.js'
 import { Sequelize } from "sequelize";
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
@@ -169,7 +170,7 @@ export const addBooking = (req, res) => {
                 numberOfGuests,
                 dateUserId
             });
-
+            let created = await createNotification(userId, dateUserId, booking.id, NotificationType.TypeDateInvite);
             res.send({ status: true, message: 'Booking added successfully.', data: booking });
         } catch (err) {
             console.error('Error adding booking:', err);

@@ -8,6 +8,7 @@ import moment from "moment-timezone";
 import axios from "axios";
 import chalk from "chalk";
 import nodemailer from 'nodemailer'
+import NotificationType from '../models/user/notificationtype.js'
 
 import crypto from 'crypto'
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
@@ -22,26 +23,27 @@ import UserRole from "../models/userrole.js";
 
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
 import NotificationResource from "../resources/notification.resource.js";
+import { createNotification } from "../utilities/notificationutility.js";
 
 const generateThumbnail = (videoPath, thumbnailPath) => {
     return new Promise((resolve, reject) => {
-      ffmpeg(videoPath)
-        .on('end', () => {
-          console.log('Screenshot taken');
-          resolve(thumbnailPath);
-        })
-        .on('error', (err) => {
-          console.log('An error occurred: ' + err.message);
-          reject(err);
-        })
-        .screenshots({
-          count: 1,
-          folder: path.dirname(thumbnailPath),
-          filename: path.basename(thumbnailPath),
-          size: '320x240'
-        });
+        ffmpeg(videoPath)
+            .on('end', () => {
+                console.log('Screenshot taken');
+                resolve(thumbnailPath);
+            })
+            .on('error', (err) => {
+                console.log('An error occurred: ' + err.message);
+                reject(err);
+            })
+            .screenshots({
+                count: 1,
+                folder: path.dirname(thumbnailPath),
+                filename: path.basename(thumbnailPath),
+                size: '320x240'
+            });
     });
-  };
+};
 
 export const RegisterUser = async (req, res) => {
 
@@ -87,11 +89,12 @@ export const RegisterUser = async (req, res) => {
                         console.log("File uploaded to ", uploadedFile)
                         console.log("Error Uploading ", error)
                         userData.profile_image = uploadedFile
-                        createUser(userData, (user, error) => {
+                        createUser(userData, async (user, error) => {
                             if (error) {
                                 res.send({ status: false, message: "Error  " + error.message, data: null, error: error });
                             }
                             else {
+
                                 res.send({ status: true, message: "User registered", data: user })
                             }
                         })
@@ -188,12 +191,9 @@ function createUser(userData, completion) {
                     }
                 })
                 if (admin) {
-                    let saved = await db.notification.create({
-                        from: data.id,
-                        to: admin.id,
-                        notification_type: "NewUser"
-                    })
+                    let created = await createNotification(data.id, admin.id, data.id, NotificationType.TypeNewUser);
                 }
+
                 completion({ user: u, token: token }, null)
                 // res.send({ status: true, message: "User registered", data: { user: u, token: token } })
 
@@ -421,7 +421,7 @@ export async function UploadUserMedia(req, res) {
                             caption: req.body.caption
                         })
                         if (created) {
-                            
+
                             res.send({ status: true, message: "Media saved", data: created });
                         }
                         else {
@@ -512,11 +512,11 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.lang !== 'undefined') {
                     user.lang = req.body.lang;
                 }
-                
+
                 if (typeof req.body.gender !== 'undefined') {
                     user.gender = req.body.gender;
                 }
-                
+
                 if (typeof req.body.first_name !== 'undefined') {
                     user.first_name = req.body.first_name;
                 }
@@ -535,7 +535,7 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.interested_max_age !== 'undefined') {
                     user.interested_max_age = req.body.interested_max_age;
                 }
-                
+
 
                 const saved = await user.save();
                 let u = await UserProfileFullResource(user)
@@ -664,7 +664,7 @@ export const GetProfilesWhoLikedMe = (req, res) => {
                     },
                     // attributes: ['id', 'first_name', 'last_name', 'email', 'profile_image'] // Customize attributes as needed
                 });
-        
+
                 // Send the result
                 let u = await UserProfileFullResource(usersWhoLikedMe);
                 res.send({ status: true, message: "Profiles who liked my profile", data: u });
@@ -742,15 +742,15 @@ export const LikeProfile = (req, res) => {
 
             try {
                 // Check or create like entry
-                let likeEntry = await db.profileLikes.findOrCreate({
+                let [likeEntry, created] = await db.profileLikes.findOrCreate({
                     where: { from: fromUserId, to: toUserId },
                     defaults: { status }
                 });
 
                 // If entry existed and status is being updated
-                if (!likeEntry[1] && likeEntry[0].status !== status) {
-                    likeEntry[0].status = status;
-                    await likeEntry[0].save();
+                if (!created && likeEntry.status !== status) {
+                    likeEntry.status = status;
+                    await likeEntry.save();
                 }
 
                 let matchCreated = false; // To track if a match has been created
@@ -767,22 +767,31 @@ export const LikeProfile = (req, res) => {
 
                     if (reciprocalLike) {
                         // Create match if both have liked each other
-                        const [matchEntry, created] = await db.profileMatches.findOrCreate({
+                        const [matchEntry, matchCreatedFlag] = await db.profileMatches.findOrCreate({
                             where: {
                                 user_1_id: fromUserId < toUserId ? fromUserId : toUserId,
                                 user_2_id: fromUserId > toUserId ? fromUserId : toUserId
                             },
                             defaults: { status: 'matched' }
                         });
-                        matchCreated = created; // Set true if a new match entry was created
+                        matchCreated = matchCreatedFlag; // Set true if a new match entry was created
+
+                        // Create match notification for both users
+                        await createNotification(fromUserId, toUserId, matchEntry.id, NotificationType.TypeMatch, 'You have a new match!');
+                        await createNotification(toUserId, fromUserId, matchEntry.id, NotificationType.TypeMatch, 'You have a new match!');
                     }
                 }
 
-                // Response includes match status
+                // Create like or dislike notification if not matched
+                if (!matchCreated) {
+                    await createNotification(fromUserId, toUserId, likeEntry.id, status === "liked" ? NotificationType.TypeLike : NotificationType.TypeDislike,
+                        status === "liked" ? 'Someone liked your profile!' : 'Someone disliked your profile.');
+                }
+
                 res.send({
                     status: true,
                     message: "Profile like status updated successfully",
-                    data: likeEntry[0],
+                    data: likeEntry,
                     match: matchCreated // Indicates if a new match was created
                 });
             } catch (err) {
@@ -802,8 +811,43 @@ export const LikeProfile = (req, res) => {
 
 
 
+export const getUserNotifications = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            const userId  = authData.user.id;
+            let { offset } = req.query;
+
+            // Set default offset to 0 if not provided
+            offset = offset ? parseInt(offset, 10) : 0;
+
+            try {
+                const notifications = await db.NotificationModel.findAll({
+                    where: { to: userId },
+                    order: [['createdAt', 'DESC']],
+                    offset: offset,
+                    limit: 50,
+                    include: [{
+                        model: db.user,
+                        as: "fromUser",
+                        attributes: ['id', 'first_name', 'last_name', 'profile_image']
+                    }]
+                });
+
+                res.send({ status: true, message: 'Notifications fetched successfully.', data: notifications });
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+                res.status(500).send({ status: false, message: 'An error occurred while fetching notifications.', error: err.message });
+            }
+        }
+
+    })
+
+};
+
+
+
 // Route to get all questions
-export const AllQuestions =  async (req, res) => {
+export const AllQuestions = async (req, res) => {
     try {
         const questions = await db.profileQuestions.findAll({
             attributes: ['id', 'text', 'title'] // Only fetch the id and text of each question
@@ -918,7 +962,7 @@ function generateRandomCode(length) {
 }
 
 
-export const SendPasswordResetEmail = async(req, res) => {
+export const SendPasswordResetEmail = async (req, res) => {
     let email = req.body.email;
     let user = await db.user.findOne({
         where: {

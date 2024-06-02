@@ -11,7 +11,7 @@ dateRouter.post("/add_date_place", verifyJwtToken, addDatePlace);
 dateRouter.post("/book_date", verifyJwtToken, addBooking);
 dateRouter.post("/add_category", verifyJwtToken, addCategory);
 dateRouter.post("/delete_category", verifyJwtToken, deleteCategory);
-dateRouter.post("/book_date", verifyJwtToken, addBooking);
+// dateRouter.post("/book_date", verifyJwtToken, addBooking);
 dateRouter.get("/get_categories", verifyJwtToken, loadCategories);
 dateRouter.get("/get_date_places", verifyJwtToken, listDatePlaces);
 
