@@ -446,87 +446,109 @@ export const AnswerQuestion = async (req, res) => {
         }
 
         const { questionId, answerText } = req.body;
-        const files = req.files;
-
-        if (!authData.user.id || !questionId) {
-            return res.status(400).json({
+        const answers = await db.userAnswers.findAll({
+            where: {UserId: authData.user.id}
+        })
+        if(answers.length >= 3){
+            return res.status(200).json({
                 status: false,
-                message: "Missing required user or question identification data"
+                message: "Can not add more than 3 questions"
             });
         }
+        else{
+            const files = req.files;
 
-        try {
-            let answerImage = null, answerVideo = null, videoThumbnail = null;
-
-            if (files.media) {
-                await new Promise((resolve, reject) => {
-                    uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, (uploadedUrl, error) => {
-                        if (error) {
-                            reject(new Error("Failed to upload media"));
-                        } else {
-                            files.media[0].mimetype.includes("video") ? answerVideo = uploadedUrl : answerImage = uploadedUrl;
-                            resolve();
-                        }
-                    });
+            if (!authData.user.id || !questionId) {
+                return res.status(400).json({
+                    status: false,
+                    message: "Missing required user or question identification data"
                 });
             }
-
-            if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
-                await new Promise((resolve, reject) => {
-                    uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, (uploadedUrl, error) => {
-                        if (error) {
-                            reject(new Error("Failed to upload thumbnail"));
-                        } else {
-                            videoThumbnail = uploadedUrl;
-                            resolve();
-                        }
+    
+            try {
+                let answerImage = null, answerVideo = null, videoThumbnail = null;
+    
+                if (files.media) {
+                    await new Promise((resolve, reject) => {
+                        uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, (uploadedUrl, error) => {
+                            if (error) {
+                                reject(new Error("Failed to upload media"));
+                            } else {
+                                files.media[0].mimetype.includes("video") ? answerVideo = uploadedUrl : answerImage = uploadedUrl;
+                                resolve();
+                            }
+                        });
                     });
+                }
+    
+                if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
+                    await new Promise((resolve, reject) => {
+                        uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, (uploadedUrl, error) => {
+                            if (error) {
+                                reject(new Error("Failed to upload thumbnail"));
+                            } else {
+                                videoThumbnail = uploadedUrl;
+                                resolve();
+                            }
+                        });
+                    });
+                }
+    
+                //delete already added same question
+                let del = await db.userAnswers.destroy(
+                    {
+                        where: {
+                            UserId: authData.user.id,
+                            questionId: questionId
+                        }
+                    }
+                )
+    // create the new question
+                const newAnswer = await db.userAnswers.create({
+                    UserId: authData.user.id,
+                    questionId,
+                    answerText,
+                    answerImage,
+                    answerVideo,
+                    videoThumbnail
+                });
+    
+                const query = `
+        SELECT 
+            ua.*, 
+            pq.title, 
+            pq.text 
+        FROM 
+            UserAnswers ua
+        JOIN 
+            ProfileQuestions pq 
+        ON 
+            ua.questionId = pq.id
+        WHERE 
+            ua.UserId = :userId
+    `;
+    
+                const answers = await db.sequelize.query(query, {
+                    replacements: { userId: authData.user.id },
+                    type: db.sequelize.QueryTypes.SELECT
+                });
+    
+                res.status(201).json({
+                    status: true,
+                    message: "Answer submitted successfully",
+                    data: answers
+                });
+    
+            } catch (uploadError) {
+                console.error('Error submitting answer:', uploadError);
+                res.status(500).json({
+                    status: false,
+                    message: "Failed to submit answer",
+                    error: uploadError.message
                 });
             }
-
-            const newAnswer = await db.userAnswers.create({
-                UserId: authData.user.id,
-                questionId,
-                answerText,
-                answerImage,
-                answerVideo,
-                videoThumbnail
-            });
-
-            const query = `
-    SELECT 
-        ua.*, 
-        pq.title, 
-        pq.text 
-    FROM 
-        UserAnswers ua
-    JOIN 
-        ProfileQuestions pq 
-    ON 
-        ua.questionId = pq.id
-    WHERE 
-        ua.UserId = :userId
-`;
-
-            const answers = await db.sequelize.query(query, {
-                replacements: { userId: authData.user.id },
-                type: db.sequelize.QueryTypes.SELECT
-            });
-
-            res.status(201).json({
-                status: true,
-                message: "Answer submitted successfully",
-                data: answers
-            });
-
-        } catch (uploadError) {
-            console.error('Error submitting answer:', uploadError);
-            res.status(500).json({
-                status: false,
-                message: "Failed to submit answer",
-                error: uploadError.message
-            });
         }
+        
     });
 };
 
