@@ -458,9 +458,15 @@ export const UpdateProfile = async (req, res) => {
             if (typeof (req.file) !== 'undefined') {
                 const fileContent = req.file.buffer;
                 const fieldname = req.file.fieldname;
-                uploadMedia(fieldname, fileContent, "image/jpeg", (uploadedFile, error) => {
+                uploadMedia(fieldname, fileContent, "image/jpeg", async(uploadedFile, error) => {
                     console.log("File uploaded to ", uploadedFile)
                     console.log("Error Uploading ", error)
+                    user.profile_image = uploadedFile;
+                        let saved = await user.save();
+                        if (saved) {
+                            let p = await UserProfileFullResource(user)
+                            res.send({ status: true, message: "Profile Image uploaded", data: p })
+                        }
                 })
             }
             else {
