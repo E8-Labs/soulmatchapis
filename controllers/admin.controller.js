@@ -213,6 +213,8 @@ const countUniqueDownloads = async (days) => {
 export const GetUsers = (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
       if (authData) {
+
+        // let updated = await db.user.update({status: 'active'}, {where: {status: null}})
           let userid = authData.user.id;
           let offset = 0;
           if (typeof req.query.offset !== 'undefined') {
@@ -235,7 +237,7 @@ export const GetUsers = (req, res) => {
                       role: {
                           [Op.ne]: 'admin'
                       },
-                      // status: 'active',
+                      status: 'active',
                       ...searchQuery
                   },
                   offset: Number(offset),
