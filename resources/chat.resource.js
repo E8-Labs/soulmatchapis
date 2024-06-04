@@ -31,7 +31,7 @@ async function getUserData(user, currentUser = null) {
     // console.log("Chat Users ", cusers)
     let chatUsers = []
     if(cusers.length > 0){
-        cusers.forEach(async element => {
+        await cusers.forEach(async element => {
             let user = await db.user.findByPk(element.userId)
             console.log("Found Chat User ", user)
             let userRes = await UserProfileExtraLiteResource(user)
