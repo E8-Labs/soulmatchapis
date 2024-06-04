@@ -15,7 +15,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
 userRouter.post("/register", RegisterUser);
 userRouter.post("/login", LoginUser);
 userRouter.post("/social_login", SocialLogin);
-userRouter.post("/get_profile", verifyJwtToken, GetUserProfile);
+userRouter.get("/get_profile", verifyJwtToken, GetUserProfile);
 userRouter.post("/update_profile", verifyJwtToken, UpdateProfile);
 userRouter.get("/discover", verifyJwtToken, Discover);
 userRouter.get("/my_matches", verifyJwtToken, FindAllMyMatches);

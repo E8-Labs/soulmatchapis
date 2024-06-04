@@ -570,7 +570,7 @@ export const GetUserProfile = (req, res) => {
 
             let loginRecorded = await db.dailyLogin.create({
                 UserId: user.id,
-                type: "Login"
+                type: "GetProfile"
             })
             if (user) {
                 let u = await UserProfileFullResource(user);
