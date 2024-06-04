@@ -235,7 +235,7 @@ export const GetUsers = (req, res) => {
                       role: {
                           [Op.ne]: 'admin'
                       },
-                      status: 'active',
+                      // status: 'active',
                       ...searchQuery
                   },
                   offset: Number(offset),
