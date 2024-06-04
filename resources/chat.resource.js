@@ -25,18 +25,17 @@ const ChatResource = async (user, currentUser = null) => {
     }
 }
 
+
 async function getUserData(user, currentUser = null) {
 
     let cusers = await db.ChatUser.findAll({where: {chatId: user.id}});
     // console.log("Chat Users ", cusers)
     let chatUsers = []
-    if(cusers.length > 0){
-        await cusers.forEach(async element => {
-            let user = await db.user.findByPk(element.userId)
-            console.log("Found Chat User ", user)
-            let userRes = await UserProfileExtraLiteResource(user)
-            chatUsers.push(userRes)
-        });
+    for (const element of cusers) {
+        let chatUser = await db.user.findByPk(element.userId);
+        console.log("Found Chat User ", chatUser);
+        let userRes = await UserProfileExtraLiteResource(chatUser);
+        chatUsers.push(userRes);
     }
     console.log("Sending back resource")
     const UserFullResource = {
