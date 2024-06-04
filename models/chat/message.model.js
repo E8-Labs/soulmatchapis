@@ -1,30 +1,34 @@
-let messageModel = (sequelize, Sequelize) => {
-    const Message = sequelize.define("Message", {
-      
-      message: {
-        type: Sequelize.STRING(5000)
+// models/Message.js
+const messageModel = (sequelize, Sequelize) => {
+  const Message = sequelize.define("Message", {
+      // chatId: {
+      //     type: Sequelize.INTEGER,
+      //     allowNull: false,
+      //     references: {
+      //         model: 'Chats',
+      //         key: 'id'
+      //     }
+      // },
+      // userId: {
+      //     type: Sequelize.INTEGER,
+      //     allowNull: false,
+      //     references: {
+      //         model: 'Users',
+      //         key: 'id'
+      //     }
+      // },
+      content: {
+          type: Sequelize.STRING,
+          allowNull: false
       },
-      title: {
-        type: Sequelize.STRING(5000),
-        default: ''
-      },
-      from: {
-        type: Sequelize.STRING(30),
-        default: "me"
-      },
-      type: {
-        type: Sequelize.STRING(30), 
-        default: "text" // text, prompt(if it is prompt sent directly)
-      },
-      tokens: {
-        type: Sequelize.INTEGER, 
-        default: 0
+      isRead: {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false
       }
-      
-    });
-    // Message.belongsTo(User);
-    // Message.belongsTo(Chat);
-    return Message;
-  };
+  });
 
-  export default messageModel
+  return Message;
+};
+
+export default messageModel;

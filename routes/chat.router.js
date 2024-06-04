@@ -3,7 +3,7 @@ import express from "express"
 
 const chatRouter = express.Router();
 
-import {CreateChat, UpdateChat, SendMessage, GetMessages, GetChatsList} from "../controllers/chat.controller.js";
+import {CreateChat, UpdateChat, SendMessage, GetMessages, GetChatsList, TestPusher} from "../controllers/chat.controller.js";
 import verifyJwtToken from "../middleware/jwtmiddleware.js";
 // const { verify } = require("jsonwebtoken");
 
@@ -12,6 +12,7 @@ chatRouter.post("/send_message", verifyJwtToken, SendMessage);
 chatRouter.get("/get_messages", verifyJwtToken, GetMessages);
 chatRouter.post("/update", verifyJwtToken, UpdateChat);
 chatRouter.get("/chats_list", verifyJwtToken, GetChatsList);
+chatRouter.post("/test_pushser", verifyJwtToken, TestPusher);
 
 
 export default chatRouter;

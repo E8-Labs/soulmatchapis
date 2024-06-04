@@ -5,6 +5,10 @@ import DatePlaceModel from "./date/dateplace.model.js";
 import BookingModel from './date/Booking.model.js'
 import UserMediaModel from "./user/usermedia.model.js";
 
+import chatModel from './chat/chat.model.js';
+import chatUserModel from './chat/chatUser.model.js';
+import messageModel from './chat/message.model.js';
+
 
 import  Sequelize from "sequelize";
 //console.log("Connecting DB")
@@ -33,8 +37,6 @@ db.sequelize = sequelize;
 import UserModel from "./user/user.model.js";
 
 
-import chatModel from "./chat/chat.model.js";
-import messageModel from "./chat/message.model.js";
 
 import DailyLoginModel from "./user/dailylogin.model.js";
 import emailVerificationCodeModel from "./user/emailverificationcode.model.js";
@@ -49,12 +51,21 @@ db.user = UserModel(sequelize, Sequelize);
 
 
 //chat
-db.chatModel = chatModel(sequelize, Sequelize);
-db.chatModel.belongsTo(db.user);
+db.Chat = chatModel(sequelize, Sequelize);
+db.ChatUser = chatUserModel(sequelize, Sequelize);
+db.Message = messageModel(sequelize, Sequelize);
 
-db.messageModel = messageModel(sequelize, Sequelize);
-db.messageModel.belongsTo(db.chatModel);
+db.Chat.belongsToMany(db.user, { through: db.ChatUser, foreignKey: 'chatId', otherKey: 'userId' });
+// db.user.belongsToMany(db.Chat, { through: db.user, foreignKey: 'userId', otherKey: 'chatId' });
 
+db.Chat.hasMany(db.ChatUser, { foreignKey: 'chatId' });
+db.ChatUser.belongsTo(db.Chat, { foreignKey: 'chatId' });
+
+db.Chat.hasMany(db.Message, { foreignKey: 'chatId' });
+db.Message.belongsTo(db.Chat, { foreignKey: 'chatId' });
+
+db.user.hasMany(db.Message, { foreignKey: 'userId' });
+db.Message.belongsTo(db.user, { foreignKey: 'userId' });
 
 
 db.passwordResetCode = passwordresetcodeModel(sequelize, Sequelize);
