@@ -179,7 +179,7 @@ export const GetChatsList = async (req, res) => {
                 const chats = await db.Chat.findAll({
                     include: [{
                         model: db.ChatUser,
-                        as: 'Users',
+                        as: 'ChatUsers',
                         where: { id: userId },
                         attributes: []
                     }]
