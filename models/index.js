@@ -58,8 +58,8 @@ db.Message = messageModel(sequelize, Sequelize);
 db.Chat.belongsToMany(db.user, { through: db.ChatUser, foreignKey: 'chatId', otherKey: 'userId' });
 // db.user.belongsToMany(db.Chat, { through: db.user, foreignKey: 'userId', otherKey: 'chatId' });
 
-db.Chat.hasMany(db.ChatUser, { foreignKey: 'chatId' });
-db.ChatUser.belongsTo(db.Chat, { foreignKey: 'chatId' });
+db.Chat.hasMany(db.ChatUser, { foreignKey: 'chatId', as: "ChatUser" });
+db.ChatUser.belongsTo(db.Chat, { foreignKey: 'chatId', as: "Chat" });
 
 db.Chat.hasMany(db.Message, { foreignKey: 'chatId' });
 db.Message.belongsTo(db.Chat, { foreignKey: 'chatId' });

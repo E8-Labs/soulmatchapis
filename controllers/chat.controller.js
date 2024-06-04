@@ -10,6 +10,7 @@ import NotificationType from '../models/user/notificationtype.js';
 import { createNotification } from "../utilities/notificationutility.js";
 // import { Pinecone } from "@pinecone-database/pinecone";
 import pusher from '../utilities/pusher.js'
+import ChatResource from '../resources/chat.resource.js';
 
 
 
@@ -42,7 +43,8 @@ export const CreateChat = async (req, res) => {
 
                 if (existingChat) {
                     // Chat already exists, return it
-                    res.send({ status: true, message: 'Chat already exists.', data: existingChat });
+                    let res = await ChatResource(existingChat)
+                    res.send({ status: true, message: 'Chat already exists.', data: res });
                 } else {
                     // Create a new chat
                     const chat = await db.Chat.create({ name: "" });
@@ -53,8 +55,8 @@ export const CreateChat = async (req, res) => {
                             await db.ChatUser.create({ chatId: chat.id, userId });
                         }
                     }
-
-                    res.send({ status: true, message: 'Chat created successfully.', data: chat });
+                    let res = await ChatResource(chat)
+                    res.send({ status: true, message: 'Chat created successfully.', data: res });
                 }
             } catch (err) {
                 console.error('Error creating/fetching chat:', err);
@@ -179,13 +181,13 @@ export const GetChatsList = async (req, res) => {
                 const chats = await db.Chat.findAll({
                     include: [{
                         model: db.ChatUser,
-                        as: 'ChatUsers',
-                        where: { id: userId },
+                        as: 'ChatUser',
+                        where: { userId: userId },
                         attributes: []
                     }]
                 });
-        
-                res.send({ status: true, message: 'Chats fetched successfully.', data: chats });
+                let allChats = await ChatResource(chats)
+                res.send({ status: true, message: 'Chats fetched successfully.', data: allChats });
             } catch (err) {
                 console.error('Error fetching chats:', err);
                 res.status(500).send({ status: false, message: 'An error occurred while fetching chats.', error: err.message });
