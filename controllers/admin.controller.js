@@ -214,7 +214,7 @@ export const GetUsers = (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
       if (authData) {
 
-        // let updated = await db.user.update({status: 'active'}, {where: {status: null}})
+        let updated = await db.user.update({status: 'active'}, {where: {status: null}})
           let userid = authData.user.id;
           let offset = 0;
           if (typeof req.query.offset !== 'undefined') {
