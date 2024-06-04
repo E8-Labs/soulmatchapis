@@ -156,10 +156,10 @@ export const GetMessages = async (req, res) => {
 
             try {
                 const messages = await db.Message.findAll({
-                    where: { chatId },
+                    where: { chatId: chatId },
                     order: [['createdAt', 'ASC']],
                     offset: offset,
-                    limit: 50
+                    limit: 100
                 });
 
                 res.send({ status: true, message: 'Messages fetched successfully.', data: messages });
