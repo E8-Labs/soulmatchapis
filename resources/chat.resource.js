@@ -38,6 +38,7 @@ async function getUserData(user, currentUser = null) {
             chatUsers.push(userRes)
         });
     }
+    console.log("Sending back resource")
     const UserFullResource = {
         id: user.id,
         createdAt: user.createdAt,
