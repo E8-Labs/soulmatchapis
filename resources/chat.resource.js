@@ -28,6 +28,7 @@ const ChatResource = async (user, currentUser = null) => {
 async function getUserData(user, currentUser = null) {
 
     let cusers = await db.ChatUser.findAll({where: {chatId: user.id}});
+    console.log("Chat Users ", cusers)
     let chatUsers = []
     if(cusers.length > 0){
         cusers.forEach(async element => {

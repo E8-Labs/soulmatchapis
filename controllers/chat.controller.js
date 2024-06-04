@@ -184,9 +184,11 @@ export const GetChatsList = async (req, res) => {
                         model: db.ChatUser,
                         as: 'ChatUser',
                         where: { userId: userId },
-                        attributes: []
+                        attributes: ["userId", "chatId"]
                     }]
                 });
+
+                console.log("Chats ", chats)
                 let allChats = await ChatResource(chats)
                 res.send({ status: true, message: 'Chats fetched successfully.', data: allChats });
             } catch (err) {
