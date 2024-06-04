@@ -47,13 +47,16 @@ import adminRouter from "./routes/admin.router.js";
 import mediaRouter from "./routes/media.router.js";
 import dateRouter from "./routes/date.router.js";
 
-db.sequelize.authenticate().then(() => {
-  console.log("Connected to the database!");
-})
-  .catch(err => {
-    //console.log("Cannot connect to the database!", err);
-    // process.exit();
-  });
+db.Chat.drop()
+db.ChatUser.drop()
+db.Message.drop()
+// db.sequelize.authenticate().then(() => {
+//   console.log("Connected to the database!");
+// })
+//   .catch(err => {
+//     //console.log("Cannot connect to the database!", err);
+//     // process.exit();
+//   });
 
 // sync
 db.sequelize.sync({ alter: true })//{alter: true}
