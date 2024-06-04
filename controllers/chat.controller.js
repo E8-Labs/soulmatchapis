@@ -173,12 +173,12 @@ export const GetMessages = async (req, res) => {
 export const GetChatsList = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
-            const userId = req.quert.userId;
+            const userId = authData.user.id;
 
             try {
                 const chats = await db.Chat.findAll({
                     include: [{
-                        model: db.chatUser,
+                        model: db.ChatUser,
                         as: 'Users',
                         where: { id: userId },
                         attributes: []
