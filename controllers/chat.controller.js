@@ -35,6 +35,7 @@ export const CreateChat = async (req, res) => {
                 const existingChat = await db.Chat.findOne({
                     include: [{
                         model: db.ChatUser,
+                        as: 'ChatUser',
                         where: { userId: userIds }
                     }],
                     group: ['Chat.id'],
@@ -55,8 +56,8 @@ export const CreateChat = async (req, res) => {
                             await db.ChatUser.create({ chatId: chat.id, userId });
                         }
                     }
-                    let res = await ChatResource(chat)
-                    res.send({ status: true, message: 'Chat created successfully.', data: res });
+                    let resr = await ChatResource(chat)
+                    res.send({ status: true, message: 'Chat created successfully.', data: resr });
                 }
             } catch (err) {
                 console.error('Error creating/fetching chat:', err);
