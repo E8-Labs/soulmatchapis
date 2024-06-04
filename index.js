@@ -47,9 +47,11 @@ import adminRouter from "./routes/admin.router.js";
 import mediaRouter from "./routes/media.router.js";
 import dateRouter from "./routes/date.router.js";
 
-db.Chat.drop()
 db.ChatUser.drop()
 db.Message.drop()
+db.Chat.drop()
+
+
 // db.sequelize.authenticate().then(() => {
 //   console.log("Connected to the database!");
 // })
