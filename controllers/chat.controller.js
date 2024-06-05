@@ -56,7 +56,7 @@ export const CreateChat = async (req, res) => {
                             await db.ChatUser.create({ chatId: chat.id, userId });
                         }
                     }
-                    let resr = await ChatResource(chat)
+                    let resr = await ChatResource(chat, authData.user)
                     res.send({ status: true, message: 'Chat created successfully.', data: resr });
                 }
             } catch (err) {
