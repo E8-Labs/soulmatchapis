@@ -12,6 +12,7 @@ import nodemailer from 'nodemailer'
 import crypto from 'crypto'
 import BookingResource from "../resources/booking.resource.js";
 import NotificationType from '../models/user/notificationtype.js'
+import { createNotification } from "../utilities/notificationutility.js";
 import { Sequelize } from "sequelize";
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
