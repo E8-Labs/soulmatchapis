@@ -44,7 +44,7 @@ export const CreateChat = async (req, res) => {
 
                 if (existingChat) {
                     // Chat already exists, return it
-                    let res = await ChatResource(existingChat)
+                    let res = await ChatResource(existingChat, authData.user)
                     res.send({ status: true, message: 'Chat already exists.', data: res });
                 } else {
                     // Create a new chat
