@@ -1,14 +1,14 @@
 // models/ChatUser.js
 const chatUserModel = (sequelize, Sequelize) => {
     const ChatUser = sequelize.define("ChatUser", {
-        // chatId: {
-        //     type: Sequelize.INTEGER,
-        //     allowNull: false,
-        //     references: {
-        //         model: 'Chats',
-        //         key: 'id'
-        //     }
-        // },
+        chatId: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'Chats',
+                key: 'id'
+            }
+        },
         userId: {
             type: Sequelize.INTEGER,
             allowNull: false,

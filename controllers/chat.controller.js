@@ -24,45 +24,76 @@ import ChatResource from '../resources/chat.resource.js';
 // import db from '../models'; // Adjust the path according to your project structure
 
 // Function to create a chat
-export const CreateChat = async (req, res) => {
+const checkUsersInSameChat = async (userId1, userId2) => {
+    try {
+        // Find all chatIds for the first user
+        const user1Chats = await db.ChatUser.findAll({
+            where: { userId: userId1 },
+            attributes: ['chatId']
+        });
 
-    // const { name } = req.body;
+        // Find all chatIds for the second user
+        const user2Chats = await db.ChatUser.findAll({
+            where: { userId: userId2 },
+            attributes: ['chatId']
+        });
+
+        // Extract chatIds from the results
+        const user1ChatIds = user1Chats.map(chatUser => chatUser.chatId);
+        const user2ChatIds = user2Chats.map(chatUser => chatUser.chatId);
+
+        // Find common chatIds
+        const commonChatIds = user1ChatIds.filter(chatId => user2ChatIds.includes(chatId));
+
+        if (commonChatIds.length > 0) {
+            console.log(`Users ${userId1} and ${userId2} have common chat IDs.`);
+            return commonChatIds;
+        } else {
+            console.log(`Users ${userId1} and ${userId2} do not have any common chat IDs.`);
+            return [];
+        }
+    } catch (err) {
+        console.error('Error checking common chat IDs:', err);
+        throw err;
+    }
+};
+export const CreateChat = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             const userIds = [authData.user.id, req.body.userId];
+            
             try {
-                // Check if chat already exists between the users
-                const existingChat = await db.Chat.findOne({
-                    include: [{
-                        model: db.ChatUser,
-                        as: 'ChatUser',
-                        where: { userId: userIds }
-                    }],
-                    group: ['Chat.id'],
-                    having: db.Sequelize.literal(`COUNT(*) = ${userIds.length}`)
-                });
-
-                if (existingChat) {
-                    // Chat already exists, return it
-                    let res = await ChatResource(existingChat, authData.user)
-                    res.send({ status: true, message: 'Chat already exists.', data: res });
-                } else {
-                    // Create a new chat
+                // Find all chats involving the current user and the other user
+                let result = await checkUsersInSameChat(authData.user.id, req.body.userId);
+            
+            // return
+                if(result.length == 0){
                     const chat = await db.Chat.create({ name: "" });
 
                     // Add users to chat
-                    if (userIds && userIds.length > 0) {
-                        for (const userId of userIds) {
-                            await db.ChatUser.create({ chatId: chat.id, userId });
-                        }
+                    for (const userId of userIds) {
+                        await db.ChatUser.create({ chatId: chat.id, userId });
                     }
-                    let resr = await ChatResource(chat, authData.user)
-                    res.send({ status: true, message: 'Chat created successfully.', data: resr });
+
+                    const chatData = await ChatResource(chat, authData.user);
+                    res.send({ status: true, message: 'Chat created successfully.', data: chatData });
                 }
+                else{
+                    let chatid = result[0]
+                    // console.log("Chatids ", result);
+                    let chat = await db.Chat.findByPk(chatid);
+                    let chatRes = await ChatResource(chat, authData.user);
+                    res.send({ status: true, message: 'Chat exists already.', data: chatRes });
+                }
+                
+
+                
             } catch (err) {
                 console.error('Error creating/fetching chat:', err);
                 res.status(500).send({ status: false, message: 'An error occurred while creating/fetching the chat.', error: err.message });
             }
+        } else {
+            res.status(401).send({ status: false, message: 'Unauthenticated user.' });
         }
     });
 };
