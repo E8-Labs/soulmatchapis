@@ -127,7 +127,7 @@ export const SendMessage = async (req, res) => {
             const { chatId, content } = req.body;
 
             try {
-                const message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: content });
+                let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: content });
                 let chatUsers = await db.ChatUser.findAll({
                     where: {
                         chatId,
@@ -145,10 +145,12 @@ export const SendMessage = async (req, res) => {
                         }
                     }
                 );
+                // message.timestamp = req.body.timestamp;
                 if(chatUsers.length > 0){
                     chatUsers.forEach(async element => {
                         console.log("Sending notification to ", element.userId)
-                        pusher.trigger(`chat-channel-${chatId}`, `new-message`, message);
+                        
+                        pusher.trigger(`chat-channel-${chatId}`, `new-message`, {message: message, timestamp: req.body.timestamp});
                         let created = await createNotification(message.id, element.userId, authData.user.id, NotificationType.TypeMessage);
                     });
                 }
