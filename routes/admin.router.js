@@ -7,8 +7,8 @@ import { GetUsers, AdminDashboard, deleteUserById, suspendUserById } from "../co
 
 adminRouter.get("/users", verifyJwtToken, GetUsers);
 adminRouter.get("/dashboard", verifyJwtToken, AdminDashboard);
-adminRouter.get("/delete_user", verifyJwtToken, deleteUserById);
-adminRouter.get("/suspend_user", verifyJwtToken, suspendUserById);
+adminRouter.post("/delete_user", verifyJwtToken, deleteUserById);
+adminRouter.post("/suspend_user", verifyJwtToken, suspendUserById);
 
 
 export default adminRouter;

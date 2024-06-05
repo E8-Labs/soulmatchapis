@@ -212,6 +212,31 @@ export const loadCategories = async (req, res) => {
     }
 };
 
+
+// Function to delete a Date Place
+export const deleteDatePlace = (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const { id } = req.params;
+
+        try {
+            const result = await db.Booking.destroy({ where: { id } });
+
+            if (result) {
+                res.send({ status: true, message: 'Date place deleted successfully.' });
+            } else {
+                res.send({ status: false, message: 'Date place not found.' });
+            }
+        } catch (err) {
+            console.error('Error deleting Date Place:', err);
+            res.status(500).send({ status: false, message: 'An error occurred while deleting the Date Place.', error: err.message });
+        }
+    });
+};
+
 // Function to delete a category
 export const deleteCategory = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
