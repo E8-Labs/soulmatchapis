@@ -336,7 +336,7 @@ export const deleteUserById = (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
       if (authData) {
           const adminUserId = authData.user.id; // User making the request
-          const userIdToDelete = req.body.user_id; // User being deleted
+          const userIdToDelete = req.body.userId; // User being deleted
 
           try {
               // Check if the requesting user is an admin
@@ -376,7 +376,7 @@ export const suspendUserById = (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
       if (authData) {
           const adminUserId = authData.user.id; // User making the request
-          const userIdToSuspend = req.body.user_id; // User being suspended
+          const userIdToSuspend = req.body.userId; // User being suspended
 
           try {
               // Check if the requesting user is an admin
