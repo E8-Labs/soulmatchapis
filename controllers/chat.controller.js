@@ -189,7 +189,7 @@ export const GetChatsList = async (req, res) => {
                 });
 
                 console.log("Chats ", chats)
-                let allChats = await ChatResource(chats)
+                let allChats = await ChatResource(chats, authData.user)
                 res.send({ status: true, message: 'Chats fetched successfully.', data: allChats });
             } catch (err) {
                 console.error('Error fetching chats:', err);

@@ -31,18 +31,31 @@ async function getUserData(user, currentUser = null) {
     let cusers = await db.ChatUser.findAll({where: {chatId: user.id}});
     // console.log("Chat Users ", cusers)
     let chatUsers = []
+    let myUnread = 0
     for (const element of cusers) {
         let chatUser = await db.user.findByPk(element.userId);
         console.log("Found Chat User ", chatUser);
         let userRes = await UserProfileExtraLiteResource(chatUser);
         chatUsers.push(userRes);
+        if(element.userId === currentUser.id){
+            myUnread = element.unread;
+        }
     }
+    let mess = await db.Message.findOne({
+        where: {
+            chatId: user.id
+        },
+        order: [["createdAt", "DESC"]],
+        limit: 1
+    })
     console.log("Sending back resource")
     const UserFullResource = {
         id: user.id,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        users: chatUsers
+        users: chatUsers,
+        unread: myUnread,
+        lastMessage: mess
         
     }
 
