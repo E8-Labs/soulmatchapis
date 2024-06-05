@@ -36,9 +36,12 @@ async function getUserData(user, currentUser = null) {
         let chatUser = await db.user.findByPk(element.userId);
         console.log("Found Chat User ", chatUser);
         let userRes = await UserProfileExtraLiteResource(chatUser);
-        chatUsers.push(userRes);
+        
         if(element.userId === currentUser.id){
             myUnread = element.unread;
+        }
+        else{
+            chatUsers.push(userRes);
         }
     }
     let mess = await db.Message.findOne({
