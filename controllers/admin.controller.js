@@ -352,11 +352,15 @@ export const deleteUserById = (req, res) => {
               }
 
               // Delete the user
-              await db.user.destroy({
-                  where: {
-                      id: userIdToDelete
-                  }
-              });
+              // await db.user.destroy({
+              //     where: {
+              //         id: userIdToDelete
+              //     }
+              // });
+
+              await db.user.update({status: "deleted"}, {where: {
+                id: userIdToDelete
+              }})
 
               res.send({ status: true, message: 'User deleted successfully.' });
           } catch (err) {

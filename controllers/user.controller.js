@@ -618,7 +618,8 @@ export const Discover = (req, res) => {
                 // Find all other users
                 const users = await db.user.findAll({
                     where: {
-                        id: { [db.Sequelize.Op.notIn]: idsToExclude }
+                        id: { [db.Sequelize.Op.notIn]: idsToExclude },
+                        status: 'active',
                     }
                 });
 
