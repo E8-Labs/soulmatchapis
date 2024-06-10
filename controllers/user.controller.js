@@ -353,6 +353,64 @@ export const LoginUser = async (req, res) => {
 
 }
 
+export const ChangenUserPassword = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id);
+            const email = user.email;
+            const password = req.body.oldPassword; //old passwor
+            let newPassword = req.body.newPassword;
+            
+
+            const count = await User.count();
+            ////console.log("Count " + count);
+            if (!user) {
+                res.send({ status: false, message: "No such user", data: null });
+            }
+            else {
+
+
+                bcrypt.compare(password, user.password, async function (err, result) {
+                    // result == true
+                    if (result) {
+                        const salt = await bcrypt.genSalt(10);
+                        const hashed = await bcrypt.hash(newPassword, salt);
+                        user.password = hashed;
+                        let saved = await user.save();
+                        if(saved){
+                            JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (error, token) => {
+                                if (error) {
+                                    //console.log(error)
+                                    res.send({ data: error, status: false, message: "Soome error occurred" });
+                                }
+                                else {
+                                    let u = await UserProfileFullResource(user);
+                                    let loginRecorded = await db.dailyLogin.create({
+                                        UserId: user.id,
+                                        type: "ChangePassword"
+                                    })
+                                    res.send({ data: { user: u, token: token }, status: true, message: "Password Changed" });
+                                }
+                            })
+                        }
+                        
+                    }
+                    else {
+                        res.send({ status: false, message: "Invalid password", data: null });
+                    }
+                });
+            }
+
+        }
+        else {
+            res.send({ status: false, message: "Unauthenticated user", data: null });
+        }
+    })
+
+    // ////console.log(user);
+
+}
+
 
 export const GetUserNotifications = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -458,15 +516,15 @@ export const UpdateProfile = async (req, res) => {
             if (typeof (req.file) !== 'undefined') {
                 const fileContent = req.file.buffer;
                 const fieldname = req.file.fieldname;
-                uploadMedia(fieldname, fileContent, "image/jpeg", async(uploadedFile, error) => {
+                uploadMedia(fieldname, fileContent, "image/jpeg", async (uploadedFile, error) => {
                     console.log("File uploaded to ", uploadedFile)
                     console.log("Error Uploading ", error)
                     user.profile_image = uploadedFile;
-                        let saved = await user.save();
-                        if (saved) {
-                            let p = await UserProfileFullResource(user)
-                            res.send({ status: true, message: "Profile Image uploaded", data: p })
-                        }
+                    let saved = await user.save();
+                    if (saved) {
+                        let p = await UserProfileFullResource(user)
+                        res.send({ status: true, message: "Profile Image uploaded", data: p })
+                    }
                 })
             }
             else {
@@ -638,6 +696,8 @@ export const Discover = (req, res) => {
         }
     });
 };
+
+
 
 
 
@@ -821,7 +881,7 @@ export const LikeProfile = (req, res) => {
 export const getUserNotifications = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
-            const userId  = authData.user.id;
+            const userId = authData.user.id;
             let { offset } = req.query;
 
             // Set default offset to 0 if not provided

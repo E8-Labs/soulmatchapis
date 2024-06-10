@@ -89,6 +89,66 @@ export const addDatePlace = (req, res) => {
 };
 
 
+export const UpdateDatePlace = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const adminUserId = authData.user.id;
+
+        try {
+            const adminUser = await db.user.findByPk(adminUserId);
+            if (!adminUser || adminUser.role !== 'admin') {
+                return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
+            }
+
+            // const {  } = req.params;
+            const { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description } = req.body;
+
+            // Find the date place by ID
+            const datePlace = await db.DatePlace.findByPk(id);
+
+            if (!datePlace) {
+                return res.status(404).send({ status: false, message: 'Date place not found.' });
+            }
+
+            // If a file is uploaded, upload it to AWS S3
+            if (req.file) {
+                const file = req.file;
+                const params = {
+                    Bucket: process.env.Bucket,
+                    Key: `date_places/${Date.now()}_${file.originalname}`,
+                    Body: file.buffer,
+                    ContentDisposition: 'inline',
+                    ContentType: file.mimetype
+                };
+
+                const data = await s3.upload(params).promise();
+                datePlace.imageUrl = data.Location;
+            }
+
+            // Update the date place details
+            datePlace.name = name || datePlace.name;
+            datePlace.categoryId = categoryId || datePlace.categoryId;
+            datePlace.minBudget = minBudget || datePlace.minBudget;
+            datePlace.maxBudget = maxBudget || datePlace.maxBudget;
+            datePlace.openTime = openTime || datePlace.openTime;
+            datePlace.closeTime = closeTime || datePlace.closeTime;
+            datePlace.address = address || datePlace.address;
+            datePlace.latitude = latitude || datePlace.latitude;
+            datePlace.longitude = longitude || datePlace.longitude;
+            datePlace.description = description || datePlace.description;
+
+            await datePlace.save();
+
+            res.send({ status: true, message: 'Date place updated successfully.', data: datePlace });
+        } catch (err) {
+            console.error('Error updating date place:', err);
+            res.status(500).send({ status: false, message: 'An error occurred while updating the date place.', error: err.message });
+        }
+    });
+}
 
 
 export const listDatePlaces = async (req, res) => {

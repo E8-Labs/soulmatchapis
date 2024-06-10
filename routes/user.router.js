@@ -6,7 +6,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
     Discover, SocialLogin, LikeProfile, GetProfilesWhoLikedMe, FindAllMyMatches,
     SendPasswordResetEmail, ResetPassword, encrypt,  GetUserNotifications,
     SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists, AllQuestions, AddQuestion,
-    UploadIntroVideo, UploadUserMedia, getUserNotifications} from "../controllers/user.controller.js";
+    UploadIntroVideo, UploadUserMedia, getUserNotifications, ChangenUserPassword} from "../controllers/user.controller.js";
     import {UploadIntroVideoInVideoController, UploadIntroVideos} from '../controllers/video.controller.js'
 
 
@@ -38,4 +38,5 @@ userRouter.post("/encrypt", encrypt);
 userRouter.get("/get_notifications", verifyJwtToken, getUserNotifications);
 
 
+userRouter.post("/change_password", verifyJwtToken, ChangenUserPassword);
 export default userRouter;
