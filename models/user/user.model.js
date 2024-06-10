@@ -142,6 +142,11 @@ const UserModel = (sequelize, Sequelize) => {
     //   }
     // }
     );
+
+    User.associate = (models) => {
+      User.hasMany(models.Booking, { foreignKey: 'userId', as: 'bookings' });
+      User.hasMany(models.Booking, { foreignKey: 'dateUserId', as: 'dateBookings' });
+  };
   
     return User;
   };

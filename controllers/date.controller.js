@@ -158,13 +158,13 @@ export const listDatePlaces = async (req, res) => {
         }
         const adminUserId = authData.user.id;
         const adminUser = await db.user.findByPk(adminUserId);
-            
+
         try {
             let offset = 0;
             if (typeof req.query.offset !== 'undefined') {
                 offset = parseInt(req.query.offset, 10);
             }
-    
+
             const limit = 40;
             let searchQuery = {};
             if (req.query.search) {
@@ -176,7 +176,7 @@ export const listDatePlaces = async (req, res) => {
                     ]
                 };
             }
-    
+
             const datePlaces = await db.DatePlace.findAll({
                 where: searchQuery,
                 offset: offset,
@@ -191,24 +191,49 @@ export const listDatePlaces = async (req, res) => {
             if (adminUser.role === 'admin') {
                 res.send({ status: true, message: "Date places fetched successfully", data: datePlaces });
             }
-            else{
-                let upcoming = await db.Booking.findAll({
-                    where: {
-                        UserId: authData.user.id
-                    }
-                })
-                
-                let upcomingDates = await BookingResource(upcoming);
-                res.send({ status: true, message: "Date places fetched successfully", data: {dateNights: datePlaces, recommended: datePlaces, upcoming: upcomingDates} });
+            else {
+                const userId = authData.user.id;
+                let upcoming = null;
+                console.log("FInding upcoming dates ", userId)
+                try {
+                    upcoming = await db.sequelize.query(`
+                    SELECT 
+                        b.id, b.date, b.time, b.numberOfGuests,
+                        u.id as userId, u.first_name as userFirstName, u.last_name as userLastName, u.email as userEmail,
+                        du.id as dateUserId, du.first_name as dateUserFirstName, du.last_name as dateUserLastName, du.email as dateUserEmail,
+                        dp.id as datePlaceId, dp.name as datePlaceName, dp.address as datePlaceAddress
+                    FROM Bookings b
+                    INNER JOIN Users u ON b.userId = u.id
+                    LEFT JOIN Users du ON b.dateUserId = du.id
+                    INNER JOIN DatePlaces dp ON b.datePlaceId = dp.id
+                    WHERE b.userId = :userId AND b.date >= CURDATE()
+                    ORDER BY b.date ASC, b.time ASC
+                `, {
+                    replacements: { userId: userId },
+                    type: db.Sequelize.QueryTypes.SELECT
+                });
+                    console.log("Upcoming ", upcoming)
+                    // upcoming = upcomingDates;
+                    // res.send({ status: true, message: 'Upcoming bookings fetched successfully.', data: upcomingBookings });
+                } catch (err) {
+                    console.error('Error fetching upcoming bookings:', err);
+                    // res.status(500).send({ status: false, message: 'An error occurred while fetching upcoming bookings.', error: err.message });
+                }
+
+                let upcomingDates = [];
+                if(upcoming){
+                    upcomingDates = await BookingResource(upcoming);
+                }
+                res.send({ status: true, message: "Date places fetched successfully", data: { dateNights: datePlaces, recommended: datePlaces, upcoming: upcomingDates } });
             }
-    
-            
+
+
         } catch (err) {
             console.error('Error fetching date places:', err);
             res.status(500).send({ status: false, message: 'An error occurred while fetching date places', error: err.message });
         }
     })
-    
+
 };
 
 

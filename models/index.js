@@ -104,6 +104,13 @@ db.DatePlace = DatePlaceModel(sequelize, Sequelize);
 db.DatePlace.associate(db);
 
 db.Booking = BookingModel(sequelize, Sequelize);
+// if (db.DatePlace.associate) {
+//   db.DatePlace.associate(db);
+// }
+
+// if (db.Booking.associate) {
+//   db.Booking.associate(db);
+// }
 
 db.NotificationModel = NotificationModel(sequelize, Sequelize);
 db.user.hasMany(db.NotificationModel, { foreignKey: 'to', as: 'receivedNotifications' });
