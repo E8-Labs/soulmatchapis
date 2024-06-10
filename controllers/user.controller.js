@@ -538,12 +538,13 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.role !== 'undefined') {
                     user.role = req.body.role;
                 }
-                if (typeof req.body.height_inches !== 'undefined') {
-                    user.height_inches = req.body.height_inches;
-                }
+                
 
                 if (typeof req.body.height_feet !== 'undefined') {
                     user.height_feet = req.body.height_feet;
+                    if (typeof req.body.height_inches !== 'undefined') {
+                        user.height_inches = req.body.height_feet * 12 + req.body.height_inches;
+                    }
                 }
 
                 if (typeof req.body.age !== 'undefined') {
@@ -652,6 +653,7 @@ export const Discover = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             const userId = authData.user.id; // User making the request
+            const { minAge, maxAge, minHeight, maxHeight, gender, city, state } = req.body; // Filter options
 
             try {
                 // Fetch all user profiles except where specific conditions are met
@@ -673,12 +675,39 @@ export const Discover = (req, res) => {
                 });
                 idsToExclude.push(userId); // Also exclude the current user's profile
 
-                // Find all other users
+                // Build the filter criteria
+                let filterCriteria = {
+                    id: { [db.Sequelize.Op.notIn]: idsToExclude },
+                    status: 'active'
+                };
+
+                if (minAge || maxAge) {
+                    filterCriteria.age = {};
+                    if (minAge) filterCriteria.age[db.Sequelize.Op.gte] = minAge;
+                    if (maxAge) filterCriteria.age[db.Sequelize.Op.lte] = maxAge;
+                }
+
+                if (minHeight || maxHeight) {
+                    filterCriteria.height_inches = {};
+                    if (minHeight) filterCriteria.height_inches[db.Sequelize.Op.gte] = minHeight;
+                    if (maxHeight) filterCriteria.height_inches[db.Sequelize.Op.lte] = maxHeight;
+                }
+
+                if (gender) {
+                    filterCriteria.gender = gender;
+                }
+
+                if (city) {
+                    filterCriteria.city = city;
+                }
+
+                if (state) {
+                    filterCriteria.state = state;
+                }
+
+                // Find all other users based on filter criteria
                 const users = await db.user.findAll({
-                    where: {
-                        id: { [db.Sequelize.Op.notIn]: idsToExclude },
-                        status: 'active',
-                    }
+                    where: filterCriteria
                 });
 
                 // Send the result
