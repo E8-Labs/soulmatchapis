@@ -12,7 +12,10 @@ import { createNotification } from "../utilities/notificationutility.js";
 import pusher from '../utilities/pusher.js'
 import ChatResource from '../resources/chat.resource.js';
 
-
+import S3 from "aws-sdk/clients/s3.js";
+import AWS from 'aws-sdk';
+import fs from 'fs';
+import { promisify } from 'util';
 
 
 
@@ -22,6 +25,34 @@ import ChatResource from '../resources/chat.resource.js';
 
 // controllers/chatController.js
 // import db from '../models'; // Adjust the path according to your project structure
+
+
+//function to upload to AWS
+function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
+    const s3 = new S3({
+        accessKeyId: process.env.AccessKeyId,
+        secretAccessKey: process.env.SecretAccessKey,
+        region: process.env.Region
+    })
+    const params = {
+        Bucket: process.env.Bucket,
+        Key: fieldname + "Profile" + Date.now(),
+        Body: fileContent,
+        ContentDisposition: 'inline',
+        ContentType: mime
+        // ACL: 'public-read',
+    }
+    const result = s3.upload(params, async (err, d) => {
+        if (err) {
+            completion(null, err.message);
+            // return null
+        }
+        else {
+            // user.profile_image = d.Location;
+            completion(d.Location, null);
+        }
+    });
+}
 
 // Function to create a chat
 const checkUsersInSameChat = async (userId1, userId2) => {
@@ -61,13 +92,13 @@ export const CreateChat = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             const userIds = [authData.user.id, req.body.userId];
-            
+
             try {
                 // Find all chats involving the current user and the other user
                 let result = await checkUsersInSameChat(authData.user.id, req.body.userId);
-            
-            // return
-                if(result.length == 0){
+
+                // return
+                if (result.length == 0) {
                     const chat = await db.Chat.create({ name: "" });
 
                     // Add users to chat
@@ -78,16 +109,16 @@ export const CreateChat = async (req, res) => {
                     const chatData = await ChatResource(chat, authData.user);
                     res.send({ status: true, message: 'Chat created successfully.', data: chatData });
                 }
-                else{
+                else {
                     let chatid = result[0]
                     // console.log("Chatids ", result);
                     let chat = await db.Chat.findByPk(chatid);
                     let chatRes = await ChatResource(chat, authData.user);
                     res.send({ status: true, message: 'Chat exists already.', data: chatRes });
                 }
-                
 
-                
+
+
             } catch (err) {
                 console.error('Error creating/fetching chat:', err);
                 res.status(500).send({ status: false, message: 'An error occurred while creating/fetching the chat.', error: err.message });
@@ -146,29 +177,117 @@ export const SendMessage = async (req, res) => {
                     }
                 );
                 // message.timestamp = req.body.timestamp;
-                if(chatUsers.length > 0){
+                if (chatUsers.length > 0) {
                     chatUsers.forEach(async element => {
                         console.log("Sending notification to ", element.userId)
-                        
-                        pusher.trigger(`chat-channel-${chatId}`, `new-message`, {message: message, timestamp: req.body.timestamp});
+
+                        pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
                         let created = await createNotification(message.id, element.userId, authData.user.id, NotificationType.TypeMessage);
                     });
                 }
-                
+
                 res.send({ status: true, message: 'Message sent successfully.', data: message });
             } catch (err) {
                 console.error('Error sending message:', err);
                 res.status(500).send({ status: false, message: 'An error occurred while sending the message.', error: err.message });
             }
         }
-        
+
     })
 
 };
 
-export async function TestPusher(req, res){
+export const SendMediaMessage = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            // const { chatId } = req.params;
+            const { chatId } = req.body;
+
+            const files = req.files;
+
+
+
+            try {
+                let image = null, thumbnail = null;
+
+                if (files.media) {
+                    await new Promise((resolve, reject) => {
+                        uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, (uploadedUrl, error) => {
+                            if (error) {
+                                reject(new Error("Failed to upload media"));
+                            } else {
+                                files.media[0].mimetype.includes("video") ? video = uploadedUrl : image = uploadedUrl;
+                                resolve();
+                            }
+                        });
+                    });
+                }
+
+                if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
+                    await new Promise((resolve, reject) => {
+                        uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, (uploadedUrl, error) => {
+                            if (error) {
+                                reject(new Error("Failed to upload thumbnail"));
+                            } else {
+                                thumbnail = uploadedUrl;
+                                resolve();
+                            }
+                        });
+                    });
+                }
+
+
+                // create the new message
+                let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: '', image_url: image, thumb_url: thumbnail });
+                let chatUsers = await db.ChatUser.findAll({
+                    where: {
+                        chatId,
+                        userId: { [db.Sequelize.Op.ne]: authData.user.id }
+                    }
+                })
+                // console.log()
+                await db.ChatUser.increment(
+                    'unread',
+                    {
+                        by: 1,
+                        where: {
+                            chatId,
+                            userId: { [db.Sequelize.Op.ne]: authData.user.id }
+                        }
+                    }
+                );
+                // message.timestamp = req.body.timestamp;
+                if (chatUsers.length > 0) {
+                    chatUsers.forEach(async element => {
+                        console.log("Sending notification to ", element.userId)
+
+                        pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
+                        let created = await createNotification(message.id, element.userId, authData.user.id, NotificationType.TypeMessage);
+                    });
+                }
+
+                res.send({ status: true, message: 'Message sent successfully.', data: message });
+
+            } catch (uploadError) {
+                console.error('Error sending media:', uploadError);
+                res.status(500).json({
+                    status: false,
+                    message: "Failed to send media",
+                    error: uploadError.message
+                });
+            }
+
+
+
+        }
+
+    })
+
+};
+
+export async function TestPusher(req, res) {
     let message = req.body.message;
-    pusher.trigger(`my-channel`, `new-message`, {message: message});
+    pusher.trigger(`my-channel`, `new-message`, { message: message });
     res.send({ status: true, message: 'Message sent successfully.', data: message });
 }
 // JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -230,7 +349,7 @@ export const GetChatsList = async (req, res) => {
             }
         }
     })
-    
+
 };
 
 // Function to delete a chat

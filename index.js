@@ -67,7 +67,7 @@ db.sequelize.sync({ alter: true })//{alter: true}
 
 app.use("/api/users", uploadImg, userRouter);
 app.use("/api/media", uploadFiles, mediaRouter);
-app.use("/api/chat", verifyJwtToken, chatRouter);//verifyJwtToken
+app.use("/api/chat", uploadFiles, chatRouter);//verifyJwtToken
 app.use("/api/admin", verifyJwtToken, adminRouter);//verifyJwtToken
 
 app.use("/api/admin/dates", uploadImg, dateRouter);
