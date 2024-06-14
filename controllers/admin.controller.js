@@ -199,7 +199,25 @@ const countUniqueDownloads = async (days) => {
             
             let totalDownloads = await uniqueDownloads(30);
             let dailyActiveUsers = await fetchLoginActivity()
-            res.send({ status: true, message: "Dashboard ", data: {downloads: totalDownloads, active_users: dailyActiveUsers} })
+            const free = await db.user.count({
+              where: {
+                id: { [Op.gte]: 0 }
+              }
+            });
+
+            let users = await db.user.findAll({
+              limit: 8
+            })
+            const totalDatesPlanned = await db.Booking.count();
+
+            // Count total number of unique users who planned dates
+            const totalUniqueUsers = await db.Booking.count({
+                distinct: true,
+                col: 'userId'
+            });
+            let usersRes = await UserProfileLiteResource(users)
+            res.send({ status: true, message: "Dashboard ", data: {downloads: totalDownloads, active_users: dailyActiveUsers, 
+              paying: 0, free: free, recent_users: usersRes, planned_dates: totalDatesPlanned, unique_users_planned_dates: totalUniqueUsers} })
             
             
 
