@@ -305,7 +305,7 @@ export const deleteDatePlace = (req, res) => {
             return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
         }
 
-        const { id } = req.params;
+        const { id } = req.body;
 
         try {
             const result = await db.Booking.destroy({ where: { id } });
