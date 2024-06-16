@@ -216,7 +216,8 @@ export const SendMediaMessage = async (req, res) => {
                             if (error) {
                                 reject(new Error("Failed to upload media"));
                             } else {
-                                files.media[0].mimetype.includes("video") ? video = uploadedUrl : image = uploadedUrl;
+                                // files.media[0].mimetype.includes("video") ? video = uploadedUrl : image = uploadedUrl;
+                                image = uploadedUrl;
                                 resolve();
                             }
                         });
