@@ -308,8 +308,9 @@ export const deleteDatePlace = (req, res) => {
         const { id } = req.body;
 
         try {
-            const result = await db.Booking.destroy({ where: { id } });
-
+            
+            const resultBooking = await db.Booking.destroy({ where: { datePlaceId: id } });
+            const result = await db.DatePlace.destroy({ where: { id } });
             if (result) {
                 res.send({ status: true, message: 'Date place deleted successfully.' });
             } else {
