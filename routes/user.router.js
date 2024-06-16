@@ -6,7 +6,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
     Discover, SocialLogin, LikeProfile, GetProfilesWhoLikedMe, FindAllMyMatches,
     SendPasswordResetEmail, ResetPassword, encrypt,  GetUserNotifications,
     SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists, AllQuestions, AddQuestion,
-    UploadIntroVideo, UploadUserMedia, getUserNotifications, ChangenUserPassword} from "../controllers/user.controller.js";
+    UploadIntroVideo, UploadUserMedia, getUserNotifications, ChangenUserPassword, DeleteAllLikesAndMatches} from "../controllers/user.controller.js";
     import {UploadIntroVideoInVideoController, UploadIntroVideos} from '../controllers/video.controller.js'
 
 
@@ -18,6 +18,7 @@ userRouter.post("/social_login", SocialLogin);
 userRouter.get("/get_profile", verifyJwtToken, GetUserProfile);
 userRouter.post("/update_profile", verifyJwtToken, UpdateProfile);
 userRouter.get("/discover", verifyJwtToken, Discover);
+userRouter.post("/reset_profile", verifyJwtToken, DeleteAllLikesAndMatches);
 userRouter.get("/my_matches", verifyJwtToken, FindAllMyMatches);
 userRouter.get("/notifications", verifyJwtToken, GetUserNotifications);
 

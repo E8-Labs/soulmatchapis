@@ -24,6 +24,7 @@ import UserRole from "../models/userrole.js";
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
 import NotificationResource from "../resources/notification.resource.js";
 import { createNotification } from "../utilities/notificationutility.js";
+import { Sequelize } from "sequelize";
 
 const generateThumbnail = (videoPath, thumbnailPath) => {
     return new Promise((resolve, reject) => {
@@ -646,7 +647,35 @@ export const GetUserProfile = (req, res) => {
     })
 }
 
+export const DeleteAllLikesAndMatches = async(req, res)=>{
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            const userId = authData.user.id;
+            let likesDeleted = await db.profileLikes.destroy({
+                where: {
+                    [db.Sequelize.Op.or]: [
+                        { from: userId, status: 'liked' }, // Profiles I have liked
+                        { from: userId, status: 'rejected' }, // Profiles I have rejected
+                        { to: userId, status: 'rejected' }, // Profiles that have rejected me
+                        { to: userId, status: 'liked' } // Profiles that have liked me
+                    ]
+                }
+            });
 
+            let matchesDeleted = await db.profileMatches.destroy({
+                where: {
+                    [Sequelize.Op.or]: [
+                        {user_1_id: userId},
+                        {user_2_id: userId}
+                    ]
+                }
+            })
+
+            res.send({status: true, message: "Profile likes deleted"})
+
+        }
+    })
+}
 
 
 export const Discover = (req, res) => {
