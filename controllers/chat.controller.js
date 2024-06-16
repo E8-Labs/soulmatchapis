@@ -182,7 +182,12 @@ export const SendMessage = async (req, res) => {
                         console.log("Sending notification to ", element.userId)
 
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
-                        let created = await createNotification(message.id, element.userId, authData.user.id, NotificationType.TypeMessage);
+                        try{
+                            let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
+                        }
+                        catch(error){
+                            console.log("Notification send message error ", error)
+                        }
                     });
                 }
 
@@ -263,7 +268,12 @@ export const SendMediaMessage = async (req, res) => {
                         console.log("Sending notification to ", element.userId)
 
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
-                        let created = await createNotification(message.id, element.userId, authData.user.id, NotificationType.TypeMessage);
+                        try{
+                            let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
+                        }
+                        catch(error){
+                            console.log("Notification send message error ", error)
+                        }
                     });
                 }
 
