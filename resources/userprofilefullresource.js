@@ -91,6 +91,9 @@ async function getUserData(user, currentUser = null) {
         ua.questionId = pq.id
     WHERE 
         ua.UserId = :userId
+    ORDER BY 
+        ua.createdAt DESC
+    LIMIT 3 
 `;
 
     const answers = await db.sequelize.query(query, {
