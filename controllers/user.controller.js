@@ -868,7 +868,7 @@ export const LikeProfile = (req, res) => {
             try {
                 // Check or create like entry
                 let [likeEntry, created] = await db.profileLikes.findOrCreate({
-                    where: { from: fromUserId, to: toUserId },
+                    where: { from: fromUserId, to: toUserId, comment: req.body.comment || '', AnswerId: req.body.answerId || null},
                     defaults: { status }
                 });
 

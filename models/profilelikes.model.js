@@ -18,7 +18,20 @@ let ProfileLikesModel = (sequelize, Sequelize) => {
         type: Sequelize.ENUM,
         values: ['liked', 'rejected'],
       },
-      
+      AnswerId: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: 'UserAnswers', // This is the name of the table, make sure it matches your User model definition
+            key: 'id'
+        },
+        allowNull: true,
+        default: null,
+        
+      },
+      comment:{
+        type: Sequelize.STRING,
+        default: ''
+      }
       
     });
     // Chat.belongsTo(User);
