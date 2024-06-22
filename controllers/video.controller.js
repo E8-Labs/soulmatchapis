@@ -2,7 +2,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import db from "../models/index.js";
 import S3 from "aws-sdk/clients/s3.js";
 import JWT from "jsonwebtoken";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import AWS from 'aws-sdk';
 import fs from 'fs';
 import path from 'path';

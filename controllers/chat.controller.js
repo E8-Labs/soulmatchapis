@@ -1,6 +1,6 @@
 import db from '../models/index.js'
 import JWT from "jsonwebtoken";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import multer from "multer";
 import path from "path";
 import moment from "moment-timezone";

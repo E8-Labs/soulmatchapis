@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 import S3 from "aws-sdk/clients/s3.js";
 import JWT from "jsonwebtoken";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import multer from "multer";
 import path from "path";
 import moment from "moment-timezone";
@@ -173,9 +173,26 @@ export const listDatePlaces = async (req, res) => {
                     [Op.or]: [
                         { description: { [Op.like]: `%${searchTerm}%` } },
                         { address: { [Op.like]: `%${searchTerm}%` } }
-                    ]
+                    ],
+                    
+                };
+                if(req.query.category){
+                    searchQuery = {
+                        [Op.or]: [
+                            { description: { [Op.like]: `%${searchTerm}%` } },
+                            { address: { [Op.like]: `%${searchTerm}%` } }
+                        ],
+                        CategoryId: req.query.category
+                    };
+                }
+                
+            }
+            else if(req.query.category){
+                searchQuery = {
+                    CategoryId: req.query.category
                 };
             }
+            
 
             const datePlaces = await db.DatePlace.findAll({
                 where: searchQuery,
