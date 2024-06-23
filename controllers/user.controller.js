@@ -508,13 +508,15 @@ export const UpdateProfileHeights = async(req, res) => {
     try {
         const query = `
             UPDATE Users
-            SET height_inches = height_feet * 12 + height_inches
-            WHERE height_feet * 12 + height_inches <= 84
+            SET height_inches = CASE
+                WHEN height_feet * 12 + height_inches <= 84 THEN height_feet * 12 + height_inches
+                ELSE height_feet * 12
+            END
         `;
 
         await db.sequelize.query(query, { type: db.Sequelize.QueryTypes.UPDATE });
-        let users = await db.user.findAll()
-        res.send({ status: true, message: 'Height inches updated successfully for applicable users.', data: users });
+
+        res.send({ status: true, message: 'Height inches updated successfully for applicable users.' });
     } catch (err) {
         console.error('Error updating height_inches:', err);
         res.status(500).send({ status: false, message: 'An error occurred while updating height_inches.', error: err.message });
