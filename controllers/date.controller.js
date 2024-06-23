@@ -194,7 +194,7 @@ export const listDatePlaces = async (req, res) => {
                 };
             }
 
-å
+
             const datePlaces = await db.DatePlace.findAll({
                 where: searchQuery,
                 offset: offset,
