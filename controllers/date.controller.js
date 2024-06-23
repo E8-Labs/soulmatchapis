@@ -290,6 +290,9 @@ export const SendEmailInviteToDate = async (req, res) => {
         }
 
         const userId = authData.user.id;
+        let time = req.body.time;
+        let date = req.body.date;
+        let guests = req.body.guests;
 
         let datePlaceId = req.body.datePlaceId;
         let place = await db.DatePlace.findByPk(datePlaceId);
@@ -312,23 +315,93 @@ export const SendEmailInviteToDate = async (req, res) => {
 
             try {
                 let mailOptions = {
-                    from: '"Plurawl" salman@e8-labs.com', // Sender address
+                    from: 'Soulmatch" salman@e8-labs.com', // Sender address
                     to: email, // List of recipients
-                    subject: "Password Reset Code", // Subject line
+                    subject: "Date Invitation", // Subject line
                     // text: `${randomCode}`, // Plain text body
-                    html: `<html>
-    <body>
-        <p>Hello there!</p>
-        <p>${user.name} has invited you to a date.</p>
-        <p>${description}</p>
-        <br/>
-        <h4>Date Location</h4>
-        <br/>
-        <img src="${place.imageUrl}" width="100" height="100" />
-        <p><b>Name:</b> ${place.name}</p>
-        <p><b>Address:</b> ${place.address}</p>
-    </body>
+                    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Invitation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #6050DC;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .content h4 {
+            font-size: 18px;
+            color: #007BFF;
+            margin-bottom: 10px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #777777;
+        }
+        .footer a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Date Invitation</h1>
+        </div>
+        <div class="content">
+            <p>Hello there!</p>
+            <p><strong>${user.first_name}</strong> has invited you to a date.</p>
+            <p>${description}</p>
+            <br/>
+            <h4>Date Location</h4>
+            <br/>
+            <p><b>Time:</b> ${time}</p>
+            <p><b>Date:</b> ${date}</p>
+            <p><b>Guests:</b> ${guests}</p>
+        </div>
+        <div class="footer">
+            <p>Thank you for using our service. If you have any questions, please <a href="mailto:support@example.com">contact us</a>.</p>
+        </div>
+    </div>
+</body>
 </html>
+
 `, // HTML body
                 };
                 transporter.sendMail(mailOptions, (error, info) => {
