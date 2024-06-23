@@ -7,7 +7,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
     SendPasswordResetEmail, ResetPassword, encrypt,  GetUserNotifications,
     SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists, AllQuestions, AddQuestion,
     UploadIntroVideo, UploadUserMedia, getUserNotifications, ChangenUserPassword, 
-    DeleteAllLikesAndMatches, UpdateProfileHeights, SendEmailFeedback, ReportUser, blockUser} from "../controllers/user.controller.js";
+    DeleteAllLikesAndMatches, UpdateProfileHeights, SendEmailFeedback, ReportUser, blockUser, DeleteAnswer} from "../controllers/user.controller.js";
 
     import {UploadIntroVideoInVideoController, UploadIntroVideos} from '../controllers/video.controller.js'
 
@@ -23,6 +23,7 @@ userRouter.post("/report_user", verifyJwtToken, ReportUser);
 userRouter.post("/send_feedback", verifyJwtToken, SendEmailFeedback);
 
 userRouter.post("/block_user", verifyJwtToken, blockUser);
+userRouter.post("/delete_answer", verifyJwtToken, DeleteAnswer);
 
 userRouter.post("/update_profile", verifyJwtToken, UpdateProfile);
 userRouter.post("/update_all_heights", verifyJwtToken, UpdateProfileHeights);

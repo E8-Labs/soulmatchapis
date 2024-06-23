@@ -361,7 +361,7 @@ export const ChangenUserPassword = async (req, res) => {
             const email = user.email;
             const password = req.body.oldPassword; //old passwor
             let newPassword = req.body.newPassword;
-            
+
 
             const count = await User.count();
             ////console.log("Count " + count);
@@ -378,7 +378,7 @@ export const ChangenUserPassword = async (req, res) => {
                         const hashed = await bcrypt.hash(newPassword, salt);
                         user.password = hashed;
                         let saved = await user.save();
-                        if(saved){
+                        if (saved) {
                             JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (error, token) => {
                                 if (error) {
                                     //console.log(error)
@@ -394,7 +394,7 @@ export const ChangenUserPassword = async (req, res) => {
                                 }
                             })
                         }
-                        
+
                     }
                     else {
                         res.send({ status: false, message: "Invalid password", data: null });
@@ -504,7 +504,7 @@ export async function UploadUserMedia(req, res) {
         }
     })
 }
-export const UpdateProfileHeights = async(req, res) => {
+export const UpdateProfileHeights = async (req, res) => {
     try {
         const query = `
             UPDATE Users
@@ -556,7 +556,7 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.role !== 'undefined') {
                     user.role = req.body.role;
                 }
-                
+
 
                 if (typeof req.body.height_feet !== 'undefined') {
                     user.height_feet = req.body.height_feet;
@@ -664,7 +664,7 @@ export const GetUserProfile = (req, res) => {
     })
 }
 
-export const DeleteAllLikesAndMatches = async(req, res)=>{
+export const DeleteAllLikesAndMatches = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             const userId = authData.user.id;
@@ -682,13 +682,13 @@ export const DeleteAllLikesAndMatches = async(req, res)=>{
             let matchesDeleted = await db.profileMatches.destroy({
                 where: {
                     [Sequelize.Op.or]: [
-                        {user_1_id: userId},
-                        {user_2_id: userId}
+                        { user_1_id: userId },
+                        { user_2_id: userId }
                     ]
                 }
             })
 
-            res.send({status: true, message: "Profile likes deleted"})
+            res.send({ status: true, message: "Profile likes deleted" })
 
         }
     })
@@ -773,7 +773,43 @@ export const Discover = (req, res) => {
 };
 
 
+export const DeleteAnswer = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            let user = await db.user.findByPk(authData.user.id)
+            let answerId = req.body.answerId;
+            let del = await db.userAnswers.destroy({
+                where: {
+                    id: answerId
+                }
+            })
+            const query = `
+        SELECT 
+            ua.*, 
+            pq.title, 
+            pq.text 
+        FROM 
+            UserAnswers ua
+        JOIN 
+            ProfileQuestions pq 
+        ON 
+            ua.questionId = pq.id
+        WHERE 
+            ua.UserId = :userId
+    `;
 
+            const answers = await db.sequelize.query(query, {
+                replacements: { userId: authData.user.id },
+                type: db.sequelize.QueryTypes.SELECT
+            });
+
+            res.send({ status: true, message: "Answer deleted", data: answers })
+        }
+        else {
+            res.send({ status: false, message: "Unauthenticated user" })
+        }
+    })
+}
 
 
 
@@ -885,7 +921,7 @@ export const LikeProfile = (req, res) => {
             try {
                 // Check or create like entry
                 let [likeEntry, created] = await db.profileLikes.findOrCreate({
-                    where: { from: fromUserId, to: toUserId, comment: req.body.comment || '', AnswerId: req.body.answerId || null},
+                    where: { from: fromUserId, to: toUserId, comment: req.body.comment || '', AnswerId: req.body.answerId || null },
                     defaults: { status }
                 });
 
@@ -1278,7 +1314,7 @@ export const SendEmailFeedback = async (req, res) => {
                 pass: "uzmvwsljflyqnzgu", // Your email password
             },
         });
-        
+
         try {
             let mailOptions = {
                 from: '"Soulmatch" salman@e8-labs.com', // Sender address
