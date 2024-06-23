@@ -1477,7 +1477,7 @@ export const SendEmailVerificationCode = async (req, res) => {
         </div>
         <div class="content">
             <p><strong>Hello there!</strong></p>
-            <p>This is your reset code:</p>
+            <p>This is your email verification code:</p>
             <div class="code">${randomCode}</div>
         </div>
         <div class="footer">

@@ -159,7 +159,7 @@ export const listDatePlaces = async (req, res) => {
         }
         const adminUserId = authData.user.id;
         const adminUser = await db.user.findByPk(adminUserId);
-
+        let showAll = req.query.allPlaces || false; //show all places
         try {
             let offset = 0;
             if (typeof req.query.offset !== 'undefined') {
@@ -194,7 +194,7 @@ export const listDatePlaces = async (req, res) => {
                 };
             }
 
-
+å
             const datePlaces = await db.DatePlace.findAll({
                 where: searchQuery,
                 offset: offset,
@@ -206,7 +206,7 @@ export const listDatePlaces = async (req, res) => {
                     }
                 ]
             });
-            if (adminUser.role === 'admin') {
+            if (adminUser.role === 'admin' || showAll) {
                 res.send({ status: true, message: "Date places fetched successfully", data: datePlaces });
             }
             else {
