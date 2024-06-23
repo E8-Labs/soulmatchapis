@@ -101,6 +101,19 @@ async function getUserData(user, currentUser = null) {
         type: db.sequelize.QueryTypes.SELECT
     });
 
+    let isLiked = false;
+    if(currentUser){
+        const likes = await db.profileLikes.findOne({
+            where: {
+                to: user.id,
+                status: 'liked',
+                from: currentUser.id
+            }
+        });
+        if(likes){
+            isLiked = true;
+        }
+    }
 
     const UserFullResource = {
         id: user.id,
@@ -134,6 +147,7 @@ async function getUserData(user, currentUser = null) {
         interested_min_age: user.interested_min_age,
         interested_gender: user.interested_gender,
         media: userMedia,
+        isLiked: isLiked
     }
 
 
