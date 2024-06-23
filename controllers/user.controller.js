@@ -504,7 +504,22 @@ export async function UploadUserMedia(req, res) {
         }
     })
 }
+export const UpdateProfileHeights = async(req, res) => {
+    try {
+        const query = `
+            UPDATE Users
+            SET height_inches = height_feet * 12 + height_inches
+            WHERE height_feet * 12 + height_inches <= 84
+        `;
 
+        await db.sequelize.query(query, { type: db.Sequelize.QueryTypes.UPDATE });
+        let users = await db.user.findAll()
+        res.send({ status: true, message: 'Height inches updated successfully for applicable users.', data: users });
+    } catch (err) {
+        console.error('Error updating height_inches:', err);
+        res.status(500).send({ status: false, message: 'An error occurred while updating height_inches.', error: err.message });
+    }
+}
 
 export const UpdateProfile = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
