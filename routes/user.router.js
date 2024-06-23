@@ -17,7 +17,7 @@ userRouter.post("/login", LoginUser);
 userRouter.post("/social_login", SocialLogin);
 userRouter.get("/get_profile", verifyJwtToken, GetUserProfile);
 userRouter.post("/update_profile", verifyJwtToken, UpdateProfile);
-userRouter.get("/discover", verifyJwtToken, Discover);
+userRouter.post("/discover", verifyJwtToken, Discover);
 userRouter.post("/reset_profile", verifyJwtToken, DeleteAllLikesAndMatches);
 userRouter.get("/my_matches", verifyJwtToken, FindAllMyMatches);
 userRouter.get("/notifications", verifyJwtToken, GetUserNotifications);
