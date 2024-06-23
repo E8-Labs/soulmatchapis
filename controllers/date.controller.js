@@ -14,6 +14,7 @@ import BookingResource from "../resources/booking.resource.js";
 import NotificationType from '../models/user/notificationtype.js'
 import { createNotification } from "../utilities/notificationutility.js";
 import { Sequelize } from "sequelize";
+import DatePlaceModel from "../models/date/dateplace.model.js";
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
 // var Jimp = require("jimp");
@@ -174,9 +175,9 @@ export const listDatePlaces = async (req, res) => {
                         { description: { [Op.like]: `%${searchTerm}%` } },
                         { address: { [Op.like]: `%${searchTerm}%` } }
                     ],
-                    
+
                 };
-                if(req.query.category){
+                if (req.query.category) {
                     searchQuery = {
                         [Op.or]: [
                             { description: { [Op.like]: `%${searchTerm}%` } },
@@ -185,14 +186,14 @@ export const listDatePlaces = async (req, res) => {
                         CategoryId: req.query.category
                     };
                 }
-                
+
             }
-            else if(req.query.category){
+            else if (req.query.category) {
                 searchQuery = {
                     CategoryId: req.query.category
                 };
             }
-            
+
 
             const datePlaces = await db.DatePlace.findAll({
                 where: searchQuery,
@@ -226,9 +227,9 @@ export const listDatePlaces = async (req, res) => {
                     WHERE b.userId = :userId AND b.date >= CURDATE()
                     ORDER BY b.date ASC, b.time ASC
                 `, {
-                    replacements: { userId: userId },
-                    type: db.Sequelize.QueryTypes.SELECT
-                });
+                        replacements: { userId: userId },
+                        type: db.Sequelize.QueryTypes.SELECT
+                    });
                     console.log("Upcoming ", upcoming)
                     // upcoming = upcomingDates;
                     // res.send({ status: true, message: 'Upcoming bookings fetched successfully.', data: upcomingBookings });
@@ -238,7 +239,7 @@ export const listDatePlaces = async (req, res) => {
                 }
 
                 let upcomingDates = [];
-                if(upcoming){
+                if (upcoming) {
                     upcomingDates = await BookingResource(upcoming);
                 }
                 res.send({ status: true, message: "Date places fetched successfully", data: { dateNights: datePlaces, recommended: datePlaces, upcoming: upcomingDates } });
@@ -281,6 +282,77 @@ export const addBooking = (req, res) => {
         }
     });
 };
+
+export const SendEmailInviteToDate = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const userId = authData.user.id;
+
+        let datePlaceId = req.body.datePlaceId;
+        let place = await db.DatePlace.findByPk(datePlaceId);
+        let email = req.body.email;
+        let description = req.body.description;
+        let user = await db.user.findByPk(userId)
+        if (user) {
+            //send email here
+            // Create a transporter object using the default SMTP transport
+            let transporter = nodemailer.createTransport({
+                host: "smtp.gmail.com", // Replace with your mail server host
+                port: 587, // Port number depends on your email provider and whether you're using SSL or not
+                secure: false, // true for 465 (SSL), false for other ports
+                auth: {
+                    user: "salman@e8-labs.com", // Your email address
+                    pass: "uzmvwsljflyqnzgu", // Your email password
+                },
+            });
+
+
+            try {
+                let mailOptions = {
+                    from: '"Plurawl" salman@e8-labs.com', // Sender address
+                    to: email, // List of recipients
+                    subject: "Password Reset Code", // Subject line
+                    // text: `${randomCode}`, // Plain text body
+                    html: `<html>
+    <body>
+        <p>Hello there!</p>
+        <p>${user.name} has invited you to a date.</p>
+        <p>${description}</p>
+        <br/>
+        <h4>Date Location</h4>
+        <br/>
+        <img src="${place.imageUrl}" width="100" height="100" />
+        <p><b>Name:</b> ${place.name}</p>
+        <p><b>Address:</b> ${place.address}</p>
+    </body>
+</html>
+`, // HTML body
+                };
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        res.send({ status: false, message: "Invite not sent" })
+                        //console.log(error);
+                    }
+                    else {
+                        res.send({ status: true, message: "Invite sent" })
+                    }
+                });
+            }
+            catch (error) {
+                console.log("Exception email Invite Date", error)
+                res.send({ status: true, message: "Invite not sent", error: error })
+            }
+        }
+        else {
+            res.send({ status: false, data: null, message: "No such user" })
+        }
+
+    })
+
+}
 
 
 
@@ -325,7 +397,7 @@ export const deleteDatePlace = (req, res) => {
         const { id } = req.body;
 
         try {
-            
+
             const resultBooking = await db.Booking.destroy({ where: { datePlaceId: id } });
             const result = await db.DatePlace.destroy({ where: { id } });
             if (result) {
