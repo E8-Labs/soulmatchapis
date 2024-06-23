@@ -31,6 +31,14 @@ const messageModel = (sequelize, Sequelize) => {
             allowNull: true,
             defaultValue: null,
         },
+        image_height: {
+            type: Sequelize.INTEGER,
+            default: 200
+        },
+        image_width: {
+            type: Sequelize.INTEGER,
+            default: 200
+        },
         isRead: {
             type: Sequelize.BOOLEAN,
             allowNull: false,

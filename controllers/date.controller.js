@@ -387,7 +387,7 @@ export const SendEmailInviteToDate = async (req, res) => {
         <div class="content">
             <p>Hello there!</p>
             <p><strong>${user.first_name}</strong> has invited you to a date.</p>
-            <p>${description}</p>
+            <p><b>Comments:</b>${description}</p>
             <br/>
             <h4>Date Location</h4>
             <br/>

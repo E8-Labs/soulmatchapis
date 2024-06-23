@@ -1,6 +1,7 @@
 import db from '../models/index.js'
 import JWT from "jsonwebtoken";
 import bcrypt from 'bcryptjs';
+import sharp from 'sharp';
 import multer from "multer";
 import path from "path";
 import moment from "moment-timezone";
@@ -209,7 +210,7 @@ export const SendMediaMessage = async (req, res) => {
             const { chatId } = req.body;
 
             const files = req.files;
-
+            let imageDimensions = { width: null, height: null };
 
 
             try {
@@ -230,6 +231,9 @@ export const SendMediaMessage = async (req, res) => {
                 }
 
                 if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
+                    const metadata = await sharp(files.thumbnail[0].buffer).metadata();
+                    imageDimensions.width = metadata.width;
+                    imageDimensions.height = metadata.height;
                     await new Promise((resolve, reject) => {
                         uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, (uploadedUrl, error) => {
                             if (error) {
@@ -241,10 +245,16 @@ export const SendMediaMessage = async (req, res) => {
                         });
                     });
                 }
+                else{
+                    const metadata = await sharp(files.media[0].buffer).metadata();
+                    imageDimensions.width = metadata.width;
+                    imageDimensions.height = metadata.height;
+                }
 
 
                 // create the new message
-                let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: '', image_url: image, thumb_url: thumbnail });
+                let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: '', image_url: image, 
+                    thumb_url: thumbnail, image_width: imageDimensions.width, image_height: imageDimensions.height });
                 let chatUsers = await db.ChatUser.findAll({
                     where: {
                         chatId,
