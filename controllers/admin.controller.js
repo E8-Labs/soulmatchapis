@@ -228,6 +228,126 @@ const countUniqueDownloads = async (days) => {
     })
 }
 
+export const getReportedUsers = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+      if (error) {
+          return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+      }
+
+      try {
+        const query = `
+        SELECT 
+            ru.id AS reportId,
+            ru.reportReason,
+            ru.createdAt,
+            ru.updatedAt,
+            ru.reportedUserId,
+            ru.reportingUserId,
+            reportedUser.first_name AS reportedUserFirstName,
+            reportedUser.last_name AS reportedUserLastName,
+            reportedUser.profile_image AS reportedUserProfileImage,
+            reportingUser.first_name AS reportingUserFirstName,
+            reportingUser.last_name AS reportingUserLastName,
+            reportingUser.profile_image AS reportingUserProfileImage
+        FROM ReportedUsers ru
+        INNER JOIN Users reportedUser ON ru.reportedUserId = reportedUser.id
+        INNER JOIN Users reportingUser ON ru.reportingUserId = reportingUser.id
+    `;
+
+    const result = await db.sequelize.query(query, { type: db.Sequelize.QueryTypes.SELECT });
+
+            const reportedUsers = result.map(row => ({
+                reportId: row.reportId,
+                reportReason: row.reportReason,
+                createdAt: row.createdAt,
+                updatedAt: row.updatedAt,
+                reportedUserId: row.reportedUserId,
+                reportingUserId: row.reportingUserId,
+                reportedUser: {
+                    id: row.reportedUserId,
+                    first_name: row.reportedUserFirstName,
+                    last_name: row.reportedUserLastName,
+                    profile_image: row.reportedUserProfileImage
+                },
+                reportingUser: {
+                    id: row.reportingUserId,
+                    first_name: row.reportingUserFirstName,
+                    last_name: row.reportingUserLastName,
+                    profile_image: row.reportingUserProfileImage
+                }
+            }));
+
+
+          res.send({ status: true, message: 'Reported users fetched successfully', data: reportedUsers });
+      } catch (err) {
+          console.error('Error fetching reported users:', err);
+          res.status(500).send({ status: false, message: 'An error occurred while fetching reported users', error: err.message });
+      }
+  });
+};
+
+export const getBlockedUsers = async (req, res) => {
+  // const token = req.headers.authorization.split(' ')[1]; // Assuming the token is sent in the Authorization header
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+      if (error) {
+          console.error('JWT verification error:', error);
+          return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+      }
+
+      try {
+          const query = `
+              SELECT 
+                  bu.id AS blockId,
+                  bu.blockReason,
+                  bu.createdAt,
+                  bu.updatedAt,
+                  bu.blockedUserId,
+                  bu.blockingUserId,
+                  blockedUser.id AS blockedUserId,
+                  blockedUser.first_name AS blockedUserFirstName,
+                  blockedUser.last_name AS blockedUserLastName,
+                  blockedUser.profile_image AS blockedUserProfileImage,
+                  blockingUser.id AS blockingUserId,
+                  blockingUser.first_name AS blockingUserFirstName,
+                  blockingUser.last_name AS blockingUserLastName,
+                  blockingUser.profile_image AS blockingUserProfileImage
+              FROM BlockedUsers bu
+              INNER JOIN Users blockedUser ON bu.blockedUserId = blockedUser.id
+              INNER JOIN Users blockingUser ON bu.blockingUserId = blockingUser.id
+          `;
+
+          const result = await db.sequelize.query(query, { type: db.Sequelize.QueryTypes.SELECT });
+
+          const blockedUsers = result.map(row => ({
+              blockId: row.blockId,
+              blockReason: row.blockReason,
+              createdAt: row.createdAt,
+              updatedAt: row.updatedAt,
+              blockedUserId: row.blockedUserId,
+              blockingUserId: row.blockingUserId,
+              blockedUser: {
+                  id: row.blockedUserId,
+                  first_name: row.blockedUserFirstName,
+                  last_name: row.blockedUserLastName,
+                  profile_image: row.blockedUserProfileImage
+              },
+              blockingUser: {
+                  id: row.blockingUserId,
+                  first_name: row.blockingUserFirstName,
+                  last_name: row.blockingUserLastName,
+                  profile_image: row.blockingUserProfileImage
+              }
+          }));
+
+          res.send({ status: true, message: 'Blocked users fetched successfully', data: blockedUsers });
+      } catch (err) {
+          console.error('Error fetching blocked users:', err);
+          res.status(500).send({ status: false, message: 'An error occurred while fetching blocked users', error: err.message });
+      }
+  });
+};
+
 export const GetUsers = (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
       if (authData) {

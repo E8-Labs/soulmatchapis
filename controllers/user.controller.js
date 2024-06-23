@@ -1198,7 +1198,173 @@ export const ResetPassword = async (req, res) => {
 }
 
 
+export const ReportUser = async (req, res) => {
+    const { reportedUserId, reportReason } = req.body;
+    // const token = req.headers.authorization.split(' ')[1]; // Assuming the token is sent in the Authorization header
 
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            console.error('JWT verification error:', error);
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const reportingUserId = authData.user.id; // Extract the user ID from the token
+
+        try {
+            const report = await db.ReportedUsers.create({
+                reportedUserId,
+                reportingUserId,
+                reportReason
+            });
+
+            res.status(201).send({ status: true, message: 'User reported successfully', data: report });
+        } catch (err) {
+            console.error('Error reporting user:', err);
+            res.status(500).send({ status: false, message: 'An error occurred while reporting the user', error: err.message });
+        }
+    });
+};
+
+export const blockUser = async (req, res) => {
+    const { blockedUserId, blockReason } = req.body;
+    // const token = req.headers.authorization.split(' ')[1]; // Assuming the token is sent in the Authorization header
+
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            console.error('JWT verification error:', error);
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const blockingUserId = authData.user.id; // Extract the user ID from the token
+
+        try {
+            const block = await db.BlockedUsers.create({
+                blockedUserId,
+                blockingUserId,
+                blockReason
+            });
+
+            res.status(201).send({ status: true, message: 'User blocked successfully', data: block });
+        } catch (err) {
+            console.error('Error blocking user:', err);
+            res.status(500).send({ status: false, message: 'An error occurred while blocking the user', error: err.message });
+        }
+    });
+};
+
+
+
+
+export const SendEmailFeedback = async (req, res) => {
+
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            console.error('JWT verification error:', error);
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+        let user = await db.user.findOne({
+            where: {
+                id: authData.user.id
+            }
+        })
+        let feedback = req.body.feedback;
+
+        let transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com", // Replace with your mail server host
+            port: 587, // Port number depends on your email provider and whether you're using SSL or not
+            secure: false, // true for 465 (SSL), false for other ports
+            auth: {
+                user: "salman@e8-labs.com", // Your email address
+                pass: "uzmvwsljflyqnzgu", // Your email password
+            },
+        });
+        
+        try {
+            let mailOptions = {
+                from: '"Soulmatch" salman@e8-labs.com', // Sender address
+                to: process.env.FeedbackEmail, // List of recipients
+                subject: "Feedback email", // Subject line
+                // text: `${randomCode}`, // Plain text body
+                html: `<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Feedback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+        .header h1 {
+            margin: 10px 0 5px;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 5px solid #007BFF;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="${user.profile_image}" alt="Profile Image">
+            <h1>${user.first_name}</h1>
+            <p>${user.email}</p>
+        </div>
+        <div class="feedback">
+            <h2>Feedback</h2>
+            <p>${feedback}</p>
+        </div>
+        <div class="footer">
+            <p>Thank you for your attention.</p>
+        </div>
+    </div>
+</body>`, // HTML body
+            };
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    res.send({ status: false, message: "Feedback not sent" })
+                    //console.log(error);
+                }
+                else {
+                    res.send({ status: true, message: "Feedback sent" })
+                }
+            });
+        }
+        catch (error) {
+            console.log("Exception email", error)
+        }
+    })
+}
 
 export const SendEmailVerificationCode = async (req, res) => {
     let email = req.body.email;

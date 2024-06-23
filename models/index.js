@@ -8,6 +8,8 @@ import UserMediaModel from "./user/usermedia.model.js";
 import chatModel from './chat/chat.model.js';
 import chatUserModel from './chat/chatUser.model.js';
 import messageModel from './chat/message.model.js';
+import ReportedUsersModel from "./user/ReportedUsers.js";
+import BlockedUsersModel from './user/BlockedUsers.js'; // Add the new model
 
 
 import  Sequelize from "sequelize";
@@ -118,5 +120,14 @@ db.NotificationModel.belongsTo(db.user, { foreignKey: 'to', as: 'toUser' });
 
 db.user.hasMany(db.NotificationModel, { foreignKey: 'from', as: 'sentNotifications' });
 db.NotificationModel.belongsTo(db.user, { foreignKey: 'from', as: 'fromUser' });
+db.ReportedUsers = ReportedUsersModel(sequelize, Sequelize);
+db.BlockedUsers = BlockedUsersModel(sequelize, Sequelize); 
 
+
+// Object.keys(db).forEach(modelName => {
+//   console.log("Works for ", modelName)
+//   if (db[modelName].associate) {
+//       db[modelName].associate(db);
+//   }
+// });
 export default db;
