@@ -781,7 +781,7 @@ export const GetProfilesWhoLikedMe = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             const userId = authData.user.id; // User making the request
-
+            const user = await db.user.findByPk(userId)
             try {
                 // Fetch all entries where the current user is 'to' and the status is 'liked'
                 const likes = await db.profileLikes.findAll({
@@ -808,7 +808,7 @@ export const GetProfilesWhoLikedMe = (req, res) => {
                 });
 
                 // Send the result
-                let u = await UserProfileFullResource(usersWhoLikedMe);
+                let u = await UserProfileFullResource(usersWhoLikedMe, user);
                 res.send({ status: true, message: "Profiles who liked my profile", data: u });
             } catch (err) {
                 console.error('Error fetching profiles who liked me:', err);
