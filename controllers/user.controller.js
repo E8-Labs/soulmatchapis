@@ -25,6 +25,7 @@ import UserProfileFullResource from "../resources/userprofilefullresource.js";
 import NotificationResource from "../resources/notification.resource.js";
 import { createNotification } from "../utilities/notificationutility.js";
 import { Sequelize } from "sequelize";
+import { sendNot, sendNotWithUser } from "./push.controller.js";
 
 const generateThumbnail = (videoPath, thumbnailPath) => {
     return new Promise((resolve, reject) => {
@@ -193,6 +194,7 @@ function createUser(userData, completion) {
                 })
                 if (admin) {
                     let created = await createNotification(data.id, admin.id, data.id, NotificationType.TypeNewUser);
+                    // sendNotWithUser(admin.id, "New User", `${u.first_name} registered on Soulmatch`, {type: NotificationType.TypeNewUser, data: user})
                 }
 
                 completion({ user: u, token: token }, null)
@@ -504,6 +506,24 @@ export async function UploadUserMedia(req, res) {
         }
     })
 }
+
+
+export const sendTestNot = async(req, res) => {
+    
+
+    try {
+        // Send the notification
+        let resp = sendNot("ExponentPushToken[_pZ2Y6LPv7S9gKi2lJwzif]", "Test Notification", "This is a test notification message", 
+            {message: "This is a test message", id: "This is id of the action", type: "Message"})
+        res.send({ status: true, message: 'Notification sent successfully', data: resp });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ status: false, message: 'Failed to send notification', error: error.message });
+    }
+}
+
+
+
 export const UpdateProfileHeights = async (req, res) => {
     try {
         const query = `
