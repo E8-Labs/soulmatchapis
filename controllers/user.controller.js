@@ -568,7 +568,9 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.age !== 'undefined') {
                     user.age = req.body.age;
                 }
-
+                if (typeof req.body.fcm_token !== 'undefined') {
+                    user.fcm_token = req.body.fcm_token;
+                }
                 if (typeof req.body.zodiac !== 'undefined') {
                     user.zodiac = req.body.zodiac;
                 }
