@@ -47,7 +47,7 @@ function getSubtitleForNotification(type, from){
 
 export const createNotification = async (from, to, itemId, notification_type, message) => {
     // const { UserId, actionType, itemId, message } = req.body;
-    let fromUser = await db.user.findByPK(from)
+    let fromUser = await db.user.findByPk(from)
     try {
         const notification = await db.NotificationModel.create({
             from: from,
