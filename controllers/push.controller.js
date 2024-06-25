@@ -1,5 +1,5 @@
 import { Expo } from 'expo-server-sdk';
-import db from '../models';
+import db from '../models/index.js'
 
 // Create a new Expo SDK client
 
