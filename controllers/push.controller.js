@@ -29,7 +29,7 @@ export const sendNot = async(to, title, body, data) => {
 
 export const sendNotWithUser = async(to, title, body, data) => {
     let expo = new Expo();
-    let user = await db.user.findByPK(to)
+    let user = await db.user.findByPk(to)
     if(user && user.fcm_token){
         const message = {
             to: user.fcm_token,//"ExponentPushToken[_pZ2Y6LPv7S9gKi2lJwzif]",
