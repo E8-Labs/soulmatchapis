@@ -9,15 +9,15 @@ const Op = db.Sequelize.Op;
 
 const NotificationResource = async (user, currentUser = null) => {
     if (!Array.isArray(user)) {
-        ////console.log("Not array")
+        //////console.log("Not array")
         return await getUserData(user, currentUser);
     }
     else {
-        ////console.log("Is array")
+        //////console.log("Is array")
         const data = []
         for (let i = 0; i < user.length; i++) {
             const p = await getUserData(user[i], currentUser)
-            ////console.log("Adding to index " + i)
+            //////console.log("Adding to index " + i)
             data.push(p);
         }
 
@@ -47,7 +47,7 @@ let toUser = await db.user.findOne({
     let plan = null
     if(sub){
         let p = JSON.parse(sub.data);
-        console.log("User have subscription plan", p)
+        //console.log("User have subscription plan", p)
         plan = p;
     }
     

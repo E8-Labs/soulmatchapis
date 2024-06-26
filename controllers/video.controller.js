@@ -34,11 +34,11 @@ const generateThumbnail = (videoPath, thumbnailPath) => {
     return new Promise((resolve, reject) => {
         ffmpeg(videoPath)
             .on('end', () => {
-                console.log('Screenshot taken');
+                //console.log('Screenshot taken');
                 resolve(thumbnailPath);
             })
             .on('error', (err) => {
-                console.log('An error occurred: ' + err.message);
+                //console.log('An error occurred: ' + err.message);
                 reject(err);
             })
             .screenshots({
@@ -73,7 +73,7 @@ export const UploadIntroVideoInVideoController = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             let user = await db.user.findByPk(authData.user.id);
-            console.log("User is ", user)
+            //console.log("User is ", user)
             if (typeof (req.file) !== 'undefined' && user) {
                 let mime = req.file.mimetype;
                 if (mime.includes("video")) {
@@ -166,7 +166,7 @@ export const DeleteMedia = async (req, res) => {
                         url: req.body.media_url
                     }
                 })
-                console.log("Media url is not undefined ", deleted)
+                //console.log("Media url is not undefined ", deleted)
                 if (deleted) {
                     let media = await db.userMedia.findAll({
                         where: {
@@ -208,7 +208,7 @@ export const UploadIntroVideos = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             let user = await db.user.findByPk(authData.user.id);
-            console.log("User is ", user);
+            //console.log("User is ", user);
 
             if (req.files && req.files.media && req.files.media.length > 0 && user) {
                 let uploadedFileUrl = null;
@@ -218,13 +218,13 @@ export const UploadIntroVideos = async (req, res) => {
                 if (req.files.thumbnail.length > 0) {
                     thumb = req.files.thumbnail[0]
                 }
-                console.log("Media files ", file)
-                console.log("Thumb files ", thumb)
+                //console.log("Media files ", file)
+                //console.log("Thumb files ", thumb)
                 // return
                 // for (const file of req.files) {
 
                 let mime = file.mimetype;
-                console.log("File type", mime);
+                //console.log("File type", mime);
 
                 if (mime.includes("video")) {
                     const fileContent = file.buffer;
@@ -233,10 +233,10 @@ export const UploadIntroVideos = async (req, res) => {
                     await new Promise((resolve, reject) => {
                         uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
                             if (error) {
-                                console.log("Error Uploading ", error);
+                                //console.log("Error Uploading ", error);
                                 reject(error);
                             } else {
-                                console.log("File uploaded to ", uploadedFile);
+                                //console.log("File uploaded to ", uploadedFile);
                                 uploadedFileUrl = uploadedFile;
                                 // uploadedFiles.push(uploadedFile);
                                 resolve();
@@ -249,10 +249,10 @@ export const UploadIntroVideos = async (req, res) => {
                     await new Promise((resolve, reject) => {
                         uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
                             if (error) {
-                                console.log("Error Uploading thumb", error);
+                                //console.log("Error Uploading thumb", error);
                                 reject(error);
                             } else {
-                                console.log("Thumbnail uploaded to ", uploadedFile);
+                                //console.log("Thumbnail uploaded to ", uploadedFile);
                                 thumbUrl = uploadedFile;
                                 // uploadedFiles.push(uploadedFile);
                                 resolve();
@@ -300,13 +300,13 @@ export async function UploadUserMedia(req, res) {
                     if (req.files.thumbnail && req.files.thumbnail.length > 0) {
                         thumb = req.files.thumbnail[0]
                     }
-                    console.log("Media files ", file)
-                    console.log("Thumb files ", thumb)
+                    //console.log("Media files ", file)
+                    //console.log("Thumb files ", thumb)
                     // return
                     // for (const file of req.files) {
 
                     let mime = file.mimetype;
-                    console.log("File type", mime);
+                    //console.log("File type", mime);
 
                     if (mime.includes("video")) {
                         let uploadedFileUrl = null;
@@ -317,10 +317,10 @@ export async function UploadUserMedia(req, res) {
                         await new Promise((resolve, reject) => {
                             uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
                                 if (error) {
-                                    console.log("Error Uploading ", error);
+                                    //console.log("Error Uploading ", error);
                                     reject(error);
                                 } else {
-                                    console.log("File uploaded to ", uploadedFile);
+                                    //console.log("File uploaded to ", uploadedFile);
                                     uploadedFileUrl = uploadedFile;
                                     // uploadedFiles.push(uploadedFile);
                                     resolve();
@@ -333,10 +333,10 @@ export async function UploadUserMedia(req, res) {
                         await new Promise((resolve, reject) => {
                             uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
                                 if (error) {
-                                    console.log("Error Uploading thumb", error);
+                                    //console.log("Error Uploading thumb", error);
                                     reject(error);
                                 } else {
-                                    console.log("Thumbnail uploaded to ", uploadedFile);
+                                    //console.log("Thumbnail uploaded to ", uploadedFile);
                                     thumbUrl = uploadedFile;
                                     // uploadedFiles.push(uploadedFile);
                                     resolve();
@@ -364,11 +364,11 @@ export async function UploadUserMedia(req, res) {
 
 
 
-                        // console.log("file type", mime)
+                        // //console.log("file type", mime)
                         const fileContent = file.buffer;
                         const fieldname = file.fieldname;
                         uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
-                            console.log("File uploaded to User Media", uploadedFile)
+                            //console.log("File uploaded to User Media", uploadedFile)
                             let type = mime.includes("video") ? "video" : "image"
                             let created = await db.userMedia.create({
                                 UserId: user.id,
@@ -436,7 +436,7 @@ function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
 
 // Route to submit an answer to a question
 export const AnswerQuestion = async (req, res) => {
-    console.log("Upload answer");
+    //console.log("Upload answer");
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (error || !authData) {
             return res.status(401).json({

@@ -78,10 +78,10 @@ const checkUsersInSameChat = async (userId1, userId2) => {
         const commonChatIds = user1ChatIds.filter(chatId => user2ChatIds.includes(chatId));
 
         if (commonChatIds.length > 0) {
-            console.log(`Users ${userId1} and ${userId2} have common chat IDs.`);
+            //console.log(`Users ${userId1} and ${userId2} have common chat IDs.`);
             return commonChatIds;
         } else {
-            console.log(`Users ${userId1} and ${userId2} do not have any common chat IDs.`);
+            //console.log(`Users ${userId1} and ${userId2} do not have any common chat IDs.`);
             return [];
         }
     } catch (err) {
@@ -112,7 +112,7 @@ export const CreateChat = async (req, res) => {
                 }
                 else {
                     let chatid = result[0]
-                    // console.log("Chatids ", result);
+                    // //console.log("Chatids ", result);
                     let chat = await db.Chat.findByPk(chatid);
                     let chatRes = await ChatResource(chat, authData.user);
                     res.send({ status: true, message: 'Chat exists already.', data: chatRes });
@@ -166,7 +166,7 @@ export const SendMessage = async (req, res) => {
                         userId: { [db.Sequelize.Op.ne]: authData.user.id }
                     }
                 })
-                // console.log()
+                // //console.log()
                 await db.ChatUser.increment(
                     'unread',
                     {
@@ -180,14 +180,14 @@ export const SendMessage = async (req, res) => {
                 // message.timestamp = req.body.timestamp;
                 if (chatUsers.length > 0) {
                     chatUsers.forEach(async element => {
-                        console.log("Sending notification to ", element.userId)
+                        //console.log("Sending notification to ", element.userId)
 
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
                         try{
                             let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
                         }
                         catch(error){
-                            console.log("Notification send message error ", error)
+                            //console.log("Notification send message error ", error)
                         }
                     });
                 }
@@ -261,7 +261,7 @@ export const SendMediaMessage = async (req, res) => {
                         userId: { [db.Sequelize.Op.ne]: authData.user.id }
                     }
                 })
-                // console.log()
+                // //console.log()
                 await db.ChatUser.increment(
                     'unread',
                     {
@@ -275,14 +275,14 @@ export const SendMediaMessage = async (req, res) => {
                 // message.timestamp = req.body.timestamp;
                 if (chatUsers.length > 0) {
                     chatUsers.forEach(async element => {
-                        console.log("Sending notification to ", element.userId)
+                        //console.log("Sending notification to ", element.userId)
 
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
                         try{
                             let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
                         }
                         catch(error){
-                            console.log("Notification send message error ", error)
+                            //console.log("Notification send message error ", error)
                         }
                     });
                 }
@@ -361,7 +361,7 @@ export const GetChatsList = async (req, res) => {
                     }]
                 });
 
-                console.log("Chats ", chats)
+                //console.log("Chats ", chats)
                 let allChats = await ChatResource(chats, authData.user)
                 res.send({ status: true, message: 'Chats fetched successfully.', data: allChats });
             } catch (err) {

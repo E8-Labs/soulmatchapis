@@ -212,7 +212,7 @@ export const listDatePlaces = async (req, res) => {
             else {
                 const userId = authData.user.id;
                 let upcoming = null;
-                console.log("FInding upcoming dates ", userId)
+                //console.log("FInding upcoming dates ", userId)
                 try {
                     upcoming = await db.sequelize.query(`
                     SELECT 
@@ -230,7 +230,7 @@ export const listDatePlaces = async (req, res) => {
                         replacements: { userId: userId },
                         type: db.Sequelize.QueryTypes.SELECT
                     });
-                    console.log("Upcoming ", upcoming)
+                    //console.log("Upcoming ", upcoming)
                     // upcoming = upcomingDates;
                     // res.send({ status: true, message: 'Upcoming bookings fetched successfully.', data: upcomingBookings });
                 } catch (err) {
@@ -407,7 +407,7 @@ export const SendEmailInviteToDate = async (req, res) => {
                 transporter.sendMail(mailOptions, (error, info) => {
                     if (error) {
                         res.send({ status: false, message: "Invite not sent" })
-                        //console.log(error);
+                        ////console.log(error);
                     }
                     else {
                         res.send({ status: true, message: "Invite sent" })
@@ -415,7 +415,7 @@ export const SendEmailInviteToDate = async (req, res) => {
                 });
             }
             catch (error) {
-                console.log("Exception email Invite Date", error)
+                //console.log("Exception email Invite Date", error)
                 res.send({ status: true, message: "Invite not sent", error: error })
             }
         }

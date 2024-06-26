@@ -17,7 +17,7 @@ export const sendNot = async(to, title, body, data) => {
     try {
         // Send the notification
         let receipts = await expo.sendPushNotificationsAsync([message]);
-        console.log(receipts);
+        //console.log(receipts);
         return { status: true, message: 'Notification sent successfully', data: receipts };
     } catch (error) {
         console.error(error);
@@ -42,7 +42,7 @@ export const sendNotWithUser = async(to, title, body, data) => {
         try {
             // Send the notification
             let receipts = await expo.sendPushNotificationsAsync([message]);
-            console.log(receipts);
+            //console.log(receipts);
             return { status: true, message: 'Notification sent successfully', data: receipts };
         } catch (error) {
             console.error(error);

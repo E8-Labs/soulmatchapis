@@ -31,11 +31,11 @@ const generateThumbnail = (videoPath, thumbnailPath) => {
     return new Promise((resolve, reject) => {
         ffmpeg(videoPath)
             .on('end', () => {
-                console.log('Screenshot taken');
+                //console.log('Screenshot taken');
                 resolve(thumbnailPath);
             })
             .on('error', (err) => {
-                console.log('An error occurred: ' + err.message);
+                //console.log('An error occurred: ' + err.message);
                 reject(err);
             })
             .screenshots({
@@ -49,7 +49,7 @@ const generateThumbnail = (videoPath, thumbnailPath) => {
 
 export const RegisterUser = async (req, res) => {
 
-    //console.log("Checking user")
+    ////console.log("Checking user")
     // res.send({data: {text: "kanjar Students"}, message: "Chawal Students", status: true})
 
     const alreadyUser = await User.findOne({
@@ -61,7 +61,7 @@ export const RegisterUser = async (req, res) => {
         res.send({ status: false, message: "Email already taken ", data: null });
     }
     else {
-        // ////console.log("Hello bro")
+        // //////console.log("Hello bro")
         // res.send("Hello")
         if (!req.body.first_name) {
             res.send({ status: false, message: "First Name is required ", data: null });
@@ -88,8 +88,8 @@ export const RegisterUser = async (req, res) => {
                     const fileContent = req.file.buffer;
                     const fieldname = req.file.fieldname;
                     uploadMedia(fieldname, fileContent, "image/jpeg", (uploadedFile, error) => {
-                        console.log("File uploaded to ", uploadedFile)
-                        console.log("Error Uploading ", error)
+                        //console.log("File uploaded to ", uploadedFile)
+                        //console.log("Error Uploading ", error)
                         userData.profile_image = uploadedFile
                         createUser(userData, async (user, error) => {
                             if (error) {
@@ -132,17 +132,17 @@ export const UploadIntroVideo = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             let user = await db.user.findByPk(authData.user.id)
-            console.log("User is ", user)
+            //console.log("User is ", user)
             if (typeof (req.file) !== 'undefined' && user) {
-                // console.log(req.file)
+                // //console.log(req.file)
                 let mime = req.file.mimetype;
-                console.log("file type", mime)
+                //console.log("file type", mime)
                 if (mime.includes("video")) {
                     const fileContent = req.file.buffer;
                     const fieldname = req.file.fieldname;
                     uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
-                        console.log("File uploaded to ", uploadedFile)
-                        console.log("Error Uploading ", error)
+                        //console.log("File uploaded to ", uploadedFile)
+                        //console.log("Error Uploading ", error)
                         user.intro_video = uploadedFile
                         let saved = await user.save();
                         if (saved) {
@@ -173,19 +173,19 @@ export const UploadIntroVideo = async (req, res) => {
 
 function createUser(userData, completion) {
     User.create(userData).then(async data => {
-        console.log("User created ", data.id)
+        //console.log("User created ", data.id)
         let user = data
         JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (err, token) => {
             if (err) {
-                ////console.log("Error signing")
+                //////console.log("Error signing")
                 completion(null, err)
                 // res.send({ status: false, message: "Error Token " + err, data: null });
             }
             else {
-                ////console.log("signed creating user")
+                //////console.log("signed creating user")
                 let u = await UserProfileFullResource(data);
                 // let customer = await createCustomer(data);
-                // console.log("Create customer response ", customer)
+                // //console.log("Create customer response ", customer)
                 //Send notification to admin
                 let admin = await db.user.findOne({
                     where: {
@@ -217,7 +217,7 @@ function createUser(userData, completion) {
 
 
 export const SocialLogin = async (req, res) => {
-    //console.log("Checking user")
+    ////console.log("Checking user")
     // res.send({data: {text: "kanjar Students"}, message: "Chawal Students", status: true})
 
     const alreadyUser = await User.findOne({
@@ -230,20 +230,20 @@ export const SocialLogin = async (req, res) => {
         let user = alreadyUser
         JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (error, token) => {
             if (error) {
-                //console.log(error)
+                ////console.log(error)
                 res.send({ data: error, status: false, message: "Soome error occurred" });
             }
             else {
                 let u = await UserProfileFullResource(alreadyUser);
                 // let customer = await createCustomer(alreadyUser);
-                // console.log("Create customer response ", customer)
+                // //console.log("Create customer response ", customer)
                 res.send({ data: { user: u, token: token }, status: true, message: "Logged in" });
             }
         })
         // res.send({ status: false, message: "Email already taken ", data: null });
     }
     else {
-        // ////console.log("Hello bro")
+        // //////console.log("Hello bro")
         // res.send("Hello")
 
         var userData = {
@@ -262,18 +262,18 @@ export const SocialLogin = async (req, res) => {
 
         try {
             User.create(userData).then(async data => {
-                console.log("User created ", data.id)
+                //console.log("User created ", data.id)
                 let user = data
                 JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (err, token) => {
                     if (err) {
-                        ////console.log("Error signing")
+                        //////console.log("Error signing")
                         res.send({ status: false, message: "Error Token " + err, data: null });
                     }
                     else {
-                        ////console.log("signed creating user")
+                        //////console.log("signed creating user")
                         let u = await UserProfileFullResource(data);
                         // let customer = await createCustomer(data);
-                        // console.log("Create customer response ", customer)
+                        // //console.log("Create customer response ", customer)
                         res.send({ status: true, message: "User registered", data: { user: u, token: token } })
 
                     }
@@ -281,8 +281,8 @@ export const SocialLogin = async (req, res) => {
 
 
             }).catch(error => {
-                ////console.log("User not created")
-                ////console.log(error)
+                //////console.log("User not created")
+                //////console.log(error)
                 res.send({
                     message:
                         err.message || "Some error occurred while creating the user.",
@@ -292,9 +292,9 @@ export const SocialLogin = async (req, res) => {
             })
         }
         catch (error) {
-            ////console.log("Exception ", error)
-            ////console.log("User not created")
-            ////console.log(error)
+            //////console.log("Exception ", error)
+            //////console.log("User not created")
+            //////console.log(error)
             res.send({
                 message:
                     err.message || "Some error occurred while creating the user.",
@@ -308,7 +308,7 @@ export const SocialLogin = async (req, res) => {
 
 export const LoginUser = async (req, res) => {
     // res.send("Hello Login")
-    ////console.log("Login " + req.body.email);
+    //////console.log("Login " + req.body.email);
     const email = req.body.email;
     const password = req.body.password;
     const user = await User.findOne({
@@ -318,7 +318,7 @@ export const LoginUser = async (req, res) => {
     })
 
     const count = await User.count();
-    ////console.log("Count " + count);
+    //////console.log("Count " + count);
     if (!user) {
         res.send({ status: false, message: "Invalid email", data: null });
     }
@@ -330,15 +330,15 @@ export const LoginUser = async (req, res) => {
             if (result) {
                 JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (error, token) => {
                     if (error) {
-                        //console.log(error)
+                        ////console.log(error)
                         res.send({ data: error, status: false, message: "Soome error occurred" });
                     }
                     else {
                         let u = await UserProfileFullResource(user);
                         // let isCustomer = await findCustomer(user)
-                        // console.log("Already found ", isCustomer)
+                        // //console.log("Already found ", isCustomer)
                         // let customer = await createCustomer(user);
-                        // console.log("Create customer response ", customer)
+                        // //console.log("Create customer response ", customer)
                         let loginRecorded = await db.dailyLogin.create({
                             UserId: user.id,
                             type: "Login"
@@ -352,7 +352,7 @@ export const LoginUser = async (req, res) => {
             }
         });
     }
-    // ////console.log(user);
+    // //////console.log(user);
 
 }
 
@@ -366,7 +366,7 @@ export const ChangenUserPassword = async (req, res) => {
 
 
             const count = await User.count();
-            ////console.log("Count " + count);
+            //////console.log("Count " + count);
             if (!user) {
                 res.send({ status: false, message: "No such user", data: null });
             }
@@ -383,7 +383,7 @@ export const ChangenUserPassword = async (req, res) => {
                         if (saved) {
                             JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (error, token) => {
                                 if (error) {
-                                    //console.log(error)
+                                    ////console.log(error)
                                     res.send({ data: error, status: false, message: "Soome error occurred" });
                                 }
                                 else {
@@ -410,7 +410,7 @@ export const ChangenUserPassword = async (req, res) => {
         }
     })
 
-    // ////console.log(user);
+    // //////console.log(user);
 
 }
 
@@ -424,7 +424,7 @@ export const GetUserNotifications = async (req, res) => {
                 limit: 20,
                 offset: Number(offset)
             });
-            console.log("Notifications loaded ", cards)
+            //console.log("Notifications loaded ", cards)
             let nots = await NotificationResource(cards)
             res.send({ status: true, message: "Notifications loaded", data: nots })
         }
@@ -467,13 +467,13 @@ export async function UploadUserMedia(req, res) {
             let user = await db.user.findByPk(authData.user.id)
             if (user) {
                 if (typeof (req.file) !== 'undefined') {
-                    // console.log(req.file)
+                    // //console.log(req.file)
                     let mime = req.file.mimetype;
-                    // console.log("file type", mime)
+                    // //console.log("file type", mime)
                     const fileContent = req.file.buffer;
                     const fieldname = req.file.fieldname;
                     uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
-                        console.log("File uploaded to User Media", uploadedFile)
+                        //console.log("File uploaded to User Media", uploadedFile)
                         let type = mime.includes("video") ? "video" : "image"
                         let created = await db.userMedia.create({
                             UserId: user.id,
@@ -546,7 +546,7 @@ export const UpdateProfileHeights = async (req, res) => {
 export const UpdateProfile = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
-            ////console.log("Auth data ", authData)
+            //////console.log("Auth data ", authData)
             let userid = authData.user.id;
 
             const user = await User.findByPk(userid);
@@ -555,8 +555,8 @@ export const UpdateProfile = async (req, res) => {
                 const fileContent = req.file.buffer;
                 const fieldname = req.file.fieldname;
                 uploadMedia(fieldname, fileContent, "image/jpeg", async (uploadedFile, error) => {
-                    console.log("File uploaded to ", uploadedFile)
-                    console.log("Error Uploading ", error)
+                    //console.log("File uploaded to ", uploadedFile)
+                    //console.log("Error Uploading ", error)
                     user.profile_image = uploadedFile;
                     let saved = await user.save();
                     if (saved) {
@@ -660,7 +660,7 @@ export const UpdateProfile = async (req, res) => {
 export const GetUserProfile = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
-            ////console.log("Auth data ", authData)
+            //////console.log("Auth data ", authData)
             let userid = authData.user.id;
             if (typeof req.query.userid !== 'undefined') {
                 userid = req.query.userid;
@@ -1131,22 +1131,22 @@ export const encrypt = (req, res) => {
                 }
             }
         })
-    //console.log("Key is ", key);
-    //console.log("Iv is ", iv);
+    ////console.log("Key is ", key);
+    ////console.log("Iv is ", iv);
 
     const cipher = crypto.createCipheriv(algo, key, iv);
 
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    //console.log("Encrypted texxt is ", encrypted)
+    ////console.log("Encrypted texxt is ", encrypted)
 
 
     const decipher = crypto.createDecipheriv(algo, key, iv);
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
 
-    //console.log("Deciphered ", decrypted);
+    ////console.log("Deciphered ", decrypted);
     res.send("Hello")
 }
 
@@ -1206,7 +1206,7 @@ export const SendPasswordResetEmail = async (req, res) => {
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     res.send({ status: false, message: "Code not sent" })
-                    //console.log(error);
+                    ////console.log(error);
                 }
                 else {
                     res.send({ status: true, message: "Code sent" })
@@ -1214,7 +1214,7 @@ export const SendPasswordResetEmail = async (req, res) => {
             });
         }
         catch (error) {
-            console.log("Exception email", error)
+            //console.log("Exception email", error)
         }
     }
     else {
@@ -1411,7 +1411,7 @@ export const SendEmailFeedback = async (req, res) => {
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     res.send({ status: false, message: "Feedback not sent" })
-                    //console.log(error);
+                    ////console.log(error);
                 }
                 else {
                     res.send({ status: true, message: "Feedback sent" })
@@ -1419,7 +1419,7 @@ export const SendEmailFeedback = async (req, res) => {
             });
         }
         catch (error) {
-            console.log("Exception email", error)
+            //console.log("Exception email", error)
         }
     })
 }
@@ -1431,7 +1431,7 @@ export const SendEmailVerificationCode = async (req, res) => {
             email: email
         }
     })
-    console.log("User is ", user)
+    //console.log("User is ", user)
     if (user) {
         res.send({ status: false, data: null, message: "Email already taken" })
     }
@@ -1549,7 +1549,7 @@ export const SendEmailVerificationCode = async (req, res) => {
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     res.send({ status: false, message: "Code not sent" })
-                    //console.log(error);
+                    ////console.log(error);
                 }
                 else {
                     res.send({ status: true, message: "Code sent" })
@@ -1557,7 +1557,7 @@ export const SendEmailVerificationCode = async (req, res) => {
             });
         }
         catch (error) {
-            console.log("Exception email", error)
+            //console.log("Exception email", error)
         }
     }
 }
@@ -1582,8 +1582,8 @@ export const VerifyEmailCode = async (req, res) => {
                 email: email
             }
         })
-        console.log("Db code is ", dbCode)
-        console.log("User email is ", email)
+        //console.log("Db code is ", dbCode)
+        //console.log("User email is ", email)
 
         if ((dbCode && dbCode.code === code) || code == "1122") {
             res.send({ status: true, data: null, message: "Email verified" })
