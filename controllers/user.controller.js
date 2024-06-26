@@ -1577,7 +1577,7 @@ export const VerifyEmailCode = async (req, res) => {
         res.send({ status: false, data: null, message: "Email already taken" })
     }
     else {
-        let dbCode = await db.passwordResetCode.findOne({
+        let dbCode = await db.emailVerificationCode.findOne({
             where: {
                 email: email
             }
