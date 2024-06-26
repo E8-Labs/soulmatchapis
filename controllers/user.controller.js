@@ -1582,12 +1582,13 @@ export const VerifyEmailCode = async (req, res) => {
                 email: email
             }
         })
+        console.log("Db code is ", dbCode)
 
         if ((dbCode && dbCode.code === code) || code == "1122") {
             res.send({ status: true, data: null, message: "Email verified" })
         }
         else {
-            res.send({ status: false, data: null, message: "Incorrect code" })
+            res.send({ status: false, data: null, message: "Incorrect code " + code })
         }
     }
 }
