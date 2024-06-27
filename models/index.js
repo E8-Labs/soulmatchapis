@@ -19,7 +19,7 @@ const sequelize = new Sequelize(dbConfig.MYSQL_DB, dbConfig.MYSQL_DB_USER, dbCon
   host: dbConfig.MYSQL_DB_HOST,
   port: dbConfig.MYSQL_DB_PORT,
   dialect: dbConfig.dialect,
-  logging: true
+  logging: false
 });
 
 
