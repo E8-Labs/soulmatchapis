@@ -28,8 +28,18 @@ async function getUserData(user, currentUser = null) {
 
 
 
-    let profileCompletion = 1;// user have completed registration, take him to intro
-    let comment = ""
+    let profileCompletion = 0;// user have completed registration, take him to intro
+    let comment = "Take user to Profile Questions screen"
+    let questions = db.userAnswers.findAll({
+        where:{
+            UserId: user.id
+        }
+    })
+    if (questions && questions.length > 0) {
+        profileCompletion = 1;// user have completed profile questions
+        comment = "Take user to Add Intro";
+    }
+    
     if (user.intro_video != "" && user.intro_video != null) {
         profileCompletion = 2;// user have completed intro video
         comment = "Take user to Add Media screen";
@@ -51,7 +61,7 @@ async function getUserData(user, currentUser = null) {
         profileCompletion = 5;// user have completed age
         comment = "Take user to Add height screen";
     }
-    if (user.height_feet != "" && user.height_feet != null) {
+    if (user.height_inches != "" && user.height_inches != null) {
         profileCompletion = 6;// user have completed height
         comment = "Take user to Add gender screen";
     }
@@ -68,7 +78,8 @@ async function getUserData(user, currentUser = null) {
         profileCompletion = 9;// user have completed work screen
         comment = "Take user to Add interests screen";
     }
-    if ((user.interested_min_age != "" && user.interested_min_age != null) && (user.interested_max_age != "" && user.interested_max_age != null)
+    if ((user.interested_min_age != "" && user.interested_min_age != null) 
+        && (user.interested_max_age != "" && user.interested_max_age != null)
         && (user.interested_gender != "" && user.interested_gender != null)) {
         profileCompletion = 10;// user have completed Interests screen
         comment = "Take user to Location screen";
