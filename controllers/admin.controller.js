@@ -571,7 +571,7 @@ export const IgnoreFlaggedUser = async (req, res) => {
           return res.status(404).send({ status: false, message: 'Report not found.' });
         }
 
-       let del = await db.user.destroy( {
+       let del = await db.ReportedUsers.destroy( {
           where: {
             id: req.body.reportid
           }
