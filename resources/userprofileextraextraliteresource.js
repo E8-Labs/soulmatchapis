@@ -27,7 +27,18 @@ const UserProfileExtraLiteResource = async (user, currentUser = null) => {
 async function getUserData(user, currentUser = null) {
 
 
-   
+    var blocked = false;
+    if(currentUser){
+        const blockedEntry = await db.BlockedUsers.findOne({
+            where:{
+                blockedUserId: user.id,
+                blockingUserId: currentUser.id
+            }
+        })
+        if(blockedEntry){
+            blocked = true;
+        }
+    }
     const UserFullResource = {
         id: user.id,
         profile_image: user.profile_image,
@@ -37,6 +48,7 @@ async function getUserData(user, currentUser = null) {
         state: user.state,
         role: user.role,
         city: user.city,
+        blocked: blocked
     }
 
 
