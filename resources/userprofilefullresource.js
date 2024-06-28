@@ -1,3 +1,4 @@
+import { block } from "sharp";
 import db from "../models/index.js";
 
 import moment from "moment-timezone";
@@ -82,6 +83,7 @@ async function getUserData(user, currentUser = null) {
             UserId: user.id
         }
     })
+
     if (questions && questions.length > 0) {
         profileCompletion = 11;// user have completed profile questions
         comment = "Take user to Add Location";
@@ -128,6 +130,20 @@ async function getUserData(user, currentUser = null) {
         }
     }
 
+
+    var blocked = false;
+    if(currentUser){
+        const blockedEntry = await db.BlockedUsers.findOne({
+            where:{
+                blockedUserId: user.id,
+                blockingUserId: currentUser.id
+            }
+        })
+        if(blockedEntry){
+            blocked = true;
+        }
+    }
+
     const UserFullResource = {
         id: user.id,
         name: user.firstname,
@@ -160,7 +176,8 @@ async function getUserData(user, currentUser = null) {
         interested_min_age: user.interested_min_age,
         interested_gender: user.interested_gender,
         media: userMedia,
-        isLiked: isLiked
+        isLiked: isLiked,
+        blocked: blocked
     }
 
 

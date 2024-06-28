@@ -39,6 +39,19 @@ async function getUserData(user, currentUser = null) {
             isLiked = true;
         }
     }
+
+    var blocked = false;
+    if(currentUser){
+        const blockedEntry = await db.BlockedUsers.findOne({
+            where:{
+                blockedUserId: user.id,
+                blockingUserId: currentUser.id
+            }
+        })
+        if(blockedEntry){
+            blocked = true;
+        }
+    }
     const UserFullResource = {
         id: user.id,
         profile_image: user.profile_image,
@@ -49,7 +62,8 @@ async function getUserData(user, currentUser = null) {
         role: user.role,
         city: user.city,
         status: user.status,
-        isLiked: isLiked
+        isLiked: isLiked,
+        blocked: blocked
     }
 
 
