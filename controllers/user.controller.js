@@ -733,7 +733,20 @@ export const Discover = (req, res) => {
                             { to: userId, status: 'rejected' } // Profiles that have rejected me
                         ]
                     },
-                    attributes: ['to', 'from'] // Fetch only user IDs
+                    attributes: ['to', 'from'],
+                    raw: true // Fetch only user IDs
+                });
+
+                // Fetch blocked users
+                const blockedUsers = await db.BlockedUsers.findAll({
+                    where: {
+                        [db.Sequelize.Op.or]: [
+                            { blockingUserId: userId }, // Users I have blocked
+                            { blockedUserId: userId }   // Users who have blocked me
+                        ]
+                    },
+                    attributes: ['blockedUserId', 'blockingUserId'],
+                    raw: true
                 });
 
                 // Flatten the list of user IDs to exclude
@@ -741,6 +754,16 @@ export const Discover = (req, res) => {
                     // Include both 'from' and 'to' IDs to cover all conditions
                     return like.from === userId ? like.to : like.from;
                 });
+
+                // Add blocked user IDs to the exclusion list
+                blockedUsers.forEach(block => {
+                    if (block.blockingUserId === userId) {
+                        idsToExclude.push(block.blockedUserId);
+                    } else {
+                        idsToExclude.push(block.blockingUserId);
+                    }
+                });
+
                 idsToExclude.push(userId); // Also exclude the current user's profile
 
                 // Build the filter criteria
@@ -793,6 +816,7 @@ export const Discover = (req, res) => {
         }
     });
 };
+
 
 
 export const DeleteAnswer = async (req, res) => {

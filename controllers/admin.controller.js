@@ -593,6 +593,7 @@ export const deleteUserById = (req, res) => {
       const userIdToDelete = req.body.userId; // User being deleted
 
       try {
+        const transaction = await db.sequelize.transaction();
         // Check if the requesting user is an admin
         const adminUser = await db.user.findByPk(adminUserId);
         if (!adminUser || adminUser.role !== 'admin') {
@@ -605,12 +606,94 @@ export const deleteUserById = (req, res) => {
           return res.status(404).send({ status: false, message: 'User not found.' });
         }
 
+        
+
+        //Delete all the data of the user
+        let likesDeleted = await db.profileLikes.destroy({
+          where: {
+            [Op.or]: {
+              from: userIdToDelete,
+              to: userIdToDelete
+            }
+          },
+          transaction
+        })
+
+        let matchesDeleted = await db.profileMatches.destroy({
+          where: {
+            [Op.or]: {
+              user_1_id: userIdToDelete,
+              user_2_id: userIdToDelete
+            }
+          },
+          transaction
+        })
+
+        let ReportsDeleted = await db.ReportedUsers.destroy({
+          where: {
+            [Op.or]: {
+              reportedUserId: userIdToDelete,
+              reportingUserId: userIdToDelete
+            }
+          },
+          transaction
+        })
+
+        let BlocksDeleted = await db.BlockedUsers.destroy({
+          where: {
+            [Op.or]: {
+              blockedUserId: userIdToDelete,
+              blockingUserId: userIdToDelete
+            }
+          },
+          transaction
+        })
+
+        let NotificationsDeleted = await db.NotificationModel.destroy({
+          where: {
+            [Op.or]: {
+              from: userIdToDelete,
+              to: userIdToDelete
+            }
+          },
+          transaction
+        })
+
+        const chatUsers = await db.ChatUser.findAll({
+          where: { userIdToDelete },
+          attributes: ['chatId'],
+          raw: true,
+          transaction
+        });
+    
+        const chatIds = chatUsers.map(cu => cu.chatId);
+    
+        // Delete all messages associated with the user's chats
+        await db.Message.destroy({
+          where: { chatId: chatIds },
+          transaction
+        });
+    
+        // Delete all ChatUser associations
+        await db.ChatUser.destroy({
+          where: { userIdToDelete },
+          transaction
+        });
+    
+        // Delete all chats where the user is the only participant
+        await db.Chat.destroy({
+          where: { id: chatIds },
+          transaction
+        });
+
         await db.user.update({ status: "deleted" }, {
           where: {
             id: userIdToDelete
-          }
+          },
+          transaction
         })
 
+        await transaction.commit();
         res.send({ status: true, message: 'User deleted successfully.' });
       } catch (err) {
         console.error('Error deleting user:', err);
