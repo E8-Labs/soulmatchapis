@@ -660,7 +660,7 @@ export const deleteUserById = (req, res) => {
         })
 
         const chatUsers = await db.ChatUser.findAll({
-          where: { userIdToDelete },
+          where: { UserId: userIdToDelete },
           attributes: ['chatId'],
           raw: true,
           transaction
