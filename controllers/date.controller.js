@@ -152,14 +152,118 @@ export const UpdateDatePlace = async (req, res) => {
 }
 
 
+// export const listDatePlaces = async (req, res) => {
+//     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+//         if (error) {
+//             return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+//         }
+//         const adminUserId = authData.user.id;
+//         const adminUser = await db.user.findByPk(adminUserId);
+//         let showAll = req.query.allPlaces || false; //show all places
+//         try {
+//             let offset = 0;
+//             if (typeof req.query.offset !== 'undefined') {
+//                 offset = parseInt(req.query.offset, 10);
+//             }
+
+//             const limit = 40;
+//             let searchQuery = {};
+//             if (req.query.search) {
+//                 const searchTerm = req.query.search;
+//                 searchQuery = {
+//                     [Op.or]: [
+//                         { description: { [Op.like]: `%${searchTerm}%` } },
+//                         { address: { [Op.like]: `%${searchTerm}%` } }
+//                     ],
+
+//                 };
+//                 if (req.query.category) {
+//                     searchQuery = {
+//                         [Op.or]: [
+//                             { description: { [Op.like]: `%${searchTerm}%` } },
+//                             { address: { [Op.like]: `%${searchTerm}%` } }
+//                         ],
+//                         CategoryId: req.query.category
+//                     };
+//                 }
+
+//             }
+//             else if (req.query.category) {
+//                 searchQuery = {
+//                     CategoryId: req.query.category
+//                 };
+//             }
+
+
+//             const datePlaces = await db.DatePlace.findAll({
+//                 where: searchQuery,
+//                 offset: offset,
+//                 limit: limit,
+//                 include: [
+//                     {
+//                         model: db.Category,
+//                         attributes: ['name', 'id']
+//                     }
+//                 ]
+//             });
+//             if (adminUser.role === 'admin' || showAll) {
+//                 res.send({ status: true, message: "Date places fetched successfully", data: datePlaces });
+//             }
+//             else {
+//                 const userId = authData.user.id;
+//                 let upcoming = null;
+//                 //console.log("FInding upcoming dates ", userId)
+//                 try {
+//                     upcoming = await db.sequelize.query(`
+//                     SELECT 
+//                         b.id, b.date, b.time, b.numberOfGuests,
+//                         u.id as userId, u.first_name as userFirstName, u.last_name as userLastName, u.email as userEmail,
+//                         du.id as dateUserId, du.first_name as dateUserFirstName, du.last_name as dateUserLastName, du.email as dateUserEmail,
+//                         dp.id as datePlaceId, dp.name as datePlaceName, dp.address as datePlaceAddress
+//                     FROM Bookings b
+//                     INNER JOIN Users u ON b.userId = u.id
+//                     LEFT JOIN Users du ON b.dateUserId = du.id
+//                     INNER JOIN DatePlaces dp ON b.datePlaceId = dp.id
+//                     WHERE b.userId = :userId AND b.date >= CURDATE()
+//                     ORDER BY b.date ASC, b.time ASC
+//                 `, {
+//                         replacements: { userId: userId },
+//                         type: db.Sequelize.QueryTypes.SELECT
+//                     });
+//                     //console.log("Upcoming ", upcoming)
+//                     // upcoming = upcomingDates;
+//                     // res.send({ status: true, message: 'Upcoming bookings fetched successfully.', data: upcomingBookings });
+//                 } catch (err) {
+//                     console.error('Error fetching upcoming bookings:', err);
+//                     // res.status(500).send({ status: false, message: 'An error occurred while fetching upcoming bookings.', error: err.message });
+//                 }
+
+//                 let upcomingDates = [];
+//                 if (upcoming) {
+//                     upcomingDates = await BookingResource(upcoming);
+//                 }
+//                 res.send({ status: true, message: "Date places fetched successfully", data: { dateNights: datePlaces, recommended: datePlaces, upcoming: upcomingDates } });
+//             }
+
+
+//         } catch (err) {
+//             console.error('Error fetching date places:', err);
+//             res.status(500).send({ status: false, message: 'An error occurred while fetching date places', error: err.message });
+//         }
+//     })
+
+// };
+
 export const listDatePlaces = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (error) {
             return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
         }
+
         const adminUserId = authData.user.id;
         const adminUser = await db.user.findByPk(adminUserId);
-        let showAll = req.query.allPlaces || false; //show all places
+        let showAll = req.query.allPlaces || false; // Show all places
+
         try {
             let offset = 0;
             if (typeof req.query.offset !== 'undefined') {
@@ -168,32 +272,44 @@ export const listDatePlaces = async (req, res) => {
 
             const limit = 40;
             let searchQuery = {};
+
             if (req.query.search) {
                 const searchTerm = req.query.search;
                 searchQuery = {
                     [Op.or]: [
                         { description: { [Op.like]: `%${searchTerm}%` } },
                         { address: { [Op.like]: `%${searchTerm}%` } }
-                    ],
-
-                };
-                if (req.query.category) {
-                    searchQuery = {
-                        [Op.or]: [
-                            { description: { [Op.like]: `%${searchTerm}%` } },
-                            { address: { [Op.like]: `%${searchTerm}%` } }
-                        ],
-                        CategoryId: req.query.category
-                    };
-                }
-
-            }
-            else if (req.query.category) {
-                searchQuery = {
-                    CategoryId: req.query.category
+                    ]
                 };
             }
 
+            if (req.query.category) {
+                searchQuery.CategoryId = req.query.category;
+            }
+
+            if (req.query.city) {
+                searchQuery.city = { [Op.like]: `%${req.query.city}%` };
+            }
+
+            if (req.query.state) {
+                searchQuery.state = { [Op.like]: `%${req.query.state}%` };
+            }
+
+            if (req.query.minBudget) {
+                searchQuery.minBudget = { [Op.gte]: parseFloat(req.query.minBudget) };
+            }
+
+            if (req.query.maxBudget) {
+                searchQuery.maxBudget = { [Op.lte]: parseFloat(req.query.maxBudget) };
+            }
+
+            if (req.query.minRating) {
+                searchQuery.minRating = { [Op.gte]: parseFloat(req.query.minRating) };
+            }
+
+            if (req.query.maxRating) {
+                searchQuery.maxRating = { [Op.lte]: parseFloat(req.query.maxRating) };
+            }
 
             const datePlaces = await db.DatePlace.findAll({
                 where: searchQuery,
@@ -206,36 +322,32 @@ export const listDatePlaces = async (req, res) => {
                     }
                 ]
             });
+
             if (adminUser.role === 'admin' || showAll) {
                 res.send({ status: true, message: "Date places fetched successfully", data: datePlaces });
-            }
-            else {
+            } else {
                 const userId = authData.user.id;
                 let upcoming = null;
-                //console.log("FInding upcoming dates ", userId)
+
                 try {
                     upcoming = await db.sequelize.query(`
-                    SELECT 
-                        b.id, b.date, b.time, b.numberOfGuests,
-                        u.id as userId, u.first_name as userFirstName, u.last_name as userLastName, u.email as userEmail,
-                        du.id as dateUserId, du.first_name as dateUserFirstName, du.last_name as dateUserLastName, du.email as dateUserEmail,
-                        dp.id as datePlaceId, dp.name as datePlaceName, dp.address as datePlaceAddress
-                    FROM Bookings b
-                    INNER JOIN Users u ON b.userId = u.id
-                    LEFT JOIN Users du ON b.dateUserId = du.id
-                    INNER JOIN DatePlaces dp ON b.datePlaceId = dp.id
-                    WHERE b.userId = :userId AND b.date >= CURDATE()
-                    ORDER BY b.date ASC, b.time ASC
-                `, {
+                        SELECT 
+                            b.id, b.date, b.time, b.numberOfGuests,
+                            u.id as userId, u.first_name as userFirstName, u.last_name as userLastName, u.email as userEmail,
+                            du.id as dateUserId, du.first_name as dateUserFirstName, du.last_name as dateUserLastName, du.email as dateUserEmail,
+                            dp.id as datePlaceId, dp.name as datePlaceName, dp.address as datePlaceAddress
+                        FROM Bookings b
+                        INNER JOIN Users u ON b.userId = u.id
+                        LEFT JOIN Users du ON b.dateUserId = du.id
+                        INNER JOIN DatePlaces dp ON b.datePlaceId = dp.id
+                        WHERE b.userId = :userId AND b.date >= CURDATE()
+                        ORDER BY b.date ASC, b.time ASC
+                    `, {
                         replacements: { userId: userId },
                         type: db.Sequelize.QueryTypes.SELECT
                     });
-                    //console.log("Upcoming ", upcoming)
-                    // upcoming = upcomingDates;
-                    // res.send({ status: true, message: 'Upcoming bookings fetched successfully.', data: upcomingBookings });
                 } catch (err) {
                     console.error('Error fetching upcoming bookings:', err);
-                    // res.status(500).send({ status: false, message: 'An error occurred while fetching upcoming bookings.', error: err.message });
                 }
 
                 let upcomingDates = [];
@@ -244,17 +356,12 @@ export const listDatePlaces = async (req, res) => {
                 }
                 res.send({ status: true, message: "Date places fetched successfully", data: { dateNights: datePlaces, recommended: datePlaces, upcoming: upcomingDates } });
             }
-
-
         } catch (err) {
             console.error('Error fetching date places:', err);
             res.status(500).send({ status: false, message: 'An error occurred while fetching date places', error: err.message });
         }
-    })
-
+    });
 };
-
-
 export const addBooking = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (error) {
