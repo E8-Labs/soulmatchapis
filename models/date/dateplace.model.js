@@ -37,6 +37,14 @@ const DatePlaceModel = (sequelize, Sequelize) => {
             type: Sequelize.DOUBLE,
             allowNull: false
         },
+        city: {
+            type: Sequelize.STRING,
+            default: ''
+          },
+          state: {
+            type: Sequelize.STRING,
+            default: ''
+          },
         description: {
             type: Sequelize.TEXT,
             allowNull: true

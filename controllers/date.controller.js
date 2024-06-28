@@ -45,7 +45,7 @@ export const addDatePlace = (req, res) => {
                 return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
             }
 
-            const { name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description } = req.body;
+            const { name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state } = req.body;
 
             // Upload image to AWS S3
             const file = req.file;
@@ -77,7 +77,9 @@ export const addDatePlace = (req, res) => {
                     address,
                     latitude,
                     longitude,
-                    description
+                    description,
+                    city, 
+                    state
                 });
 
                 res.send({ status: true, message: 'Date place added successfully.', data: datePlace });
@@ -105,7 +107,7 @@ export const UpdateDatePlace = async (req, res) => {
             }
 
             // const {  } = req.params;
-            const { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description } = req.body;
+            const { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state } = req.body;
 
             // Find the date place by ID
             const datePlace = await db.DatePlace.findByPk(id);
@@ -131,6 +133,8 @@ export const UpdateDatePlace = async (req, res) => {
 
             // Update the date place details
             datePlace.name = name || datePlace.name;
+            datePlace.city = city || datePlace.city;
+            datePlace.state = state || datePlace.state;
             datePlace.categoryId = categoryId || datePlace.categoryId;
             datePlace.minBudget = minBudget || datePlace.minBudget;
             datePlace.maxBudget = maxBudget || datePlace.maxBudget;
@@ -296,19 +300,19 @@ export const listDatePlaces = async (req, res) => {
             }
 
             if (req.query.minBudget) {
-                searchQuery.minBudget = { [Op.gte]: parseFloat(req.query.minBudget) };
+                searchQuery.minBudget = { [Op.lte]: parseFloat(req.query.minBudget) };
             }
 
             if (req.query.maxBudget) {
-                searchQuery.maxBudget = { [Op.lte]: parseFloat(req.query.maxBudget) };
+                searchQuery.maxBudget = { [Op.gte]: parseFloat(req.query.maxBudget) };
             }
 
             if (req.query.minRating) {
-                searchQuery.minRating = { [Op.gte]: parseFloat(req.query.minRating) };
+                searchQuery.minRating = { [Op.lte]: parseFloat(req.query.minRating) };
             }
 
             if (req.query.maxRating) {
-                searchQuery.maxRating = { [Op.lte]: parseFloat(req.query.maxRating) };
+                searchQuery.maxRating = { [Op.gte]: parseFloat(req.query.maxRating) };
             }
 
             const datePlaces = await db.DatePlace.findAll({
