@@ -749,13 +749,30 @@ export const Discover = (req, res) => {
                     raw: true
                 });
 
+                //Deleted users
+                const deletedOrSuspended = await db.user.findAll({
+                    where: {
+                        [db.Sequelize.Op.or]: [
+                            { status: "deleted" }, // Deleted Users
+                            { status: "suspended" }   // Suspended
+                        ]
+                    },
+                    attributes: ['id'],
+                    raw: true
+                });
+
                 // Flatten the list of user IDs to exclude
                 let idsToExclude = excludedUserIds.map(like => {
                     // Include both 'from' and 'to' IDs to cover all conditions
                     return like.from === userId ? like.to : like.from;
                 });
 
-                // Add blocked user IDs to the exclusion list
+                // Add Deleted or Suspended Users to the list of excluded as well
+                console.log("Excluded Users before delted or suspended ", idsToExclude.length)
+                deletedOrSuspended.forEach(block => {
+                    idsToExclude.push(block.blockedUserId);
+                });
+                console.log("Excluded Users after delted or suspended ", idsToExclude.length)
                 blockedUsers.forEach(block => {
                     if (block.blockingUserId === userId) {
                         idsToExclude.push(block.blockedUserId);
