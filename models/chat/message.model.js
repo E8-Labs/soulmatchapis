@@ -39,6 +39,11 @@ const messageModel = (sequelize, Sequelize) => {
             type: Sequelize.INTEGER,
             default: 200
         },
+        voice: {
+            type: Sequelize.STRING,
+            allowNull: true,
+            defaultValue: null,
+        },
         isRead: {
             type: Sequelize.BOOLEAN,
             allowNull: false,
