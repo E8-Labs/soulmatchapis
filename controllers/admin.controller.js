@@ -676,7 +676,7 @@ export const deleteUserById = (req, res) => {
     
         // Delete all ChatUser associations
         await db.ChatUser.destroy({
-          where: { userIdToDelete },
+          where: { UserId: userIdToDelete },
           transaction
         });
     
