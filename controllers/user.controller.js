@@ -750,16 +750,16 @@ export const Discover = (req, res) => {
                 });
 
                 //Deleted users
-                const deletedOrSuspended = await db.user.findAll({
-                    where: {
-                        [db.Sequelize.Op.or]: [
-                            { status: "deleted" }, // Deleted Users
-                            { status: "suspended" }   // Suspended
-                        ]
-                    },
-                    attributes: ['id'],
-                    raw: true
-                });
+                // const deletedOrSuspended = await db.user.findAll({
+                //     where: {
+                //         [db.Sequelize.Op.or]: [
+                //             { status: "deleted" }, // Deleted Users
+                //             { status: "suspended" }   // Suspended
+                //         ]
+                //     },
+                //     attributes: ['id'],
+                //     raw: true
+                // });
 
                 // Flatten the list of user IDs to exclude
                 let idsToExclude = excludedUserIds.map(like => {
@@ -768,11 +768,11 @@ export const Discover = (req, res) => {
                 });
 
                 // Add Deleted or Suspended Users to the list of excluded as well
-                console.log("Excluded Users before delted or suspended ", idsToExclude.length)
-                deletedOrSuspended.forEach(block => {
-                    idsToExclude.push(block.blockedUserId);
-                });
-                console.log("Excluded Users after delted or suspended ", idsToExclude.length)
+                // console.log("Excluded Users before delted or suspended ", idsToExclude.length)
+                // deletedOrSuspended.forEach(block => {
+                //     idsToExclude.push(block.blockedUserId);
+                // });
+                // console.log("Excluded Users after delted or suspended ", idsToExclude.length)
                 blockedUsers.forEach(block => {
                     if (block.blockingUserId === userId) {
                         idsToExclude.push(block.blockedUserId);
