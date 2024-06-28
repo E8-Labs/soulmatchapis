@@ -183,10 +183,10 @@ export const SendMessage = async (req, res) => {
                         //console.log("Sending notification to ", element.userId)
 
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
-                        try{
+                        try {
                             let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
                         }
-                        catch(error){
+                        catch (error) {
                             //console.log("Notification send message error ", error)
                         }
                     });
@@ -421,6 +421,26 @@ export const SendMediaMessage = async (req, res) => {
         }
     });
 };
+
+export const ReadAllMessages = async (req, res) => {
+    let chatid = req.body.chatid;
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            await db.ChatUser.update(
+                {
+                    unread: 0
+                },
+                {
+                    where:{
+                        UserId: authData.user.id,
+                        ChatId: chatid,
+                    }
+                }
+            );
+            res.send({ status: true, message: 'Message read', data: null });
+        }
+    })
+}
 export async function TestPusher(req, res) {
     let message = req.body.message;
     pusher.trigger(`my-channel`, `new-message`, { message: message });
