@@ -1,4 +1,5 @@
 // import { block } from "sharp";
+import { block } from "sharp";
 import db from "../models/index.js";
 
 import moment from "moment-timezone";
@@ -131,7 +132,7 @@ async function getUserData(user, currentUser = null) {
     }
 
 
-    var blocked = false;
+    var blockedByMe = false;
     if(currentUser){
         const blockedEntry = await db.BlockedUsers.findOne({
             where:{
@@ -140,7 +141,20 @@ async function getUserData(user, currentUser = null) {
             }
         })
         if(blockedEntry){
-            blocked = true;
+            blockedByMe = true;
+        }
+    }
+
+    var blockedMe = false;
+    if(currentUser){
+        const blockedEntry = await db.BlockedUsers.findOne({
+            where:{
+                blockedUserId: currentUser.id,
+                blockingUserId: user.id,
+            }
+        })
+        if(blockedEntry){
+            blockedMe = true;
         }
     }
 
@@ -177,7 +191,9 @@ async function getUserData(user, currentUser = null) {
         interested_gender: user.interested_gender,
         media: userMedia,
         isLiked: isLiked,
-        blocked: blocked
+        blockedMe: blockedMe,
+        blockedByMe: blockedByMe,
+        status: user.status,
     }
 
 
