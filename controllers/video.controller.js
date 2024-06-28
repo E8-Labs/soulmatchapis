@@ -449,7 +449,15 @@ export const AnswerQuestion = async (req, res) => {
         const answers = await db.userAnswers.findAll({
             where: {UserId: authData.user.id}
         })
-        if(answers.length >= 3){
+        let answer = await db.userAnswers.findOne(
+            {
+                where: {
+                    UserId: authData.user.id,
+                    questionId: questionId
+                }
+            }
+        )
+        if(answers.length >= 3 && !answer){
             return res.status(200).json({
                 status: false,
                 message: "Can not add more than 3 questions"
@@ -494,24 +502,26 @@ export const AnswerQuestion = async (req, res) => {
                     });
                 }
     
-                //delete already added same question
-                let del = await db.userAnswers.destroy(
-                    {
-                        where: {
-                            UserId: authData.user.id,
-                            questionId: questionId
-                        }
-                    }
-                )
+                //check already added same question
+                
     // create the new question
-                const newAnswer = await db.userAnswers.create({
-                    UserId: authData.user.id,
-                    questionId,
-                    answerText,
-                    answerImage,
-                    answerVideo,
-                    videoThumbnail
-                });
+                if(answer){
+                    answer.answerText = answerText;
+                    answer.answerImage = answerImage;
+                    answer.answerVideo = answerVideo;
+                    answer.videoThumbnail = videoThumbnail;
+                    let saved = await answer.save();
+                }
+                else{
+                    const newAnswer = await db.userAnswers.create({
+                        UserId: authData.user.id,
+                        questionId,
+                        answerText,
+                        answerImage,
+                        answerVideo,
+                        videoThumbnail
+                    });
+                }
     
                 const query = `
         SELECT 
