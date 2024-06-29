@@ -282,7 +282,8 @@ export const listDatePlaces = async (req, res) => {
                 searchQuery = {
                     [Op.or]: [
                         { description: { [Op.like]: `%${searchTerm}%` } },
-                        { address: { [Op.like]: `%${searchTerm}%` } }
+                        { address: { [Op.like]: `%${searchTerm}%` } },
+                        { name: { [Op.like]: `%${searchTerm}%` } }
                     ]
                 };
             }
