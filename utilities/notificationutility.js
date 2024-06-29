@@ -37,7 +37,7 @@ function getSubtitleForNotification(type, from){
        return `You've got a new match`
     }
     if(type === NotificationType.TypeMessage){
-        return `${from.first_name} send you a message`
+        return `${from.first_name} sent you a message`
     }
     // if(type === NotificationType.TypeDislike){
     //     return "Dislike"
