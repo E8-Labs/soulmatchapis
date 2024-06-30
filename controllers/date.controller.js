@@ -79,7 +79,8 @@ export const addDatePlace = (req, res) => {
                     longitude,
                     description,
                     city, 
-                    state
+                    state,
+                    rating: 5
                 });
 
                 res.send({ status: true, message: 'Date place added successfully.', data: datePlace });
