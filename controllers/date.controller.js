@@ -66,7 +66,7 @@ export const addDatePlace = (req, res) => {
                 const imageUrl = data.Location;
 
                 // Create a new date place record in the database
-                const datePlace = await db.DatePlace.create({
+                let datePlace = await db.DatePlace.create({
                     name,
                     imageUrl,
                     CategoryId: categoryId,
@@ -82,6 +82,8 @@ export const addDatePlace = (req, res) => {
                     state,
                     rating: 5
                 });
+                let Cat = await db.Category.findByPk(categoryId)
+                datePlace.Category = {name: Cat.name, id: Cat.id};
 
                 res.send({ status: true, message: 'Date place added successfully.', data: datePlace });
             });
@@ -137,6 +139,8 @@ export const UpdateDatePlace = async (req, res) => {
             datePlace.city = city || datePlace.city;
             datePlace.state = state || datePlace.state;
             datePlace.categoryId = categoryId || datePlace.categoryId;
+            let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
+            datePlace.Category = {name: Cat.name, id: Cat.id};
             datePlace.minBudget = minBudget || datePlace.minBudget;
             datePlace.maxBudget = maxBudget || datePlace.maxBudget;
             datePlace.openTime = openTime || datePlace.openTime;
