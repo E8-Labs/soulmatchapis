@@ -233,11 +233,11 @@ export const listDatePlaces = async (req, res) => {
             }
 
             if (req.query.minRating) {
-                searchQuery.minRating = { [Op.lte]: parseFloat(req.query.rating) };
+                searchQuery.rating = { [Op.gte]: parseFloat(req.query.minRating) };
             }
 
             if (req.query.maxRating) {
-                searchQuery.maxRating = { [Op.gte]: parseFloat(req.query.rating) };
+                searchQuery.rating = { [Op.lte]: parseFloat(req.query.maxRating) };
             }
 
             const datePlaces = await db.DatePlace.findAll({
