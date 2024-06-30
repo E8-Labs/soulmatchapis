@@ -48,8 +48,8 @@ export const addDatePlace = (req, res) => {
             const { name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state } = req.body;
             console.log("Params added date", { name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state })
             // Upload image to AWS S3
-            return res.send({ status: false, message: 'Go back' });
-            return
+            // return res.send({ status: false, message: 'Go back' });
+            // return
             const file = req.file;
             const params = {
                 Bucket: process.env.Bucket,
