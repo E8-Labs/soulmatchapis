@@ -85,9 +85,27 @@ export const addDatePlace = (req, res) => {
                     rating: 5
                 });
                 let Cat = await db.Category.findByPk(categoryId)
-                datePlace.Category = {name: Cat.name, id: Cat.id};
+                let backData = {
+                    id: datePlace.id,
+                    name,
+                    imageUrl,
+                    CategoryId: categoryId,
+                    minBudget,
+                    maxBudget,
+                    openTime,
+                    closeTime,
+                    address,
+                    latitude,
+                    longitude,
+                    description,
+                    city, 
+                    state,
+                    rating: 5,
+                    Category: {name: Cat.name, id: Cat.id}
+                }
+                // datePlace.Category = {name: Cat.name, id: Cat.id};
 
-                res.send({ status: true, message: 'Date place added successfully.', data: datePlace });
+                res.send({ status: true, message: 'Date place added successfully.', data: backData });
             });
         } catch (err) {
             console.error('Error adding date place:', err);
