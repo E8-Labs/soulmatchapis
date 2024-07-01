@@ -7,8 +7,8 @@
         "routes/*": ["routes/*"],
         "config/*": ["config/*"],
         "middleware/*": ["middleware/*"],
-        "resources/*": ["resources/*"],
+        "resources/*": ["resources/*"]
     }
-    },
+    }
     
   }

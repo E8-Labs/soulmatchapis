@@ -184,7 +184,11 @@ export const SendMessage = async (req, res) => {
 
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
                         try {
-                            let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
+                            if(element.userId !== authData.user.id){
+                                //Don't send the notification to self
+                                let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
+                            }
+                            
                         }
                         catch (error) {
                             //console.log("Notification send message error ", error)

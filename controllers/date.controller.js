@@ -333,6 +333,13 @@ export const addBooking = (req, res) => {
             }
 
             let created = await createNotification(userId, dateUserId, booking.id, NotificationType.TypeDateInvite);
+            let admin = await db.user.findOne({
+                where:{role: 'admin'}
+            })
+            if(admin){
+                let createdAdminNot = await createNotification(userId, admin.id, booking.id, NotificationType.TypeDateInviteToAdmin);
+            }
+            
             res.send({ status: true, message: 'Booking added successfully.', data: dbBooking });
         } catch (err) {
             console.error('Error adding booking:', err);
