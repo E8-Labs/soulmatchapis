@@ -310,8 +310,30 @@ export const addBooking = (req, res) => {
                 numberOfGuests,
                 dateUserId
             });
+
+            let dbBookingData = await db.sequelize.query(`
+                SELECT 
+                    b.id, b.date, b.time, b.numberOfGuests,
+                    u.id as userId, u.first_name as userFirstName, u.last_name as userLastName, u.email as userEmail,
+                    du.id as dateUserId, du.first_name as dateUserFirstName, du.last_name as dateUserLastName, du.email as dateUserEmail,
+                    dp.id as datePlaceId, dp.name as datePlaceName, dp.address as datePlaceAddress
+                FROM Bookings b
+                INNER JOIN Users u ON b.userId = u.id
+                LEFT JOIN Users du ON b.dateUserId = du.id
+                INNER JOIN DatePlaces dp ON b.datePlaceId = dp.id
+                WHERE b.userId = :userId AND b.id = :bookingId
+                ORDER BY b.date ASC, b.time ASC limit 1
+            `, {
+                replacements: { userId: userId, bookingId: booking.id},
+                type: db.Sequelize.QueryTypes.SELECT
+            });
+            let dbBooking = null;
+            if(dbBookingData && dbBookingData.length > 0){
+                dbBooking = await BookingResource(dbBookingData[0]);
+            }
+
             let created = await createNotification(userId, dateUserId, booking.id, NotificationType.TypeDateInvite);
-            res.send({ status: true, message: 'Booking added successfully.', data: booking });
+            res.send({ status: true, message: 'Booking added successfully.', data: dbBooking });
         } catch (err) {
             console.error('Error adding booking:', err);
             res.status(500).send({ status: false, message: 'An error occurred while adding the booking.', error: err.message });

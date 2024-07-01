@@ -358,6 +358,9 @@ export const GetUsers = (req, res) => {
 
       // let updated = await db.user.update({status: 'active'}, {where: {status: null}})
       let userid = authData.user.id;
+      let city = req.query.city
+      let state = req.query.state
+      let plan = req.query.plan
       let offset = 0;
       if (typeof req.query.offset !== 'undefined') {
         offset = req.query.offset;
@@ -373,15 +376,22 @@ export const GetUsers = (req, res) => {
           ]
         };
       }
+      if (city) {
+        searchQuery.city = city;
+      }
+
+      if (state) {
+        searchQuery.state = state;
+      }
+      if (plan) {
+        searchQuery.plan_status = plan;
+      }
+      searchQuery.role = {[Op.ne]: 'admin'}
+      searchQuery.status = 'active'
+      console.log("Search query is ", searchQuery)
       try {
         const users = await db.user.findAll({
-          where: {
-            role: {
-              [Op.ne]: 'admin'
-            },
-            status: 'active',
-            ...searchQuery
-          },
+          where: searchQuery,
           offset: Number(offset),
           limit: 100
         });
@@ -571,7 +581,7 @@ export const IgnoreFlaggedUser = async (req, res) => {
           return res.status(404).send({ status: false, message: 'Report not found.' });
         }
 
-       let del = await db.ReportedUsers.destroy( {
+        let del = await db.ReportedUsers.destroy({
           where: {
             id: req.body.reportid
           }
@@ -606,7 +616,7 @@ export const deleteUserById = (req, res) => {
           return res.status(404).send({ status: false, message: 'User not found.' });
         }
 
-        
+
 
         //Delete all the data of the user
         let likesDeleted = await db.profileLikes.destroy({
@@ -665,21 +675,21 @@ export const deleteUserById = (req, res) => {
           raw: true,
           transaction
         });
-    
+
         const chatIds = chatUsers.map(cu => cu.chatId);
-    
+
         // Delete all messages associated with the user's chats
         await db.Message.destroy({
           where: { chatId: chatIds },
           transaction
         });
-    
+
         // Delete all ChatUser associations
         await db.ChatUser.destroy({
           where: { UserId: userIdToDelete },
           transaction
         });
-    
+
         // Delete all chats where the user is the only participant
         await db.Chat.destroy({
           where: { id: chatIds },

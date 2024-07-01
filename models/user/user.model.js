@@ -103,7 +103,13 @@ const UserModel = (sequelize, Sequelize) => {
       status: {
         type: Sequelize.ENUM,
         values: ['active', 'suspended', 'deleted'],
-        default: 'active'
+        default: 'active',
+      },
+      plan_status: {
+        type: Sequelize.ENUM,
+        values: ['free', 'monthly', 'yearly', 'weekly'],
+        default: 'free',
+        allowNull: false
       },
       enc_key: {
         type: Sequelize.BLOB,
@@ -118,11 +124,7 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         default: ""
       },
-      points:{
-        type: Sequelize.DOUBLE,
-        allowNull: false,
-        defaultValue: 0
-      },
+      
       interested_gender: {
         type: Sequelize.STRING,
       },
