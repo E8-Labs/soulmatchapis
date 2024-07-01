@@ -786,7 +786,10 @@ export const Discover = (req, res) => {
                 // Build the filter criteria
                 let filterCriteria = {
                     id: { [db.Sequelize.Op.notIn]: idsToExclude },
-                    status: 'active'
+                    status: 'active',
+                    role: [
+                        {[db.Sequelize.Op.ne]: "admin"}
+                    ]
                 };
 
                 if (minAge || maxAge) {
@@ -816,7 +819,7 @@ export const Discover = (req, res) => {
                 // Find all other users based on filter criteria
                 const users = await db.user.findAll({
                     where: filterCriteria,
-                    limit: 10
+                    limit: 100
                 });
 
                 // Send the result
