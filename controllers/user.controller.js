@@ -787,9 +787,7 @@ export const Discover = (req, res) => {
                 let filterCriteria = {
                     id: { [db.Sequelize.Op.notIn]: idsToExclude },
                     status: 'active',
-                    role: [
-                        {[db.Sequelize.Op.ne]: "admin"}
-                    ]
+                    role: { [db.Sequelize.Op.ne]: "admin" }
                 };
 
                 if (minAge || maxAge) {
