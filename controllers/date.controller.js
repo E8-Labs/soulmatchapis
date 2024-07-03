@@ -172,7 +172,25 @@ export const UpdateDatePlace = async (req, res) => {
 
             await datePlace.save();
 
-            res.send({ status: true, message: 'Date place updated successfully.', data: datePlace });
+            // let Cat = await db.Category.findByPk(categoryId)
+                let backData = {
+                    id: datePlace.id,
+                    name: name || datePlace.name,
+                    city: city || datePlace.city,
+                    state: state || datePlace.state,
+                    categoryId: categoryId || datePlace.categoryId,
+                    minBudget :minBudget || datePlace.minBudget,
+                    maxBudget : maxBudget || datePlace.maxBudget,
+                    openTime : openTime || datePlace.openTime,
+                    closeTime : closeTime || datePlace.closeTime,
+                    address : address || datePlace.address,
+                    latitude : latitude || datePlace.latitude,
+                    longitude : longitude || datePlace.longitude,
+                    description : description || datePlace.description,
+                    Category: {name: Cat.name, id: Cat.id}
+                }
+
+            res.send({ status: true, message: 'Date place updated successfully.', data: backData });
         } catch (err) {
             console.error('Error updating date place:', err);
             res.status(500).send({ status: false, message: 'An error occurred while updating the date place.', error: err.message });
