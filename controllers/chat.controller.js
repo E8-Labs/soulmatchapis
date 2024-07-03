@@ -395,7 +395,17 @@ export const GetChatsList = async (req, res) => {
                         as: 'ChatUser',
                         where: { userId: userId },
                         attributes: ["userId", "chatId"]
-                    }]
+                    },
+                    {
+                        model: db.Message,
+                        as: 'Messages',
+                        attributes: [],
+                    },
+                ],
+                order: [
+                    [db.Message, 'createdAt', 'DESC']
+                ],
+                group: ['Chat.id']
                 });
 
                 //console.log("Chats ", chats)
