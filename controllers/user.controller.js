@@ -443,7 +443,7 @@ function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
     })
     const params = {
         Bucket: process.env.Bucket,
-        Key: fieldname + "Profile" + Date.now(),
+        Key: "profiles/" + fieldname + "Profile" + Date.now(),
         Body: fileContent,
         ContentDisposition: 'inline',
         ContentType: mime

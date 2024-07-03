@@ -231,7 +231,7 @@ export const UploadIntroVideos = async (req, res) => {
                     const fieldname = file.fieldname;
 
                     await new Promise((resolve, reject) => {
-                        uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                        uploadMedia(fieldname, fileContent, mime, "intro_videos", async (uploadedFile, error) => {
                             if (error) {
                                 //console.log("Error Uploading ", error);
                                 reject(error);
@@ -247,7 +247,7 @@ export const UploadIntroVideos = async (req, res) => {
                     let thumbContent = thumb.buffer;
                     let thumbMime = thumb.mimetype;
                     await new Promise((resolve, reject) => {
-                        uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
+                        uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "intro_videos", async (uploadedFile, error) => {
                             if (error) {
                                 //console.log("Error Uploading thumb", error);
                                 reject(error);
@@ -315,7 +315,7 @@ export async function UploadUserMedia(req, res) {
                         const fieldname = file.fieldname;
 
                         await new Promise((resolve, reject) => {
-                            uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                            uploadMedia(fieldname, fileContent, mime, "media", async (uploadedFile, error) => {
                                 if (error) {
                                     //console.log("Error Uploading ", error);
                                     reject(error);
@@ -331,7 +331,7 @@ export async function UploadUserMedia(req, res) {
                         let thumbContent = thumb.buffer;
                         let thumbMime = thumb.mimetype;
                         await new Promise((resolve, reject) => {
-                            uploadMedia("thumb" + fieldname, thumbContent, thumbMime, async (uploadedFile, error) => {
+                            uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "media", async (uploadedFile, error) => {
                                 if (error) {
                                     //console.log("Error Uploading thumb", error);
                                     reject(error);
@@ -367,7 +367,7 @@ export async function UploadUserMedia(req, res) {
                         // //console.log("file type", mime)
                         const fileContent = file.buffer;
                         const fieldname = file.fieldname;
-                        uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
+                        uploadMedia(fieldname, fileContent, mime, "media", async (uploadedFile, error) => {
                             //console.log("File uploaded to User Media", uploadedFile)
                             let type = mime.includes("video") ? "video" : "image"
                             let created = await db.userMedia.create({
@@ -408,7 +408,7 @@ export async function UploadUserMedia(req, res) {
 
 
 //function to upload to AWS
-function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
+function uploadMedia(fieldname, fileContent, mime = "image/jpeg", folder = "media", completion) {
     const s3 = new S3({
         accessKeyId: process.env.AccessKeyId,
         secretAccessKey: process.env.SecretAccessKey,
@@ -416,7 +416,7 @@ function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
     })
     const params = {
         Bucket: process.env.Bucket,
-        Key: fieldname + "Profile" + Date.now(),
+        Key: folder + "/" + fieldname + "Profile" + Date.now(),
         Body: fileContent,
         ContentDisposition: 'inline',
         ContentType: mime
@@ -478,7 +478,7 @@ export const AnswerQuestion = async (req, res) => {
     
                 if (files.media) {
                     await new Promise((resolve, reject) => {
-                        uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, (uploadedUrl, error) => {
+                        uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, "questions", (uploadedUrl, error) => {
                             if (error) {
                                 reject(new Error("Failed to upload media"));
                             } else {
@@ -491,7 +491,7 @@ export const AnswerQuestion = async (req, res) => {
     
                 if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
                     await new Promise((resolve, reject) => {
-                        uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, (uploadedUrl, error) => {
+                        uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, "questions", (uploadedUrl, error) => {
                             if (error) {
                                 reject(new Error("Failed to upload thumbnail"));
                             } else {
