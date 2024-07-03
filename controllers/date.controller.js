@@ -161,8 +161,8 @@ export const UpdateDatePlace = async (req, res) => {
             datePlace.categoryId = categoryId || datePlace.categoryId;
             let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
             datePlace.Category = {name: Cat.name, id: Cat.id};
-            datePlace.minBudget = minBudget || datePlace.minBudget;
-            datePlace.maxBudget = maxBudget || datePlace.maxBudget;
+            datePlace.minBudget = parseInt(minBudget) || datePlace.minBudget;
+            datePlace.maxBudget = parseInt(maxBudget) || datePlace.maxBudget;
             datePlace.openTime = openTime || datePlace.openTime;
             datePlace.closeTime = closeTime || datePlace.closeTime;
             datePlace.address = address || datePlace.address;
@@ -179,8 +179,8 @@ export const UpdateDatePlace = async (req, res) => {
                     city: city || datePlace.city,
                     state: state || datePlace.state,
                     categoryId: categoryId || datePlace.categoryId,
-                    minBudget :minBudget || datePlace.minBudget,
-                    maxBudget : maxBudget || datePlace.maxBudget,
+                    minBudget : parseInt(minBudget) || datePlace.minBudget,
+                    maxBudget : parseInt(maxBudget) || datePlace.maxBudget,
                     openTime : openTime || datePlace.openTime,
                     closeTime : closeTime || datePlace.closeTime,
                     address : address || datePlace.address,
