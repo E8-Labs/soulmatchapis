@@ -405,7 +405,7 @@ export const GetChatsList = async (req, res) => {
                 order: [
                     [db.Message, 'createdAt', 'DESC']
                 ],
-                group: ['Chat.id']
+                // group: ['Chat.id']
                 });
 
                 //console.log("Chats ", chats)
