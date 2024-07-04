@@ -1236,7 +1236,7 @@ export const SendPasswordResetEmail = async (req, res) => {
                 pass: "uzmvwsljflyqnzgu", // Your email password
             },
         });
-        const randomCode = generateRandomCode(6);
+        const randomCode = generateRandomCode(4);
         db.passwordResetCode.destroy({
             where: {
                 email: email
