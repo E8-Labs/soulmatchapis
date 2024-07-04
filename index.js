@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import multer from "multer";
@@ -11,9 +14,8 @@ import moment from "moment-timezone";
 
 import { verifyJwtToken } from "./middleware/jwtmiddleware.js";
 
-import dotenv from 'dotenv'
-dotenv.config();
 
+console.log('Environment variables loaded:', process.env.MYSQL_DB_HOST, process.env.AWS_SECRET_ACCESS_KEY, process.env.AWS_REGION);
 
 const upload = multer();
 

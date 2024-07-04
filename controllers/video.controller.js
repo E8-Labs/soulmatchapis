@@ -1,12 +1,14 @@
 import ffmpeg from 'fluent-ffmpeg';
 import db from "../models/index.js";
-import S3 from "aws-sdk/clients/s3.js";
+// import S3 from "aws-sdk/clients/s3.js";
 import JWT from "jsonwebtoken";
 import bcrypt from 'bcryptjs';
 import AWS from 'aws-sdk';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+
+import { uploadMedia, deleteFileFromS3 } from '../utilities/storage.js';
 
 
 import UserRole from "../models/userrole.js";
@@ -21,12 +23,14 @@ const readFile = promisify(fs.readFile);
 const unlink = promisify(fs.unlink);
 const mkdir = promisify(fs.mkdir);
 
-// Configure AWS SDK
-AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION
-});
+// Configure AWS SDK if not already done
+if (!AWS.config.credentials) {
+    AWS.config.update({
+        accessKeyId: process.env.AccessKeyId,
+        secretAccessKey: process.env.SecretAccessKey,
+        region: process.env.Region,
+    });
+}
 
 const s3 = new AWS.S3();
 
@@ -50,19 +54,7 @@ const generateThumbnail = (videoPath, thumbnailPath) => {
     });
 };
 
-const uploadToS3 = async (filePath, bucketName, key) => {
-    return readFile(filePath)
-        .then(data => {
-            const params = {
-                Bucket: bucketName,
-                Key: key,
-                Body: data,
-                ContentType: 'image/png'
-            };
 
-            return s3.upload(params).promise();
-        });
-};
 const ensureDirExists = async (dir) => {
     if (!fs.existsSync(dir)) {
         await mkdir(dir, { recursive: true });
@@ -70,15 +62,17 @@ const ensureDirExists = async (dir) => {
 };
 
 export const UploadIntroVideoInVideoController = async (req, res) => {
+    console.log("Thumbnail testing")
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             let user = await db.user.findByPk(authData.user.id);
             //console.log("User is ", user)
-            if (typeof (req.file) !== 'undefined' && user) {
-                let mime = req.file.mimetype;
+            if (req.files && req.files.media && req.files.media.length > 0 && user) {
+                let file = req.files.media[0]
+                let mime = file.mimetype;
                 if (mime.includes("video")) {
-                    const fileContent = req.file.buffer;
-                    const fieldname = req.file.fieldname;
+                    const fileContent = file.buffer;
+                    const fieldname = file.fieldname;
 
                     //   uploadMedia(fieldname, fileContent, mime, async (uploadedFile, error) => {
                     //     if (error) {
@@ -94,11 +88,11 @@ export const UploadIntroVideoInVideoController = async (req, res) => {
                     const thumbnailsDir = './thumbnails';
                     await ensureDirExists(tempDir);
                     await ensureDirExists(thumbnailsDir);
-                    const tempVideoPath = `./temp/${req.file.originalname}`;
+                    const tempVideoPath = `./temp/${file.originalname}`;
                     await writeFile(tempVideoPath, fileContent);
 
                     // Generate the thumbnail
-                    const thumbnailPath = `./temp/thumbnail-${path.basename(req.file.originalname, path.extname(req.file.originalname))}.png`;
+                    const thumbnailPath = `./temp/thumbnail-${path.basename(file.originalname, path.extname(file.originalname))}.png`;
                     try {
                         await generateThumbnail(tempVideoPath, thumbnailPath);
 
@@ -145,6 +139,25 @@ export const DeleteMedia = async (req, res) => {
         if (authData) {
             let user = await db.user.findByPk(authData.user.id);
             if (typeof req.body.media_id !== 'undefined') {
+                let med = await db.userMedia.findByPk(req.body.media_id)
+                if(med){
+                    if(med.url !== null && med.url !== ""){
+                        try {
+                            let delVideo = await deleteFileFromS3(med.url)
+                            if(med.thumb_url !== null && med.thumb_url !== ""){
+                                let delThumb = await deleteFileFromS3(med.thumb_url)
+                                console.log("Deleted thumb", delThumb)
+                            }
+                            console.log("Deleted Media  ", delVideo)
+                            
+                        }
+                        catch(error){
+                            console.log("Error deleting existing intro, ", user.intro_video)
+                            // res.send({ status: false, message: "Error deleting existing introe ", data: null });
+                            // return
+                        }
+                    }
+                }
                 let deleted = await db.userMedia.destroy({
                     where: {
                         id: req.body.media_id
@@ -204,12 +217,27 @@ export const DeleteIntroVideo = async (req, res) => {
     })
 }
 
+//THis is the api being used
 export const UploadIntroVideos = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             let user = await db.user.findByPk(authData.user.id);
             //console.log("User is ", user);
-
+            if (user.intro_video !== null && user.intro_video !== '') {
+                console.log("Exists intro video so deleting")
+                //delete existing 
+                try {
+                    let delVideo = await deleteFileFromS3(user.intro_video)
+                    let delThumb = await deleteFileFromS3(user.intro_thumbnail_url)
+                    console.log("Deleted intro ", delVideo)
+                    console.log("Deleted thumb", delThumb)
+                }
+                catch(error){
+                    console.log("Error deleting existing intro, ", user.intro_video)
+                    // res.send({ status: false, message: "Error deleting existing introe ", data: null });
+                    // return
+                }
+            }
             if (req.files && req.files.media && req.files.media.length > 0 && user) {
                 let uploadedFileUrl = null;
                 let thumbUrl = null;
@@ -408,31 +436,31 @@ export async function UploadUserMedia(req, res) {
 
 
 //function to upload to AWS
-function uploadMedia(fieldname, fileContent, mime = "image/jpeg", folder = "media", completion) {
-    const s3 = new S3({
-        accessKeyId: process.env.AccessKeyId,
-        secretAccessKey: process.env.SecretAccessKey,
-        region: process.env.Region
-    })
-    const params = {
-        Bucket: process.env.Bucket,
-        Key: folder + "/" + fieldname + "Profile" + Date.now(),
-        Body: fileContent,
-        ContentDisposition: 'inline',
-        ContentType: mime
-        // ACL: 'public-read',
-    }
-    const result = s3.upload(params, async (err, d) => {
-        if (err) {
-            completion(null, err.message);
-            // return null
-        }
-        else {
-            // user.profile_image = d.Location;
-            completion(d.Location, null);
-        }
-    });
-}
+// function uploadMedia(fieldname, fileContent, mime = "image/jpeg", folder = "media", completion) {
+//     const s3 = new S3({
+//         accessKeyId: process.env.AccessKeyId,
+//         secretAccessKey: process.env.SecretAccessKey,
+//         region: process.env.Region
+//     })
+//     const params = {
+//         Bucket: process.env.Bucket,
+//         Key: folder + "/" + fieldname + "Profile" + Date.now(),
+//         Body: fileContent,
+//         ContentDisposition: 'inline',
+//         ContentType: mime
+//         // ACL: 'public-read',
+//     }
+//     const result = s3.upload(params, async (err, d) => {
+//         if (err) {
+//             completion(null, err.message);
+//             // return null
+//         }
+//         else {
+//             // user.profile_image = d.Location;
+//             completion(d.Location, null);
+//         }
+//     });
+// }
 
 // Route to submit an answer to a question
 export const AnswerQuestion = async (req, res) => {
@@ -447,7 +475,7 @@ export const AnswerQuestion = async (req, res) => {
 
         const { questionId, answerText } = req.body;
         const answers = await db.userAnswers.findAll({
-            where: {UserId: authData.user.id}
+            where: { UserId: authData.user.id }
         })
         let answer = await db.userAnswers.findOne(
             {
@@ -457,13 +485,13 @@ export const AnswerQuestion = async (req, res) => {
                 }
             }
         )
-        if(answers.length >= 3 && !answer){
+        if (answers.length >= 3 && !answer) {
             return res.status(200).json({
                 status: false,
                 message: "Can not add more than 3 questions"
             });
         }
-        else{
+        else {
             const files = req.files;
 
             if (!authData.user.id || !questionId) {
@@ -472,10 +500,10 @@ export const AnswerQuestion = async (req, res) => {
                     message: "Missing required user or question identification data"
                 });
             }
-    
+
             try {
                 let answerImage = null, answerVideo = null, videoThumbnail = null;
-    
+
                 if (files.media) {
                     await new Promise((resolve, reject) => {
                         uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, "questions", (uploadedUrl, error) => {
@@ -488,7 +516,7 @@ export const AnswerQuestion = async (req, res) => {
                         });
                     });
                 }
-    
+
                 if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
                     await new Promise((resolve, reject) => {
                         uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, "questions", (uploadedUrl, error) => {
@@ -501,18 +529,18 @@ export const AnswerQuestion = async (req, res) => {
                         });
                     });
                 }
-    
+
                 //check already added same question
-                
-    // create the new question
-                if(answer){
+
+                // create the new question
+                if (answer) {
                     answer.answerText = answerText;
                     answer.answerImage = answerImage;
                     answer.answerVideo = answerVideo;
                     answer.videoThumbnail = videoThumbnail;
                     let saved = await answer.save();
                 }
-                else{
+                else {
                     const newAnswer = await db.userAnswers.create({
                         UserId: authData.user.id,
                         questionId,
@@ -522,7 +550,7 @@ export const AnswerQuestion = async (req, res) => {
                         videoThumbnail
                     });
                 }
-    
+
                 const query = `
         SELECT 
             ua.*, 
@@ -537,18 +565,18 @@ export const AnswerQuestion = async (req, res) => {
         WHERE 
             ua.UserId = :userId
     `;
-    
+
                 const answers = await db.sequelize.query(query, {
                     replacements: { userId: authData.user.id },
                     type: db.sequelize.QueryTypes.SELECT
                 });
-    
+
                 res.status(201).json({
                     status: true,
                     message: "Answer submitted successfully",
                     data: answers
                 });
-    
+
             } catch (uploadError) {
                 console.error('Error submitting answer:', uploadError);
                 res.status(500).json({
@@ -558,7 +586,7 @@ export const AnswerQuestion = async (req, res) => {
                 });
             }
         }
-        
+
     });
 };
 

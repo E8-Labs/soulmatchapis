@@ -508,13 +508,13 @@ export async function UploadUserMedia(req, res) {
 }
 
 
-export const sendTestNot = async(req, res) => {
-    
+export const sendTestNot = async (req, res) => {
+
 
     try {
         // Send the notification
-        let resp = sendNot("ExponentPushToken[_pZ2Y6LPv7S9gKi2lJwzif]", "Test Notification", "This is a test notification message", 
-            {message: "This is a test message", id: "This is id of the action", type: "Message"})
+        let resp = sendNot("ExponentPushToken[_pZ2Y6LPv7S9gKi2lJwzif]", "Test Notification", "This is a test notification message",
+            { message: "This is a test message", id: "This is id of the action", type: "Message" })
         res.send({ status: true, message: 'Notification sent successfully', data: resp });
     } catch (error) {
         console.error(error);
@@ -552,11 +552,23 @@ export const UpdateProfile = async (req, res) => {
             const user = await User.findByPk(userid);
 
             if (typeof (req.file) !== 'undefined') {
+
+
+                
                 const fileContent = req.file.buffer;
                 const fieldname = req.file.fieldname;
                 uploadMedia(fieldname, fileContent, "image/jpeg", async (uploadedFile, error) => {
                     //console.log("File uploaded to ", uploadedFile)
                     //console.log("Error Uploading ", error)
+                    if (user.profile_image !== null && user.profile_image !== '') {
+                        try {
+                            let delVideo = await deleteFileFromS3(user.profile_image)
+                            console.log("Deleted Profile Image  ", delVideo)
+                        }
+                        catch (error) {
+                            console.log("Error deleting existing profile image, ", user.intro_video)
+                        }
+                    }
                     user.profile_image = uploadedFile;
                     let saved = await user.save();
                     if (saved) {
