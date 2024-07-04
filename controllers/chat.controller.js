@@ -9,6 +9,7 @@ import axios from "axios";
 import chalk from 'chalk';
 import NotificationType from '../models/user/notificationtype.js';
 import { createNotification } from "../utilities/notificationutility.js";
+import { uploadMedia, createThumbnailAndUpload } from '../utilities/storage.js';
 // import { Pinecone } from "@pinecone-database/pinecone";
 import pusher from '../utilities/pusher.js'
 import ChatResource from '../resources/chat.resource.js';
@@ -29,31 +30,31 @@ import { promisify } from 'util';
 
 
 //function to upload to AWS
-function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
-    const s3 = new S3({
-        accessKeyId: process.env.AccessKeyId,
-        secretAccessKey: process.env.SecretAccessKey,
-        region: process.env.Region
-    })
-    const params = {
-        Bucket: process.env.Bucket,
-        Key: "chat_images/" + fieldname + "chat" + Date.now(),
-        Body: fileContent,
-        ContentDisposition: 'inline',
-        ContentType: mime
-        // ACL: 'public-read',
-    }
-    const result = s3.upload(params, async (err, d) => {
-        if (err) {
-            completion(null, err.message);
-            // return null
-        }
-        else {
-            // user.profile_image = d.Location;
-            completion(d.Location, null);
-        }
-    });
-}
+// function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
+//     const s3 = new S3({
+//         accessKeyId: process.env.AccessKeyId,
+//         secretAccessKey: process.env.SecretAccessKey,
+//         region: process.env.Region
+//     })
+//     const params = {
+//         Bucket: process.env.Bucket,
+//         Key: "chat_images/" + fieldname + "chat" + Date.now(),
+//         Body: fileContent,
+//         ContentDisposition: 'inline',
+//         ContentType: mime
+//         // ACL: 'public-read',
+//     }
+//     const result = s3.upload(params, async (err, d) => {
+//         if (err) {
+//             completion(null, err.message);
+//             // return null
+//         }
+//         else {
+//             // user.profile_image = d.Location;
+//             completion(d.Location, null);
+//         }
+//     });
+// }
 
 // Function to create a chat
 const checkUsersInSameChat = async (userId1, userId2) => {
@@ -159,7 +160,7 @@ export const SendMessage = async (req, res) => {
             const { chatId, content } = req.body;
 
             try {
-                let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: content });
+                let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: content, message_type: "text" });
                 let chatUsers = await db.ChatUser.findAll({
                     where: {
                         chatId,
@@ -217,54 +218,45 @@ export const SendMediaMessage = async (req, res) => {
             let imageDimensions = { width: null, height: null };
 
             try {
-                let image = null, thumbnail = null, voice = null;
+                let image = null, thumbnail = null, voice = null, imageThumb = null, video = null, message_type = "text";
 
                 if (files.media) {
                     const mediaBuffer = files.media[0].buffer;
                     const mediaType = files.media[0].mimetype;
 
                     if (mediaType.includes('image')) {
+                        message_type = "image"
                         const metadata = await sharp(mediaBuffer).metadata();
                         imageDimensions.width = metadata.width;
                         imageDimensions.height = metadata.height;
 
-                        await new Promise((resolve, reject) => {
-                            uploadMedia(files.media[0].fieldname, mediaBuffer, mediaType, (uploadedUrl, error) => {
-                                if (error) {
-                                    reject(new Error("Failed to upload media"));
-                                } else {
-                                    image = uploadedUrl;
-                                    resolve();
-                                }
-                            });
-                        });
-                    } else if (mediaType.includes('audio')) {
-                        await new Promise((resolve, reject) => {
-                            uploadMedia(files.media[0].fieldname, mediaBuffer, mediaType, (uploadedUrl, error) => {
-                                if (error) {
-                                    reject(new Error("Failed to upload media"));
-                                } else {
-                                    voice = uploadedUrl;
-                                    resolve();
-                                }
-                            });
-                        });
-                    } else if (mediaType.includes('video') && files.thumbnail) {
+                        const fullProfileImageUrl = await uploadMedia(files.media[0].fieldname, mediaBuffer, mediaType, "chat");
+                        image = fullProfileImageUrl;
+
+                        const thumbnailUrl = await createThumbnailAndUpload(mediaBuffer, files.media[0].fieldname);
+                        imageThumb = thumbnailUrl;
+                    } 
+                    else if (mediaType.includes('audio')) {
+                        message_type = "voice"
+                        const fullProfileImageUrl = await uploadMedia(files.media[0].fieldname, mediaBuffer, mediaType, "chat");
+                        voice = fullProfileImageUrl;
+                    } 
+                    else if (mediaType.includes('video') && files.thumbnail) {
+                        message_type = "video"
                         const metadata = await sharp(files.thumbnail[0].buffer).metadata();
                         imageDimensions.width = metadata.width;
                         imageDimensions.height = metadata.height;
 
-                        await new Promise((resolve, reject) => {
-                            uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, (uploadedUrl, error) => {
-                                if (error) {
-                                    reject(new Error("Failed to upload thumbnail"));
-                                } else {
-                                    thumbnail = uploadedUrl;
-                                    resolve();
-                                }
-                            });
-                        });
+                        const videoUrl = await uploadMedia(files.media[0].fieldname, mediaBuffer, mediaType, "chat");
+                        video = videoUrl;
+
+                        const fullProfileImageUrl = await uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, "chat");
+                        thumbnail = fullProfileImageUrl;
                     }
+
+                }
+                else{
+                    message_type = "text"
                 }
 
                 // Create the new message
@@ -272,11 +264,14 @@ export const SendMediaMessage = async (req, res) => {
                     chatId: chatId,
                     userId: authData.user.id,
                     content: '',
+                    video_url: video,
                     image_url: image,
+                    image_thumb_url: imageThumb,
                     thumb_url: thumbnail,
                     image_width: imageDimensions.width,
                     image_height: imageDimensions.height,
-                    voice: voice
+                    voice: voice,
+                    message_type : message_type,
                 });
 
                 let chatUsers = await db.ChatUser.findAll({

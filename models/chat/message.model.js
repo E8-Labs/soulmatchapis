@@ -21,12 +21,27 @@ const messageModel = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: false
         },
+        message_type: {
+            type: Sequelize.ENUM,
+            values: ['image', 'text', 'video', 'voice'],
+            default: 'text'
+        },
+        video_url:{
+            type: Sequelize.STRING,
+            allowNull: true,
+            defaultValue: null,
+        },
         image_url: {
             type: Sequelize.STRING,
             allowNull: true,
             defaultValue: null,
         },
-        thumb_url: {
+        image_thumb_url: {  //image thumb url
+            type: Sequelize.STRING,
+            allowNull: true,
+            defaultValue: null,
+        },
+        thumb_url: {  //video thumb url
             type: Sequelize.STRING,
             allowNull: true,
             defaultValue: null,
