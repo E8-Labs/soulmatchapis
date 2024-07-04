@@ -8,6 +8,7 @@ import url from 'url';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import sharp from 'sharp';
 
 
 
@@ -95,27 +96,64 @@ export async function deleteFileFromS3(fileUrl) {
 
 
 //function to upload to AWS
-export function uploadMedia(fieldname, fileContent, mime = "image/jpeg", folder = "media", completion) {
+// export  function uploadMedia(fieldname, fileContent, mime = "image/jpeg", folder = "media", completion) {
     
-    const params = {
-        Bucket: process.env.Bucket,
-        Key: folder + "/" + fieldname + Date.now(),
-        Body: fileContent,
-        ContentDisposition: 'inline',
-        ContentType: mime
-        // ACL: 'public-read',
-    }
-    const result = s3.upload(params, async (err, d) => {
-        if (err) {
-            completion(null, err.message);
-            // return null
-        }
-        else {
-            // user.profile_image = d.Location;
-            completion(d.Location, null);
-        }
+//     const params = {
+//         Bucket: process.env.Bucket,
+//         Key: folder + "/" + fieldname + Date.now(),
+//         Body: fileContent,
+//         ContentDisposition: 'inline',
+//         ContentType: mime
+//         // ACL: 'public-read',
+//     }
+//     const result = s3.upload(params, async (err, d) => {
+//         if (err) {
+//             if(completion){
+//                 completion(null, err.message);
+//             }
+//             // return null
+//         }
+//         else {
+//             // user.profile_image = d.Location;
+//             if(completion){
+//                 completion(d.Location, null);
+//             }
+            
+//         }
+//     });
+// }
+export const uploadMedia = (fieldname, fileContent, mime = "image/jpeg", folder = "media") => {
+    return new Promise((resolve, reject) => {
+        const params = {
+            Bucket: process.env.Bucket,
+            Key: `${folder}/${fieldname}${Date.now()}`,
+            Body: fileContent,
+            ContentDisposition: 'inline',
+            ContentType: mime,
+        };
+
+        s3.upload(params, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data.Location);
+            }
+        });
     });
-}
+};
+
+export const createThumbnailAndUpload = async (fileContent, fieldname, folder = "media") => {
+    const image = sharp(fileContent);
+    const metadata = await image.metadata();
+    const width = 420;
+    const height = Math.round((metadata.height / metadata.width) * width);
+
+    const thumbnailBuffer = await image.resize(width, height).toBuffer();
+    const thumbnailUrl = await uploadMedia(`thumbnail_${fieldname}`, thumbnailBuffer, "image/jpeg", folder);
+    return thumbnailUrl;
+};
+
+
 
 // Example usage
 const fileUrl = 'https://your-bucket-name.s3.amazonaws.com/path/to/your/file.txt';

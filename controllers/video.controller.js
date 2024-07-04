@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 
-import { uploadMedia, deleteFileFromS3 } from '../utilities/storage.js';
+import { uploadMedia, deleteFileFromS3, createThumbnailAndUpload } from '../utilities/storage.js';
 
 
 import UserRole from "../models/userrole.js";
@@ -342,35 +342,37 @@ export async function UploadUserMedia(req, res) {
                         const fileContent = file.buffer;
                         const fieldname = file.fieldname;
 
-                        await new Promise((resolve, reject) => {
-                            uploadMedia(fieldname, fileContent, mime, "media", async (uploadedFile, error) => {
-                                if (error) {
-                                    //console.log("Error Uploading ", error);
-                                    reject(error);
-                                } else {
-                                    //console.log("File uploaded to ", uploadedFile);
-                                    uploadedFileUrl = uploadedFile;
-                                    // uploadedFiles.push(uploadedFile);
-                                    resolve();
-                                }
-                            });
-                        });
+                        // await new Promise((resolve, reject) => {
+                        //     uploadMedia(fieldname, fileContent, mime, "media", async (uploadedFile, error) => {
+                        //         if (error) {
+                        //             //console.log("Error Uploading ", error);
+                        //             reject(error);
+                        //         } else {
+                        //             //console.log("File uploaded to ", uploadedFile);
+                        //             uploadedFileUrl = uploadedFile;
+                        //             // uploadedFiles.push(uploadedFile);
+                        //             resolve();
+                        //         }
+                        //     });
+                        // });
+                        uploadedFileUrl = await uploadMedia(fieldname, fileContent, mime, "media");
 
                         let thumbContent = thumb.buffer;
                         let thumbMime = thumb.mimetype;
-                        await new Promise((resolve, reject) => {
-                            uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "media", async (uploadedFile, error) => {
-                                if (error) {
-                                    //console.log("Error Uploading thumb", error);
-                                    reject(error);
-                                } else {
-                                    //console.log("Thumbnail uploaded to ", uploadedFile);
-                                    thumbUrl = uploadedFile;
-                                    // uploadedFiles.push(uploadedFile);
-                                    resolve();
-                                }
-                            });
-                        });
+                        thumbUrl = await uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "media");
+                        //await new Promise((resolve, reject) => {
+                        //     uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "media", async (uploadedFile, error) => {
+                        //         if (error) {
+                        //             //console.log("Error Uploading thumb", error);
+                        //             reject(error);
+                        //         } else {
+                        //             //console.log("Thumbnail uploaded to ", uploadedFile);
+                        //             thumbUrl = uploadedFile;
+                        //             // uploadedFiles.push(uploadedFile);
+                        //             resolve();
+                        //         }
+                        //     });
+                        // });
                         let type = mime.includes("video") ? "video" : "image"
                         let created = await db.userMedia.create({
                             UserId: user.id,
@@ -395,13 +397,14 @@ export async function UploadUserMedia(req, res) {
                         // //console.log("file type", mime)
                         const fileContent = file.buffer;
                         const fieldname = file.fieldname;
-                        uploadMedia(fieldname, fileContent, mime, "media", async (uploadedFile, error) => {
-                            //console.log("File uploaded to User Media", uploadedFile)
-                            let type = mime.includes("video") ? "video" : "image"
+                        const uploadedFile = await uploadMedia(fieldname, fileContent, mime, "media");
+                        const thumbnailUrl = await createThumbnailAndUpload(fileContent, fieldname, "media");
+                        let type = mime.includes("video") ? "video" : "image"
                             let created = await db.userMedia.create({
                                 UserId: user.id,
                                 type: type,
                                 url: uploadedFile,
+                                thumb_url: thumbnailUrl,
                                 caption: req.body.caption
                             })
                             if (created) {
@@ -411,8 +414,6 @@ export async function UploadUserMedia(req, res) {
                             else {
                                 res.send({ status: false, message: "Error saving media", data: null });
                             }
-
-                        })
                     }
 
 

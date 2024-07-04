@@ -55,6 +55,7 @@ async function getUserData(user, currentUser = null) {
     const UserFullResource = {
         id: user.id,
         profile_image: user.profile_image,
+        full_profile_image: user.full_profile_image,
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,

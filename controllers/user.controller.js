@@ -9,7 +9,7 @@ import axios from "axios";
 import chalk from "chalk";
 import nodemailer from 'nodemailer'
 import NotificationType from '../models/user/notificationtype.js'
-
+import {createThumbnailAndUpload, uploadMedia, deleteFileFromS3} from '../utilities/storage.js'
 import crypto from 'crypto'
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
@@ -47,87 +47,163 @@ const generateThumbnail = (videoPath, thumbnailPath) => {
     });
 };
 
+// export const RegisterUser = async (req, res) => {
+
+//     ////console.log("Checking user")
+//     // res.send({data: {text: "kanjar Students"}, message: "Chawal Students", status: true})
+
+//     const alreadyUser = await User.findOne({
+//         where: {
+//             email: req.body.email
+//         }
+//     })
+//     if (alreadyUser) {
+//         res.send({ status: false, message: "Email already taken ", data: null });
+//     }
+//     else {
+//         // //////console.log("Hello bro")
+//         // res.send("Hello")
+//         if (!req.body.first_name) {
+//             res.send({ status: false, message: "First Name is required ", data: null });
+//         }
+//         else {
+//             var userData = {
+//                 first_name: req.body.first_name,
+//                 last_name: req.body.last_name,
+//                 email: req.body.email,
+//                 profile_image: '',
+//                 password: req.body.password,
+//                 role: UserRole.RoleUser,
+//                 plan_status: 'free',
+//                 provider_name: 'Email',
+//                 provider_id: '',
+//                 device_id: req.body.device_id,
+//             };
+//             const salt = await bcrypt.genSalt(10);
+//             const hashed = await bcrypt.hash(req.body.password, salt);
+//             userData.password = hashed;
+
+//             try {
+//                 if (typeof (req.file) !== 'undefined') {
+//                     const fileContent = req.file.buffer;
+//                     const fieldname = req.file.fieldname;
+//                     uploadMedia(fieldname, fileContent, "image/jpeg", (uploadedFile, error) => {
+//                         //console.log("File uploaded to ", uploadedFile)
+//                         //console.log("Error Uploading ", error)
+//                         userData.profile_image = uploadedFile
+                        // createUser(userData, async (user, error) => {
+                        //     if (error) {
+                        //         res.send({ status: false, message: "Error  " + error.message, data: null, error: error });
+                        //     }
+                        //     else {
+
+                        //         res.send({ status: true, message: "User registered", data: user })
+                        //     }
+                        // })
+//                     })
+//                     //
+//                 }
+//                 else {
+//                     createUser(userData, (user, error) => {
+//                         if (error) {
+//                             res.send({ status: false, message: "Error  " + error.message, data: null, error: error });
+//                         }
+//                         else {
+//                             res.send({ status: true, message: "User registered", data: user })
+//                         }
+//                     })
+//                 }
+
+//             }
+//             catch (error) {
+//                 res.send({
+//                     message:
+//                         err.message || "Some error occurred while creating the user.",
+//                     status: false,
+//                     data: null
+//                 });
+//             }
+//         }
+//     }
+// }
+
+
 export const RegisterUser = async (req, res) => {
+    const alreadyUser = await User.findOne({ where: { email: req.body.email } });
 
-    ////console.log("Checking user")
-    // res.send({data: {text: "kanjar Students"}, message: "Chawal Students", status: true})
-
-    const alreadyUser = await User.findOne({
-        where: {
-            email: req.body.email
-        }
-    })
     if (alreadyUser) {
         res.send({ status: false, message: "Email already taken ", data: null });
-    }
-    else {
-        // //////console.log("Hello bro")
-        // res.send("Hello")
+    } else {
         if (!req.body.first_name) {
             res.send({ status: false, message: "First Name is required ", data: null });
-        }
-        else {
-            var userData = {
+        } else {
+            const salt = await bcrypt.genSalt(10);
+            const hashed = await bcrypt.hash(req.body.password, salt);
+
+            let userData = {
                 first_name: req.body.first_name,
                 last_name: req.body.last_name,
                 email: req.body.email,
                 profile_image: '',
-                password: req.body.password,
+                full_profile_image: '',
+                password: hashed,
                 role: UserRole.RoleUser,
                 plan_status: 'free',
                 provider_name: 'Email',
                 provider_id: '',
                 device_id: req.body.device_id,
             };
-            const salt = await bcrypt.genSalt(10);
-            const hashed = await bcrypt.hash(req.body.password, salt);
-            userData.password = hashed;
 
             try {
-                if (typeof (req.file) !== 'undefined') {
+                if (req.file) {
                     const fileContent = req.file.buffer;
                     const fieldname = req.file.fieldname;
-                    uploadMedia(fieldname, fileContent, "image/jpeg", (uploadedFile, error) => {
-                        //console.log("File uploaded to ", uploadedFile)
-                        //console.log("Error Uploading ", error)
-                        userData.profile_image = uploadedFile
-                        createUser(userData, async (user, error) => {
-                            if (error) {
-                                res.send({ status: false, message: "Error  " + error.message, data: null, error: error });
-                            }
-                            else {
 
-                                res.send({ status: true, message: "User registered", data: user })
-                            }
-                        })
-                    })
-                    //
-                }
-                else {
-                    createUser(userData, (user, error) => {
-                        if (error) {
-                            res.send({ status: false, message: "Error  " + error.message, data: null, error: error });
-                        }
-                        else {
-                            res.send({ status: true, message: "User registered", data: user })
-                        }
-                    })
-                }
+                    // Upload original image
+                    const fullProfileImageUrl = await uploadMedia(fieldname, fileContent, "image/jpeg", "profiles");
+                    userData.full_profile_image = fullProfileImageUrl;
 
-            }
-            catch (error) {
+                    // Create and upload thumbnail
+                    const thumbnailUrl = await createThumbnailAndUpload(fileContent, fieldname);
+                    userData.profile_image = thumbnailUrl;
+
+                    // Save user to the database
+                    // const newUser = await User.create(userData);
+                    try {
+                        const result = await createUser(userData);
+                        res.send({ status: true, message: "User registered", data: result });
+                    } catch (error) {
+                        res.send({ status: false, message: "Error creating user: " + error.message, data: null });
+                    }
+                    // createUser(userData, async (user, error) => {
+                    //     if (error) {
+                    //         res.send({ status: false, message: "Error  " + error.message, data: null, error: error });
+                    //     }
+                    //     else {
+
+                    //         res.send({ status: true, message: "User registered", data: user })
+                    //     }
+                    // })
+                    // res.send({ status: true, message: "User registered", data: newUser });
+                } else {
+                    // Save user to the database without profile image
+                    try {
+                        const result = await createUser(userData);
+                        res.send({ status: true, message: "User registered", data: result });
+                    } catch (error) {
+                        res.send({ status: false, message: "Error creating user: " + error.message, data: null });
+                    }
+                }
+            } catch (error) {
                 res.send({
-                    message:
-                        err.message || "Some error occurred while creating the user.",
+                    message: error.message || "Some error occurred while creating the user.",
                     status: false,
                     data: null
                 });
             }
         }
     }
-}
-
-
+};
 export const UploadIntroVideo = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
@@ -171,48 +247,33 @@ export const UploadIntroVideo = async (req, res) => {
     })
 }
 
-function createUser(userData, completion) {
-    User.create(userData).then(async data => {
-        //console.log("User created ", data.id)
-        let user = data
-        JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (err, token) => {
-            if (err) {
-                //////console.log("Error signing")
-                completion(null, err)
-                // res.send({ status: false, message: "Error Token " + err, data: null });
-            }
-            else {
-                //////console.log("signed creating user")
-                let u = await UserProfileFullResource(data);
-                // let customer = await createCustomer(data);
-                // //console.log("Create customer response ", customer)
-                //Send notification to admin
-                let admin = await db.user.findOne({
-                    where: {
-                        role: 'admin'
+function createUser(userData) {
+    return new Promise((resolve, reject) => {
+        User.create(userData).then(async data => {
+            let user = data;
+            JWT.sign({ user }, process.env.SecretJwtKey, { expiresIn: '365d' }, async (err, token) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    let u = await UserProfileFullResource(data);
+
+                    // Send notification to admin
+                    let admin = await db.user.findOne({
+                        where: {
+                            role: 'admin'
+                        }
+                    });
+                    if (admin) {
+                        await createNotification(data.id, admin.id, data.id, NotificationType.TypeNewUser);
                     }
-                })
-                if (admin) {
-                    let created = await createNotification(data.id, admin.id, data.id, NotificationType.TypeNewUser);
-                    // sendNotWithUser(admin.id, "New User", `${u.first_name} registered on Soulmatch`, {type: NotificationType.TypeNewUser, data: user})
+
+                    resolve({ user: u, token: token });
                 }
-
-                completion({ user: u, token: token }, null)
-                // res.send({ status: true, message: "User registered", data: { user: u, token: token } })
-
-            }
-        })
-
-
-    }).catch(error => {
-        completion(null, error)
-        // res.send({
-        //     message:
-        //         err.message || "Some error occurred while creating the user.",
-        //     status: false,
-        //     data: null
-        // });
-    })
+            });
+        }).catch(error => {
+            reject(error);
+        });
+    });
 }
 
 
@@ -435,31 +496,7 @@ export const GetUserNotifications = async (req, res) => {
 }
 
 
-function uploadMedia(fieldname, fileContent, mime = "image/jpeg", completion) {
-    const s3 = new S3({
-        accessKeyId: process.env.AccessKeyId,
-        secretAccessKey: process.env.SecretAccessKey,
-        region: process.env.Region
-    })
-    const params = {
-        Bucket: process.env.Bucket,
-        Key: "profiles/" + fieldname + "Profile" + Date.now(),
-        Body: fileContent,
-        ContentDisposition: 'inline',
-        ContentType: mime
-        // ACL: 'public-read',
-    }
-    const result = s3.upload(params, async (err, d) => {
-        if (err) {
-            completion(null, err.message);
-            // return null
-        }
-        else {
-            // user.profile_image = d.Location;
-            completion(d.Location, null);
-        }
-    });
-}
+
 
 export async function UploadUserMedia(req, res) {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -557,25 +594,26 @@ export const UpdateProfile = async (req, res) => {
                 
                 const fileContent = req.file.buffer;
                 const fieldname = req.file.fieldname;
-                uploadMedia(fieldname, fileContent, "image/jpeg", async (uploadedFile, error) => {
-                    //console.log("File uploaded to ", uploadedFile)
-                    //console.log("Error Uploading ", error)
-                    if (user.profile_image !== null && user.profile_image !== '') {
-                        try {
-                            let delVideo = await deleteFileFromS3(user.profile_image)
-                            console.log("Deleted Profile Image  ", delVideo)
-                        }
-                        catch (error) {
-                            console.log("Error deleting existing profile image, ", user.intro_video)
-                        }
+                const fullProfileImageUrl = await uploadMedia(fieldname, fileContent, "image/jpeg");
+                const thumbnailUrl = await createThumbnailAndUpload(fileContent, fieldname);
+                
+                if (user.profile_image !== null && user.profile_image !== '') {
+                    try {
+                        let delVideo = await deleteFileFromS3(user.profile_image)
+                        console.log("Deleted Profile Image  ", delVideo)
                     }
-                    user.profile_image = uploadedFile;
-                    let saved = await user.save();
-                    if (saved) {
-                        let p = await UserProfileFullResource(user)
-                        res.send({ status: true, message: "Profile Image uploaded", data: p })
+                    catch (error) {
+                        console.log("Error deleting existing profile image, ", user.intro_video)
                     }
-                })
+                }
+                // user.profile_image = uploadedFile;
+                user.profile_image = thumbnailUrl;
+                user.full_profile_image = fullProfileImageUrl;
+                let saved = await user.save();
+                if (saved) {
+                    let p = await UserProfileFullResource(user)
+                    res.send({ status: true, message: "Profile Image uploaded", data: p })
+                }
             }
             else {
                 // res.send({ status: false, message: "No file uploaded", data: null })

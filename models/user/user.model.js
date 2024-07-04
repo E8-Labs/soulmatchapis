@@ -14,9 +14,14 @@ const UserModel = (sequelize, Sequelize) => {
         type: Sequelize.STRING
       },
       
-      profile_image: {
+      profile_image: { // we store smaller image for fast loading here
         type: Sequelize.STRING,
         default: ''
+      },
+      full_profile_image: { // we store full size image here
+        type: Sequelize.STRING,
+        default: ''
+        
       },
       intro_video: {
         type: Sequelize.STRING,
