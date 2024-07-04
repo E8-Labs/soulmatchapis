@@ -74,7 +74,7 @@ export const RegisterUser = async (req, res) => {
                 profile_image: '',
                 password: req.body.password,
                 role: UserRole.RoleUser,
-
+                plan_status: 'free',
                 provider_name: 'Email',
                 provider_id: '',
                 device_id: req.body.device_id,
