@@ -257,36 +257,13 @@ export const UploadIntroVideos = async (req, res) => {
                 if (mime.includes("video")) {
                     const fileContent = file.buffer;
                     const fieldname = file.fieldname;
-
-                    await new Promise((resolve, reject) => {
-                        uploadMedia(fieldname, fileContent, mime, "intro_videos", async (uploadedFile, error) => {
-                            if (error) {
-                                //console.log("Error Uploading ", error);
-                                reject(error);
-                            } else {
-                                //console.log("File uploaded to ", uploadedFile);
-                                uploadedFileUrl = uploadedFile;
-                                // uploadedFiles.push(uploadedFile);
-                                resolve();
-                            }
-                        });
-                    });
+                    uploadedFileUrl = await uploadMedia(fieldname, fileContent, mime, "intro_videos");
+                    
 
                     let thumbContent = thumb.buffer;
                     let thumbMime = thumb.mimetype;
-                    await new Promise((resolve, reject) => {
-                        uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "intro_videos", async (uploadedFile, error) => {
-                            if (error) {
-                                //console.log("Error Uploading thumb", error);
-                                reject(error);
-                            } else {
-                                //console.log("Thumbnail uploaded to ", uploadedFile);
-                                thumbUrl = uploadedFile;
-                                // uploadedFiles.push(uploadedFile);
-                                resolve();
-                            }
-                        });
-                    });
+                    thumbUrl = await uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "intro_videos");
+                    
 
 
                 } else {

@@ -12,6 +12,7 @@ import sharp from 'sharp';
 
 
 
+
 // Promisify fs functions for easier async/await usage
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
