@@ -319,37 +319,13 @@ export async function UploadUserMedia(req, res) {
                         const fileContent = file.buffer;
                         const fieldname = file.fieldname;
 
-                        // await new Promise((resolve, reject) => {
-                        //     uploadMedia(fieldname, fileContent, mime, "media", async (uploadedFile, error) => {
-                        //         if (error) {
-                        //             //console.log("Error Uploading ", error);
-                        //             reject(error);
-                        //         } else {
-                        //             //console.log("File uploaded to ", uploadedFile);
-                        //             uploadedFileUrl = uploadedFile;
-                        //             // uploadedFiles.push(uploadedFile);
-                        //             resolve();
-                        //         }
-                        //     });
-                        // });
+                        
                         uploadedFileUrl = await uploadMedia(fieldname, fileContent, mime, "media");
 
                         let thumbContent = thumb.buffer;
                         let thumbMime = thumb.mimetype;
                         thumbUrl = await uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "media");
-                        //await new Promise((resolve, reject) => {
-                        //     uploadMedia("thumb" + fieldname, thumbContent, thumbMime, "media", async (uploadedFile, error) => {
-                        //         if (error) {
-                        //             //console.log("Error Uploading thumb", error);
-                        //             reject(error);
-                        //         } else {
-                        //             //console.log("Thumbnail uploaded to ", uploadedFile);
-                        //             thumbUrl = uploadedFile;
-                        //             // uploadedFiles.push(uploadedFile);
-                        //             resolve();
-                        //         }
-                        //     });
-                        // });
+                        
                         let type = mime.includes("video") ? "video" : "image"
                         let created = await db.userMedia.create({
                             UserId: user.id,
@@ -483,29 +459,24 @@ export const AnswerQuestion = async (req, res) => {
                 let answerImage = null, answerVideo = null, videoThumbnail = null;
 
                 if (files.media) {
-                    await new Promise((resolve, reject) => {
-                        uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, "questions", (uploadedUrl, error) => {
-                            if (error) {
-                                reject(new Error("Failed to upload media"));
-                            } else {
-                                files.media[0].mimetype.includes("video") ? answerVideo = uploadedUrl : answerImage = uploadedUrl;
-                                resolve();
-                            }
-                        });
-                    });
+                    const uploadedFile = await uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, "questions");
+                    files.media[0].mimetype.includes("video") ? answerVideo = uploadedFile : answerImage = uploadedFile;
+                    // await new Promise((resolve, reject) => {
+                    //     uploadMedia(files.media[0].fieldname, files.media[0].buffer, files.media[0].mimetype, "questions", (uploadedUrl, error) => {
+                    //         if (error) {
+                    //             reject(new Error("Failed to upload media"));
+                    //         } else {
+                    //             files.media[0].mimetype.includes("video") ? answerVideo = uploadedUrl : answerImage = uploadedUrl;
+                    //             resolve();
+                    //         }
+                    //     });
+                    // });
                 }
 
                 if (files.media && files.media[0].mimetype.includes("video") && files.thumbnail) {
-                    await new Promise((resolve, reject) => {
-                        uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, "questions", (uploadedUrl, error) => {
-                            if (error) {
-                                reject(new Error("Failed to upload thumbnail"));
-                            } else {
-                                videoThumbnail = uploadedUrl;
-                                resolve();
-                            }
-                        });
-                    });
+                    const uploadedFile = await uploadMedia(files.thumbnail[0].fieldname, files.thumbnail[0].buffer, files.thumbnail[0].mimetype, "questions");
+                    videoThumbnail = uploadedFile;
+                    
                 }
 
                 //check already added same question
