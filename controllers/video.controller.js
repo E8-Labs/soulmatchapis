@@ -440,6 +440,7 @@ export const AnswerQuestion = async (req, res) => {
             }
         )
         if (answers.length >= 3 && !answer) {
+            console.log("Can not add more than 3 questions", answer)
             return res.status(200).json({
                 status: false,
                 message: "Can not add more than 3 questions"
