@@ -1709,3 +1709,51 @@ export const CheckEmailExists = async (req, res) => {
         res.send({ status: true, data: null, message: "Email available" })
     }
 }
+
+
+export const processUsers = async () => {
+    try {
+        // Fetch users where profile_image is set and full_profile_image is not
+        const users = await db.user.findAll({
+            where: {
+                profile_image: {
+                    [Sequelize.Op.ne]: null
+                },
+                full_profile_image: null,
+                id: {
+                    [Sequelize.Op.gt]: 11
+                }
+            }
+        });
+        console.log("Total Users ", users.length)
+        let index = 0
+        for (const user of users) {
+            try {
+                console.log(`Processing user ${user.id} at index `, index)
+                
+                // Download the image from profile_image URL
+                const response = await axios.get(user.profile_image, { responseType: 'arraybuffer' });
+                const fileContent = Buffer.from(response.data, 'binary');
+
+                // Upload the original image to full_profile_image
+                // const fullProfileImageUrl = await uploadMedia(`full_${user.id}`, fileContent, "image/jpeg");
+                user.full_profile_image = user.profile_image;
+
+                // Create and upload the thumbnail
+                const thumbnailUrl = await createThumbnailAndUpload(fileContent, `thumbnail_${user.id}`, "profiles");
+                user.profile_image = thumbnailUrl;
+
+                // Save the updated user record
+                await user.save();
+                console.log(`Processed user ${user.id} at index ${index}`);
+            } catch (error) {
+                console.error(`Error processing user ${user.id}:`, error);
+            }
+            index += 1
+        }
+
+        console.log('Processing complete');
+    } catch (error) {
+        console.error('Error fetching users:', error);
+    }
+};

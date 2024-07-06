@@ -8,7 +8,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
     SendEmailVerificationCode, VerifyEmailCode, CheckEmailExists, AllQuestions, AddQuestion,
     UploadIntroVideo, UploadUserMedia, getUserNotifications, ChangenUserPassword, 
     DeleteAllLikesAndMatches, UpdateProfileHeights, 
-    SendEmailFeedback, ReportUser, blockUser, DeleteAnswer, sendTestNot} from "../controllers/user.controller.js";
+    SendEmailFeedback, ReportUser, blockUser, DeleteAnswer, sendTestNot, processUsers} from "../controllers/user.controller.js";
 
     import {UploadIntroVideoInVideoController, UploadIntroVideos} from '../controllers/video.controller.js'
 
@@ -18,6 +18,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
 userRouter.post("/register", RegisterUser);
 userRouter.post("/login", LoginUser);
 userRouter.post("/social_login", SocialLogin);
+userRouter.post("/create_thumbs", processUsers);
 userRouter.get("/get_profile", verifyJwtToken, GetUserProfile);
 
 userRouter.post("/sendTestNot", sendTestNot);
