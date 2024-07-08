@@ -165,8 +165,19 @@ export const UpdateDatePlace = async (req, res) => {
             datePlace.categoryId = categoryId || datePlace.categoryId;
             let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
             datePlace.Category = {name: Cat.name, id: Cat.id};
+            console.log("Parsing min budget ", minBudget)
+            console.log("Already min budget ", datePlace.minBudget)
+
+            console.log("Parsing max budget ", maxBudget)
+            console.log("Already max budget ", datePlace.maxBudget)
             datePlace.minBudget = parseInt(minBudget) || datePlace.minBudget;
             datePlace.maxBudget = parseInt(maxBudget) || datePlace.maxBudget;
+
+            console.log("Parsed min budget ", datePlace.minBudget)
+            // console.log("before min budget ", datePlace.minBudget)
+
+            console.log("Parsed max budget ", datePlace.maxBudget)
+            // console.log("Before max budget ", datePlace.maxBudget)
             datePlace.openTime = openTime || datePlace.openTime;
             datePlace.closeTime = closeTime || datePlace.closeTime;
             datePlace.address = address || datePlace.address;
@@ -191,7 +202,8 @@ export const UpdateDatePlace = async (req, res) => {
                     latitude : latitude || datePlace.latitude,
                     longitude : longitude || datePlace.longitude,
                     description : description || datePlace.description,
-                    Category: {name: Cat.name, id: Cat.id}
+                    Category: {name: Cat.name, id: Cat.id},
+                    imageUrl: datePlace.imageUrl
                 }
 
             res.send({ status: true, message: 'Date place updated successfully.', data: backData });
