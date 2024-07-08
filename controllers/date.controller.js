@@ -170,8 +170,8 @@ export const UpdateDatePlace = async (req, res) => {
 
             console.log("Parsing max budget ", maxBudget)
             console.log("Already max budget ", datePlace.maxBudget)
-            datePlace.minBudget = parseInt(minBudget) || datePlace.minBudget;
-            datePlace.maxBudget = parseInt(maxBudget) || datePlace.maxBudget;
+            datePlace.minBudget = parseInt(minBudget);
+            datePlace.maxBudget = parseInt(maxBudget);
 
             console.log("Parsed min budget ", datePlace.minBudget)
             // console.log("before min budget ", datePlace.minBudget)
@@ -194,8 +194,8 @@ export const UpdateDatePlace = async (req, res) => {
                     city: city || datePlace.city,
                     state: state || datePlace.state,
                     categoryId: categoryId || datePlace.categoryId,
-                    minBudget : parseInt(minBudget) || datePlace.minBudget,
-                    maxBudget : parseInt(maxBudget) || datePlace.maxBudget,
+                    minBudget : parseInt(minBudget),
+                    maxBudget : parseInt(maxBudget),
                     openTime : openTime || datePlace.openTime,
                     closeTime : closeTime || datePlace.closeTime,
                     address : address || datePlace.address,
@@ -205,6 +205,7 @@ export const UpdateDatePlace = async (req, res) => {
                     Category: {name: Cat.name, id: Cat.id},
                     imageUrl: datePlace.imageUrl
                 }
+                console.log("Back data is ")
 
             res.send({ status: true, message: 'Date place updated successfully.', data: backData });
         } catch (err) {
