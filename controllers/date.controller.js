@@ -131,7 +131,8 @@ export const UpdateDatePlace = async (req, res) => {
 
             // const {  } = req.params;
             const { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state } = req.body;
-
+            const data = { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state }
+            console.log("Data is ", data)
             // Find the date place by ID
             const datePlace = await db.DatePlace.findByPk(id);
 
