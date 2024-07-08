@@ -153,6 +153,9 @@ export const UpdateDatePlace = async (req, res) => {
                 const data = await s3.upload(params).promise();
                 datePlace.imageUrl = data.Location;
             }
+            else{
+                datePlace.imageUrl = datePlace.imageUrl;
+            }
 
             // Update the date place details
             datePlace.name = name || datePlace.name;
