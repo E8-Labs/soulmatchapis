@@ -159,7 +159,7 @@ export const SendMessage = async (req, res) => {
             // const { chatId } = req.params;
             const { chatId, content } = req.body;
             let chat = await db.Chat.findByPk(chatId)
-            let chatRes = await new ChatResource(chat, authData.user)
+            let chatRes = await ChatResource(chat, authData.user)
             try {
                 let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: content, message_type: "text" });
                 let chatUsers = await db.ChatUser.findAll({
