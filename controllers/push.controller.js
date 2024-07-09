@@ -37,10 +37,10 @@ export const sendNotWithUser = async(to, title, body, data, additionalData = nul
             sound: 'default',
             title: title,//'Test Notification',
             body: body,//'This is a test notification message',
-            data: data,//{ message: 'This is a test notification message' },
-            additional: additionalData
+            data: {notification: data, additional: additionalData},//{ message: 'This is a test notification message' },
+            // additional: additionalData
         };
-        console.log("Data  is ", JSON.stringify(data))
+        // console.log("Data  is ", JSON.stringify(data))
         
         try {
             // Send the notification
