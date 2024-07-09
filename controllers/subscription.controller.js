@@ -97,13 +97,17 @@ console.log("Notficatiion rev cat ", notification)
         // if (notification.version && notification.version === "2.0") {
             // v2 notification
             // const signedTransactionInfo = notification.data.signedTransactionInfo;
-            const transactionInfo = await verifyAppleSignedData(notification.signedPayload);
+            const data = await verifyAppleSignedData(notification.signedPayload);
+            
+            const transactionInfo = await verifyAppleSignedData(data.signedTransactionInfo);
+            const renewalInfo = await verifyAppleSignedData(data.signedRenewalInfo);
             console.log("Transaction info ", transactionInfo)
-            originalTransactionId = transactionInfo.originalTransactionId;
-            productId = transactionInfo.productId;
-            purchaseDate = transactionInfo.purchaseDate;
-            expiresDate = transactionInfo.expiresDate;
-            notificationType = notification.notificationType;
+            console.log("Renewal info ", renewalInfo)
+            // originalTransactionId = transactionInfo.originalTransactionId;
+            // productId = transactionInfo.productId;
+            // purchaseDate = transactionInfo.purchaseDate;
+            // expiresDate = transactionInfo.expiresDate;
+            // notificationType = notification.notificationType;
         // } else {
         //     // v1 notification
         //     originalTransactionId = notification.latest_receipt_info.original_transaction_id;
