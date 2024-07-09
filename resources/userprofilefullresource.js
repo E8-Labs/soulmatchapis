@@ -1,6 +1,7 @@
 import db from "../models/index.js";
 
 import moment from "moment-timezone";
+import { getSubscriptionDetails } from "../services/subscriptionService.js";
 // import LoanStatus from "../../models/loanstatus.js";
 // import PlaidTokenTypes from "../../models/plaidtokentypes.js";
 // import UserLoanFullResource from "../loan/loan.resource.js";
@@ -156,6 +157,11 @@ async function getUserData(user, currentUser = null) {
         }
     }
 
+
+
+
+    const subscriptionDetails = await getSubscriptionDetails(user.id);
+
     const UserFullResource = {
         id: user.id,
         name: user.firstname,
@@ -193,6 +199,7 @@ async function getUserData(user, currentUser = null) {
         blockedMe: blockedMe,
         blockedByMe: blockedByMe,
         status: user.status,
+        subscription: subscriptionDetails
     }
 
 

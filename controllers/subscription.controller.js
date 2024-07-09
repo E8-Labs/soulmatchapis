@@ -11,6 +11,7 @@ import nodemailer from 'nodemailer'
 import NotificationType from '../models/user/notificationtype.js'
 import { createThumbnailAndUpload, uploadMedia, deleteFileFromS3 } from '../utilities/storage.js'
 import crypto from 'crypto'
+import { verifyAppleSignedData } from "../services/subscriptionService.js";
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
 // var Jimp = require("jimp");
@@ -76,6 +77,8 @@ export const StoreReceipt = async (req, res) => {
 // const router = express.Router();
 // const { User, Subscription, SubscriptionHistory } = require('../models');
 
+
+//Sandbox mode
 export const AppleSubscriptionWebhook = async (req, res) => {
     const notification = req.body;
 
@@ -83,78 +86,86 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         return res.status(400).send('No notification body');
     }
 
-    const { latest_receipt_info, notification_type } = notification;
-    const originalTransactionId = latest_receipt_info.original_transaction_id;
-    const productId = latest_receipt_info.product_id;
-    const purchaseDate = new Date(latest_receipt_info.purchase_date);
-    const expiryDate = new Date(latest_receipt_info.expires_date);
+    try {
+        let originalTransactionId;
+        let productId;
+        let purchaseDate;
+        let expiresDate;
+        let notificationType;
 
-    // Find the user by the original transaction ID
-    let user = await db.user.findOne({ where: { originalTransactionId } });
+        // Determine if notification is v1 or v2
+        if (notification.version && notification.version === "2.0") {
+            // v2 notification
+            const signedTransactionInfo = notification.data.signedTransactionInfo;
+            const transactionInfo = await verifyAppleSignedData(signedTransactionInfo);
+            originalTransactionId = transactionInfo.originalTransactionId;
+            productId = transactionInfo.productId;
+            purchaseDate = transactionInfo.purchaseDate;
+            expiresDate = transactionInfo.expiresDate;
+            notificationType = notification.notificationType;
+        } else {
+            // v1 notification
+            originalTransactionId = notification.latest_receipt_info.original_transaction_id;
+            productId = notification.latest_receipt_info.product_id;
+            purchaseDate = notification.latest_receipt_info.purchase_date;
+            expiresDate = notification.latest_receipt_info.expires_date;
+            notificationType = notification.notification_type;
+        }
 
-    if (!user) {
-        return res.status(404).send('User not found');
-    }
+        const user = await User.findOne({ where: { originalTransactionId } });
 
-    let subscription = await db.Subscription.findOne({ where: { userId: user.id, plan: productId } });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
 
-    switch (notification_type) {
-        case 'INITIAL_BUY':
-            if (!subscription) {
-                subscription = await db.Subscription.create({
-                    userId: user.id,
-                    plan: productId,
-                    status: 'active',
-                    startDate: purchaseDate,
-                    endDate: expiryDate,
-                });
-            } else {
-                subscription.status = 'active';
-                subscription.plan = productId;
-                subscription.startDate = purchaseDate;
-                subscription.endDate = expiryDate;
-                await subscription.save();
-            }
-            await db.SubscriptionHistory.create({
-                subscriptionId: subscription.id,
-                status: 'active',
-                changeDate: new Date(),
-            });
-            user.subscriptionStatus = 'active';
-            break;
+        let subscription = await Subscription.findOne({ where: { userId: user.id, plan: productId } });
 
-        case 'DID_RENEW':
-            if (subscription) {
-                subscription.status = 'renewed';
-                subscription.endDate = expiryDate;
-                await subscription.save();
-                await db.SubscriptionHistory.create({
+        switch (notificationType) {
+            case 'INITIAL_BUY':
+            case 'DID_RENEW':
+                if (!subscription) {
+                    subscription = await Subscription.create({
+                        userId: user.id,
+                        plan: productId,
+                        status: 'active',
+                        startDate: new Date(purchaseDate),
+                        endDate: new Date(expiresDate),
+                    });
+                } else {
+                    subscription.status = 'renewed';
+                    subscription.endDate = new Date(expiresDate);
+                    await subscription.save();
+                }
+                await SubscriptionHistory.create({
                     subscriptionId: subscription.id,
                     status: 'renewed',
                     changeDate: new Date(),
                 });
                 user.subscriptionStatus = 'renewed';
-            }
-            break;
+                break;
 
-        case 'CANCEL':
-            if (subscription) {
-                subscription.status = 'canceled';
-                await subscription.save();
-                await db.SubscriptionHistory.create({
-                    subscriptionId: subscription.id,
-                    status: 'canceled',
-                    changeDate: new Date(),
-                });
-                user.subscriptionStatus = 'canceled';
-            }
-            break;
+            case 'CANCEL':
+                if (subscription) {
+                    subscription.status = 'canceled';
+                    await subscription.save();
+                    await SubscriptionHistory.create({
+                        subscriptionId: subscription.id,
+                        status: 'canceled',
+                        changeDate: new Date(),
+                    });
+                    user.subscriptionStatus = 'canceled';
+                }
+                break;
 
-        // Add more cases as needed
+            // Add more cases as needed
+        }
+
+        await user.save();
+        res.status(200).send('Notification received');
+    } catch (error) {
+        console.error('Failed to process notification:', error);
+        res.status(500).send('Failed to process notification');
     }
-
-    await user.save();
-    res.status(200).send('Notification received');
 }
 
 

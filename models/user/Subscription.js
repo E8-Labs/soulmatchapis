@@ -4,7 +4,7 @@ const Subscription = (sequelize, Sequelize) => {
     const Subscription = sequelize.define("Subscription", {
         userId: {
             type: Sequelize.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
               model: 'Users',
               key: 'id'
