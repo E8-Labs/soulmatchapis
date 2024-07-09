@@ -130,6 +130,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         switch (notificationType) {
             case 'INITIAL_BUY':
             case 'DID_RENEW':
+                case 'SUBSCRIBED':
                 if (!subscription) {
                     subscription = await db.Subscription.create({
                         userId: user.id,
@@ -167,7 +168,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
             // Add more cases as needed
         }
 
-        await user.save();
+        // await user.save();
         res.status(200).send('Notification received');
     } catch (error) {
         console.error('Failed to process notification:', error);
