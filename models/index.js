@@ -10,6 +10,9 @@ import chatUserModel from './chat/chatUser.model.js';
 import messageModel from './chat/message.model.js';
 import ReportedUsersModel from "./user/ReportedUsers.js";
 import BlockedUsersModel from './user/BlockedUsers.js'; // Add the new model
+import Subscription from "./user/Subscription.js";
+import SubscriptionHistory from "./user/SubscriptionHistory.js";
+
 
 
 import  Sequelize from "sequelize";
@@ -50,6 +53,9 @@ import NotificationModel from './user/notification.model.js';
 
 
 db.user = UserModel(sequelize, Sequelize);
+
+db.Subscription = Subscription(sequelize, Sequelize);
+db.SubscriptionHistory = SubscriptionHistory(sequelize, Sequelize);
 
 
 //chat

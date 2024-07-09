@@ -1030,7 +1030,8 @@ export const LikeProfile = (req, res) => {
             const fromUserId = authData.user.id; // User making the request
             const toUserId = req.body.user_id; // User being liked
             const status = req.body.status; // Should be 'liked' or 'rejected'
-
+            let fromUserData = await db.user.findByPk(authData.user.id)
+            let fromUser = await UserProfileFullResource(fromUserData)
             // Validate the provided status
             if (!['liked', 'rejected'].includes(status)) {
                 return res.send({ status: false, message: "Invalid status provided", data: null });
@@ -1073,8 +1074,8 @@ export const LikeProfile = (req, res) => {
                         matchCreated = matchCreatedFlag; // Set true if a new match entry was created
 
                         // Create match notification for both users
-                        await createNotification(fromUserId, toUserId, matchEntry.id, NotificationType.TypeMatch, 'You have a new match!');
-                        await createNotification(toUserId, fromUserId, matchEntry.id, NotificationType.TypeMatch, 'You have a new match!');
+                        await createNotification(fromUserId, toUserId, matchEntry.id, NotificationType.TypeMatch, 'You have a new match!', fromUser);
+                        await createNotification(toUserId, fromUserId, matchEntry.id, NotificationType.TypeMatch, 'You have a new match!', fromUser);
                     }
                 }
 

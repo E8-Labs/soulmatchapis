@@ -105,6 +105,11 @@ const UserModel = (sequelize, Sequelize) => {
         values: ['user', 'admin'],
         default: 'user'
       },
+      originalTransactionId:{
+        type: Sequelize.STRING,
+        allowNull: true,
+        default: null
+      },
       status: {
         type: Sequelize.ENUM,
         values: ['active', 'suspended', 'deleted'],
