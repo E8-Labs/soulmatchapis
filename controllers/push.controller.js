@@ -39,6 +39,7 @@ export const sendNotWithUser = async(to, title, body, data) => {
             body: body,//'This is a test notification message',
             data: data,//{ message: 'This is a test notification message' },
         };
+        console.log("Data  is ", JSON.stringify(data))
     
         try {
             // Send the notification
