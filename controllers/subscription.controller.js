@@ -175,51 +175,47 @@ export const AppleSubscriptionWebhook = async (req, res) => {
 
 async function verifyReceipt(receipt, useSandbox = false) {
     const url = useSandbox ? APPLE_SANDBOX_RECEIPT_URL : APPLE_RECEIPT_URL;
-    console.log("Url is ", url)
     const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            'receipt-data': receipt,
-            'password': APPLE_SHARED_SECRET,
-        }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        'receipt-data': receipt,
+        'password': APPLE_SHARED_SECRET,
+      }),
     });
-    console.log("Receipt response ", response)
-    const result = await response.json();
-    console.log("Json is ")
-    console.log(result)
+  
     if (!response.ok) {
-        throw new Error('Failed to verify receipt');
+      throw new Error('Failed to verify receipt');
     }
-
+  
     const data = await response.json();
     return data;
-}
+  }
 
-async function extractOriginalTransactionIdFromAppleReceipt(receipt, useSandbox = false) {
+  async function extractOriginalTransactionIdFromAppleReceipt(receipt, useSandbox = false) {
     try {
-        const response = await verifyReceipt(receipt, useSandbox);
-
-        if (response.status !== 0) {
-            throw new Error('Receipt verification failed');
-        }
-
-        const latestReceiptInfo = response.latest_receipt_info || response.receipt.in_app;
-
-        if (!latestReceiptInfo || latestReceiptInfo.length === 0) {
-            throw new Error('No in-app purchase found in the receipt');
-        }
-
-        // Assuming we need the original transaction ID of the latest transaction
-        const originalTransactionId = latestReceiptInfo[0].original_transaction_id;
-
-        return originalTransactionId;
+      const response = await verifyReceipt(receipt, useSandbox);
+  
+      if (response.status !== 0) {
+        throw new Error('Receipt verification failed');
+      }
+  
+      const latestReceiptInfo = response.latest_receipt_info || response.receipt.in_app;
+  
+      if (!latestReceiptInfo || latestReceiptInfo.length === 0) {
+        throw new Error('No in-app purchase found in the receipt');
+      }
+  
+      // Assuming we need the original transaction ID of the latest transaction
+      const originalTransactionId = latestReceiptInfo[0].original_transaction_id;
+  
+      return originalTransactionId;
     } catch (error) {
-        console.error('Failed to extract original transaction ID:', error);
-        throw error;
+      console.error('Failed to extract original transaction ID:', error);
+      throw error;
     }
-}
+  }
 
 // module.exports = extractOriginalTransactionIdFromAppleReceipt;
