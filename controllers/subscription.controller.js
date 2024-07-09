@@ -94,23 +94,24 @@ console.log("Notficatiion rev cat ", notification)
         let notificationType;
 
         // Determine if notification is v1 or v2
-        if (notification.version && notification.version === "2.0") {
+        // if (notification.version && notification.version === "2.0") {
             // v2 notification
-            const signedTransactionInfo = notification.data.signedTransactionInfo;
-            const transactionInfo = await verifyAppleSignedData(signedTransactionInfo);
+            // const signedTransactionInfo = notification.data.signedTransactionInfo;
+            const transactionInfo = await verifyAppleSignedData(notification.signedPayload);
+            console.log("Transaction info ", transactionInfo)
             originalTransactionId = transactionInfo.originalTransactionId;
             productId = transactionInfo.productId;
             purchaseDate = transactionInfo.purchaseDate;
             expiresDate = transactionInfo.expiresDate;
             notificationType = notification.notificationType;
-        } else {
-            // v1 notification
-            originalTransactionId = notification.latest_receipt_info.original_transaction_id;
-            productId = notification.latest_receipt_info.product_id;
-            purchaseDate = notification.latest_receipt_info.purchase_date;
-            expiresDate = notification.latest_receipt_info.expires_date;
-            notificationType = notification.notification_type;
-        }
+        // } else {
+        //     // v1 notification
+        //     originalTransactionId = notification.latest_receipt_info.original_transaction_id;
+        //     productId = notification.latest_receipt_info.product_id;
+        //     purchaseDate = notification.latest_receipt_info.purchase_date;
+        //     expiresDate = notification.latest_receipt_info.expires_date;
+        //     notificationType = notification.notification_type;
+        // }
 
         const user = await User.findOne({ where: { originalTransactionId } });
 
