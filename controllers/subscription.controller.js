@@ -186,12 +186,13 @@ async function verifyReceipt(receipt, useSandbox = false) {
       }),
     });
   console.log("Response from receipt verification ")
-  console.log(response)
+  const data = await response.json();
+  console.log(data)
     if (!response.ok) {
       throw new Error('Failed to verify receipt');
     }
   
-    const data = await response.json();
+    
     return data;
   }
 
