@@ -58,7 +58,7 @@ export const createNotification = async (from, to, itemId, notification_type, me
             message: message
         });
         let sent = sendNotWithUser(to, getTitleForNotification(notification_type), getSubtitleForNotification(notification_type, fromUser), 
-            {type: notification_type, data: {item: itemId, from: from, to: to}})
+            {type: notification_type, data: notification})
         return { status: true, message: 'Notification created successfully.', data: notification }
         // res.send({ status: true, message: 'Notification created successfully.', data: notification });
     } catch (err) {
