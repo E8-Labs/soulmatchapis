@@ -81,7 +81,7 @@ export const StoreReceipt = async (req, res) => {
 //Sandbox mode
 export const AppleSubscriptionWebhook = async (req, res) => {
     const notification = req.body;
-console.log("Notficatiion rev cat ", notification)
+// console.log("Notficatiion rev cat ", notification)
     if (!notification) {
         return res.status(400).send('No notification body');
     }
@@ -99,10 +99,10 @@ console.log("Notficatiion rev cat ", notification)
             // const signedTransactionInfo = notification.data.signedTransactionInfo;
             const data = await verifyAppleSignedData(notification.signedPayload);
             
-            const transactionInfo = await verifyAppleSignedData(data.signedTransactionInfo);
-            const renewalInfo = await verifyAppleSignedData(data.signedRenewalInfo);
-            console.log("Transaction info ", transactionInfo)
-            console.log("Renewal info ", renewalInfo)
+            // const transactionInfo = await verifyAppleSignedData(data.signedTransactionInfo);
+            // const renewalInfo = await verifyAppleSignedData(data.signedRenewalInfo);
+            // console.log("Transaction info ", transactionInfo)
+            // console.log("Renewal info ", renewalInfo)
             // originalTransactionId = transactionInfo.originalTransactionId;
             // productId = transactionInfo.productId;
             // purchaseDate = transactionInfo.purchaseDate;

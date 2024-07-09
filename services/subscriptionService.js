@@ -52,7 +52,7 @@ export async function verifyAppleSignedData(signedData) {
   if (!decoded) {
     throw new Error('Failed to decode signed data');
   }
-
+console.log(decoded)
   // Here, you should verify the JWT signature using Apple's public keys
   // For simplicity, this example does not include actual verification logic
   
