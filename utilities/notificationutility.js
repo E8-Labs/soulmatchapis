@@ -57,7 +57,7 @@ export const createNotification = async (from, to, itemId, notification_type, me
             is_read: false,
             message: message
         });
-        let sent = sendNotWithUser(to, getTitleForNotification(notification_type), getSubtitleForNotification(notification_type, fromUser), 
+        let sent = await sendNotWithUser(to, getTitleForNotification(notification_type), getSubtitleForNotification(notification_type, fromUser), 
             {type: notification_type, data: notification})
             
             console.log("Sent not to admin ", sent)
