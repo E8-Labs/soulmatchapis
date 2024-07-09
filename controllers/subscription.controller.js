@@ -108,6 +108,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
             purchaseDate = transactionInfo.purchaseDate;
             expiresDate = transactionInfo.expiresDate;
             notificationType = data.notificationType;
+            console.log("Not Type ", notificationType)
         // } else {
         //     // v1 notification
         //     originalTransactionId = notification.latest_receipt_info.original_transaction_id;
@@ -120,10 +121,11 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         const user = await User.findOne({ where: { originalTransactionId } });
 
         if (!user) {
-            return res.status(404).send('User not found');
+            // return res.status(404).send('User not found');
+            console.log("User not found")
         }
 
-        let subscription = await db.Subscription.findOne({ where: { userId: user.id, plan: productId } });
+        let subscription = await db.Subscription.findOne({ where: { original_transaction_id: originalTransactionId, plan: productId } });
 
         switch (notificationType) {
             case 'INITIAL_BUY':
