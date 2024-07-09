@@ -103,11 +103,11 @@ export const AppleSubscriptionWebhook = async (req, res) => {
             const renewalInfo = await verifyAppleSignedData(data.data.signedRenewalInfo);
             console.log("Transaction info ", transactionInfo)
             console.log("Renewal info ", renewalInfo)
-            // originalTransactionId = transactionInfo.originalTransactionId;
-            // productId = transactionInfo.productId;
-            // purchaseDate = transactionInfo.purchaseDate;
-            // expiresDate = transactionInfo.expiresDate;
-            // notificationType = notification.notificationType;
+            originalTransactionId = transactionInfo.originalTransactionId;
+            productId = transactionInfo.productId;
+            purchaseDate = transactionInfo.purchaseDate;
+            expiresDate = transactionInfo.expiresDate;
+            notificationType = data.notificationType;
         // } else {
         //     // v1 notification
         //     originalTransactionId = notification.latest_receipt_info.original_transaction_id;
@@ -123,13 +123,13 @@ export const AppleSubscriptionWebhook = async (req, res) => {
             return res.status(404).send('User not found');
         }
 
-        let subscription = await Subscription.findOne({ where: { userId: user.id, plan: productId } });
+        let subscription = await db.Subscription.findOne({ where: { userId: user.id, plan: productId } });
 
         switch (notificationType) {
             case 'INITIAL_BUY':
             case 'DID_RENEW':
                 if (!subscription) {
-                    subscription = await Subscription.create({
+                    subscription = await db.Subscription.create({
                         userId: user.id,
                         plan: productId,
                         status: 'active',
@@ -141,7 +141,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                     subscription.endDate = new Date(expiresDate);
                     await subscription.save();
                 }
-                await SubscriptionHistory.create({
+                await db.SubscriptionHistory.create({
                     subscriptionId: subscription.id,
                     status: 'renewed',
                     changeDate: new Date(),
@@ -153,7 +153,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                 if (subscription) {
                     subscription.status = 'canceled';
                     await subscription.save();
-                    await SubscriptionHistory.create({
+                    await db.SubscriptionHistory.create({
                         subscriptionId: subscription.id,
                         status: 'canceled',
                         changeDate: new Date(),
