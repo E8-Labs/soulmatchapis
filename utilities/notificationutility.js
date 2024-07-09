@@ -59,6 +59,8 @@ export const createNotification = async (from, to, itemId, notification_type, me
         });
         let sent = sendNotWithUser(to, getTitleForNotification(notification_type), getSubtitleForNotification(notification_type, fromUser), 
             {type: notification_type, data: notification})
+            
+            console.log("Sent not to admin ", sent)
         return { status: true, message: 'Notification created successfully.', data: notification }
         // res.send({ status: true, message: 'Notification created successfully.', data: notification });
     } catch (err) {

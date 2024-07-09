@@ -30,6 +30,7 @@ export const sendNot = async(to, title, body, data) => {
 export const sendNotWithUser = async(to, title, body, data) => {
     let expo = new Expo();
     let user = await db.user.findByPk(to)
+    console.log("Sending not to admin token ", user.fcm_token)
     if(user && user.fcm_token){
         const message = {
             to: user.fcm_token,//"ExponentPushToken[_pZ2Y6LPv7S9gKi2lJwzif]",
@@ -51,6 +52,7 @@ export const sendNotWithUser = async(to, title, body, data) => {
         }
     }
     else{
+        console.log("No user or token", user)
         return { status: false, message: 'Failed to send notification', error: "No such user " + to }
     }
 }

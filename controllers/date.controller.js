@@ -372,7 +372,9 @@ export const addBooking = (req, res) => {
                 where:{role: 'admin'}
             })
             if(admin){
+                 console.log("Sending not to admin")
                 let createdAdminNot = await createNotification(userId, admin.id, booking.id, NotificationType.TypeDateInviteToAdmin);
+                console.log("Not to admin ", createNotification)
             }
             
             res.send({ status: true, message: 'Booking added successfully.', data: dbBooking });
