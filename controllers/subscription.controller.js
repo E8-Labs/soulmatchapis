@@ -175,6 +175,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
 
 async function verifyReceipt(receipt, useSandbox = false) {
     const url = useSandbox ? APPLE_SANDBOX_RECEIPT_URL : APPLE_RECEIPT_URL;
+    console.log("Url is ", url)
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -185,7 +186,10 @@ async function verifyReceipt(receipt, useSandbox = false) {
             'password': APPLE_SHARED_SECRET,
         }),
     });
-
+    console.log("Receipt response ", response)
+    const result = await response.json();
+    console.log("Json is ")
+    console.log(result)
     if (!response.ok) {
         throw new Error('Failed to verify receipt');
     }
