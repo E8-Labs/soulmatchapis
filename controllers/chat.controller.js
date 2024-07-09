@@ -188,7 +188,7 @@ export const SendMessage = async (req, res) => {
                         try {
                             if(element.userId !== authData.user.id){
                                 //Don't send the notification to self
-                                let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage, chatRes);
+                                let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage, "new Message", chatRes);
                             }
                             
                         }
@@ -298,7 +298,7 @@ export const SendMediaMessage = async (req, res) => {
                     chatUsers.forEach(async element => {
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
                         try {
-                            await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage, chatRes);
+                            await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage, "new Message", chatRes);
                         } catch (error) {
                             console.log("Notification send message error ", error);
                         }
