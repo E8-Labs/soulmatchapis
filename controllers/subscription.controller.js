@@ -150,7 +150,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                     status: 'renewed',
                     changeDate: new Date(),
                 });
-                user.subscriptionStatus = 'renewed';
+                // user.subscriptionStatus = 'renewed';
                 break;
 
             case 'CANCEL':
@@ -162,7 +162,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         status: 'canceled',
                         changeDate: new Date(),
                     });
-                    user.subscriptionStatus = 'canceled';
+                    // user.subscriptionStatus = 'canceled';
                 }
                 break;
 
