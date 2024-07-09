@@ -45,7 +45,7 @@ function getSubtitleForNotification(type, from){
 }
 
 
-export const createNotification = async (from, to, itemId, notification_type, message) => {
+export const createNotification = async (from, to, itemId, notification_type, message, additionalData = null) => {
     // const { UserId, actionType, itemId, message } = req.body;
     let fromUser = await db.user.findByPk(from)
     try {
@@ -58,7 +58,7 @@ export const createNotification = async (from, to, itemId, notification_type, me
             message: message
         });
         let sent = await sendNotWithUser(to, getTitleForNotification(notification_type), getSubtitleForNotification(notification_type, fromUser), 
-            {type: notification_type, data: notification})
+            {type: notification_type, data: notification}, additionalData)
             
             console.log("Sent not to admin ", sent)
         return { status: true, message: 'Notification created successfully.', data: notification }

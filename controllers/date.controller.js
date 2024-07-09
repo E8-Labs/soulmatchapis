@@ -367,13 +367,13 @@ export const addBooking = (req, res) => {
                 dbBooking = await BookingResource(dbBookingData[0]);
             }
 
-            let created = await createNotification(userId, dateUserId, booking.id, NotificationType.TypeDateInvite);
+            let created = await createNotification(userId, dateUserId, booking.id, NotificationType.TypeDateInvite, dbBooking);
             let admin = await db.user.findOne({
                 where:{role: 'admin'}
             })
             if(admin){
                  console.log("Sending not to admin")
-                let createdAdminNot = await createNotification(userId, admin.id, booking.id, NotificationType.TypeDateInviteToAdmin);
+                let createdAdminNot = await createNotification(userId, admin.id, booking.id, NotificationType.TypeDateInviteToAdmin, dbBooking);
                 console.log("Not to admin ", createNotification)
             }
             

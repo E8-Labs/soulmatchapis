@@ -158,7 +158,8 @@ export const SendMessage = async (req, res) => {
         if (authData) {
             // const { chatId } = req.params;
             const { chatId, content } = req.body;
-
+            let chat = await db.Chat.findByPk(chatId)
+            let chatRes = await ChatResource(chat)
             try {
                 let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: content, message_type: "text" });
                 let chatUsers = await db.ChatUser.findAll({
@@ -187,7 +188,7 @@ export const SendMessage = async (req, res) => {
                         try {
                             if(element.userId !== authData.user.id){
                                 //Don't send the notification to self
-                                let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
+                                let created = await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage, chatRes);
                             }
                             
                         }
@@ -216,7 +217,8 @@ export const SendMediaMessage = async (req, res) => {
             const { chatId } = req.body;
             const files = req.files;
             let imageDimensions = { width: null, height: null };
-
+            let chat = await db.Chat.findByPk(chatId)
+            let chatRes = await ChatResource(chat)
             try {
                 let image = null, thumbnail = null, voice = null, imageThumb = null, video = null, message_type = "text";
 
@@ -296,7 +298,7 @@ export const SendMediaMessage = async (req, res) => {
                     chatUsers.forEach(async element => {
                         pusher.trigger(`chat-channel-${chatId}`, `new-message`, { message: message, timestamp: req.body.timestamp });
                         try {
-                            await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage);
+                            await createNotification(authData.user.id, element.userId, message.id, NotificationType.TypeMessage, chatRes);
                         } catch (error) {
                             console.log("Notification send message error ", error);
                         }
