@@ -159,7 +159,7 @@ export const SendMessage = async (req, res) => {
             // const { chatId } = req.params;
             const { chatId, content } = req.body;
             let chat = await db.Chat.findByPk(chatId)
-            let chatRes = await ChatResource(chat)
+            let chatRes = await new ChatResource(chat, authData.user)
             try {
                 let message = await db.Message.create({ chatId: chatId, userId: authData.user.id, content: content, message_type: "text" });
                 let chatUsers = await db.ChatUser.findAll({
@@ -218,7 +218,7 @@ export const SendMediaMessage = async (req, res) => {
             const files = req.files;
             let imageDimensions = { width: null, height: null };
             let chat = await db.Chat.findByPk(chatId)
-            let chatRes = await ChatResource(chat)
+            let chatRes = await ChatResource(chat, authData.user)
             try {
                 let image = null, thumbnail = null, voice = null, imageThumb = null, video = null, message_type = "text";
 
