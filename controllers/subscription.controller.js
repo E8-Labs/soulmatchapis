@@ -185,7 +185,8 @@ async function verifyReceipt(receipt, useSandbox = false) {
         'password': APPLE_SHARED_SECRET,
       }),
     });
-  
+  console.log("Response from receipt verification ")
+  console.log(response)
     if (!response.ok) {
       throw new Error('Failed to verify receipt');
     }
