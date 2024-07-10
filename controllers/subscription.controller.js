@@ -81,7 +81,7 @@ export const StoreReceipt = async (req, res) => {
 //Sandbox mode
 export const AppleSubscriptionWebhook = async (req, res) => {
     const notification = req.body;
-// console.log("Notficatiion rev cat ", notification)
+    // console.log("Notficatiion rev cat ", notification)
     if (!notification) {
         return res.status(400).send('No notification body');
     }
@@ -96,22 +96,24 @@ export const AppleSubscriptionWebhook = async (req, res) => {
 
         // Determine if notification is v1 or v2
         // if (notification.version && notification.version === "2.0") {
-            // v2 notification
-            // const signedTransactionInfo = notification.data.signedTransactionInfo;
-            const data = await verifyAppleSignedData(notification.signedPayload);
-            
-            const transactionInfo = await verifyAppleSignedData(data.data.signedTransactionInfo);
-            const renewalInfo = await verifyAppleSignedData(data.data.signedRenewalInfo);
-            console.log("Transaction info ", transactionInfo)
-            console.log("Renewal info ", renewalInfo)
-            originalTransactionId = transactionInfo.originalTransactionId;
-            productId = transactionInfo.productId;
-            purchaseDate = transactionInfo.purchaseDate;
-            expiresDate = transactionInfo.expiresDate;
-            notificationType = data.notificationType;
-            let subtype = data.subtype;
-            originalPurchaseDate = transactionInfo.originalPurchaseDate;
-            console.log("Not Type ", notificationType)
+        // v2 notification
+        // const signedTransactionInfo = notification.data.signedTransactionInfo;
+        const data = await verifyAppleSignedData(notification.signedPayload);
+
+        const transactionInfo = await verifyAppleSignedData(data.data.signedTransactionInfo);
+        const renewalInfo = await verifyAppleSignedData(data.data.signedRenewalInfo);
+        console.log("Transaction info ", transactionInfo)
+        console.log("Renewal info ", renewalInfo)
+        originalTransactionId = transactionInfo.originalTransactionId;
+        productId = transactionInfo.productId;
+        purchaseDate = transactionInfo.purchaseDate;
+        expiresDate = transactionInfo.expiresDate;
+        notificationType = data.notificationType;
+        let subtype = data.subtype;
+        let environment = transactionInfo.environment;
+        let price = transactionInfo.price;
+        originalPurchaseDate = transactionInfo.originalPurchaseDate;
+        console.log("Not Type ", notificationType)
         // } else {
         //     // v1 notification
         //     originalTransactionId = notification.latest_receipt_info.original_transaction_id;
@@ -133,7 +135,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         switch (notificationType) {
             case 'INITIAL_BUY':
             case 'DID_RENEW':
-                case 'SUBSCRIBED':
+            case 'SUBSCRIBED':
                 if (!subscription) {
                     subscription = await db.Subscription.create({
                         // userId: user.id,
@@ -155,6 +157,8 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                     subscriptionId: subscription.id,
                     nottype: notificationType,
                     subtype: subtype,
+                    price: price,
+                    environment: environment,
                     status: 'renewed',
                     changeDate: new Date(),
                 });
@@ -177,7 +181,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                 }
                 break;
 
-                case 'DID_CHANGE_RENEWAL_STATUS':
+            case 'DID_CHANGE_RENEWAL_STATUS':
                 if (subscription && subtype === "AUTO_RENEW_DISABLED") {
                     subscription.status = 'canceled';
                     subscription.originalPurchaseDate = originalPurchaseDate;
@@ -187,13 +191,15 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         subtype: subtype,
                         subscriptionId: subscription.id,
                         status: 'canceled',
+                        price: price,
+                        environment: environment,
                         changeDate: new Date(),
                     });
                     // user.subscriptionStatus = 'canceled';
                 }
                 break;
 
-                case 'EXPIRED':
+            case 'EXPIRED':
                 if (subscription) {
                     subscription.status = 'expired';
                     subscription.originalPurchaseDate = originalPurchaseDate;
@@ -203,6 +209,8 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         subtype: subtype,
                         subscriptionId: subscription.id,
                         status: 'expired',
+                        price: price,
+                        environment: environment,
                         changeDate: new Date(),
                     });
                     // user.subscriptionStatus = 'canceled';
@@ -228,48 +236,48 @@ export const AppleSubscriptionWebhook = async (req, res) => {
 async function verifyReceipt(receipt, useSandbox = false) {
     const url = useSandbox ? APPLE_SANDBOX_RECEIPT_URL : APPLE_RECEIPT_URL;
     const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        'receipt-data': receipt,
-        'password': APPLE_SHARED_SECRET,
-      }),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            'receipt-data': receipt,
+            'password': APPLE_SHARED_SECRET,
+        }),
     });
-  console.log("Response from receipt verification ")
-  const data = await response.json();
-  console.log(data)
+    console.log("Response from receipt verification ")
+    const data = await response.json();
+    console.log(data)
     if (!response.ok) {
-      throw new Error('Failed to verify receipt');
+        throw new Error('Failed to verify receipt');
     }
-  
-    
-    return data;
-  }
 
-  async function extractOriginalTransactionIdFromAppleReceipt(receipt, useSandbox = false) {
+
+    return data;
+}
+
+async function extractOriginalTransactionIdFromAppleReceipt(receipt, useSandbox = false) {
     try {
-      const response = await verifyReceipt(receipt, useSandbox);
-  
-      if (response.status !== 0) {
-        throw new Error('Receipt verification failed');
-      }
-  
-      const latestReceiptInfo = response.latest_receipt_info || response.receipt.in_app;
-  
-      if (!latestReceiptInfo || latestReceiptInfo.length === 0) {
-        throw new Error('No in-app purchase found in the receipt');
-      }
-  
-      // Assuming we need the original transaction ID of the latest transaction
-      const originalTransactionId = latestReceiptInfo[0].original_transaction_id;
-  
-      return originalTransactionId;
+        const response = await verifyReceipt(receipt, useSandbox);
+
+        if (response.status !== 0) {
+            throw new Error('Receipt verification failed');
+        }
+
+        const latestReceiptInfo = response.latest_receipt_info || response.receipt.in_app;
+
+        if (!latestReceiptInfo || latestReceiptInfo.length === 0) {
+            throw new Error('No in-app purchase found in the receipt');
+        }
+
+        // Assuming we need the original transaction ID of the latest transaction
+        const originalTransactionId = latestReceiptInfo[0].original_transaction_id;
+
+        return originalTransactionId;
     } catch (error) {
-      console.error('Failed to extract original transaction ID:', error);
-      throw error;
+        console.error('Failed to extract original transaction ID:', error);
+        throw error;
     }
-  }
+}
 
 // module.exports = extractOriginalTransactionIdFromAppleReceipt;
