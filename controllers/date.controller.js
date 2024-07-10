@@ -15,6 +15,7 @@ import NotificationType from '../models/user/notificationtype.js'
 import { createNotification } from "../utilities/notificationutility.js";
 import { Sequelize } from "sequelize";
 import DatePlaceModel from "../models/date/dateplace.model.js";
+import DateResource from "../resources/date.resource.js";
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
 // var Jimp = require("jimp");
@@ -85,24 +86,25 @@ export const addDatePlace = (req, res) => {
                     rating: 5
                 });
                 let Cat = await db.Category.findByPk(categoryId)
-                let backData = {
-                    id: datePlace.id,
-                    name,
-                    imageUrl,
-                    CategoryId: categoryId,
-                    minBudget,
-                    maxBudget,
-                    openTime,
-                    closeTime,
-                    address,
-                    latitude,
-                    longitude,
-                    description,
-                    city, 
-                    state,
-                    rating: 5,
-                    Category: {name: Cat.name, id: Cat.id}
-                }
+                let backData = await BookingResource(datePlace)
+                // {
+                //     id: datePlace.id,
+                //     name,
+                //     imageUrl,
+                //     CategoryId: categoryId,
+                //     minBudget,
+                //     maxBudget,
+                //     openTime,
+                //     closeTime,
+                //     address,
+                //     latitude,
+                //     longitude,
+                //     description,
+                //     city, 
+                //     state,
+                //     rating: 5,
+                //     Category: {name: Cat.name, id: Cat.id}
+                // }
                 // datePlace.Category = {name: Cat.name, id: Cat.id};
 
                 res.send({ status: true, message: 'Date place added successfully.', data: backData });
@@ -188,23 +190,24 @@ export const UpdateDatePlace = async (req, res) => {
             await datePlace.save();
 
             // let Cat = await db.Category.findByPk(categoryId)
-                let backData = {
-                    id: datePlace.id,
-                    name: name || datePlace.name,
-                    city: city || datePlace.city,
-                    state: state || datePlace.state,
-                    categoryId: categoryId || datePlace.categoryId,
-                    minBudget : parseInt(minBudget),
-                    maxBudget : parseInt(maxBudget),
-                    openTime : openTime || datePlace.openTime,
-                    closeTime : closeTime || datePlace.closeTime,
-                    address : address || datePlace.address,
-                    latitude : latitude || datePlace.latitude,
-                    longitude : longitude || datePlace.longitude,
-                    description : description || datePlace.description,
-                    Category: {name: Cat.name, id: Cat.id},
-                    imageUrl: datePlace.imageUrl
-                }
+                let backData =  await BookingResource(datePlace)
+                // {
+                //     id: datePlace.id,
+                //     name: name || datePlace.name,
+                //     city: city || datePlace.city,
+                //     state: state || datePlace.state,
+                //     categoryId: categoryId || datePlace.categoryId,
+                //     minBudget : parseInt(minBudget),
+                //     maxBudget : parseInt(maxBudget),
+                //     openTime : openTime || datePlace.openTime,
+                //     closeTime : closeTime || datePlace.closeTime,
+                //     address : address || datePlace.address,
+                //     latitude : latitude || datePlace.latitude,
+                //     longitude : longitude || datePlace.longitude,
+                //     description : description || datePlace.description,
+                //     Category: {name: Cat.name, id: Cat.id},
+                //     imageUrl: datePlace.imageUrl
+                // }
                 console.log("Back data is ")
 
             res.send({ status: true, message: 'Date place updated successfully.', data: backData });
@@ -275,7 +278,7 @@ export const listDatePlaces = async (req, res) => {
                 searchQuery.rating = { [Op.lte]: parseFloat(req.query.maxRating) };
             }
 
-            const datePlaces = await db.DatePlace.findAll({
+            const datePlacesData = await db.DatePlace.findAll({
                 where: searchQuery,
                 offset: offset,
                 limit: limit,
@@ -286,6 +289,7 @@ export const listDatePlaces = async (req, res) => {
                     }
                 ]
             });
+            const datePlaces = await DateResource(datePlacesData)
 
             if (adminUser.role === 'admin' || showAll) {
                 res.send({ status: true, message: "Date places fetched successfully", data: datePlaces });
@@ -607,6 +611,38 @@ export const deleteCategory = (req, res) => {
         } catch (err) {
             console.error('Error deleting category:', err);
             res.status(500).send({ status: false, message: 'An error occurred while deleting the category.', error: err.message });
+        }
+    });
+};
+
+
+export const AddReview = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(401).send({ status: false, message: 'Unauthorized', error: error.message });
+        }
+
+        if (authData) {
+            const { placeId, review, rating } = req.body;
+
+            try {
+                let datePlace = await db.DatePlace.findByPk(placeId);
+                if (!datePlace) {
+                    return res.status(404).send({ status: false, message: 'Date place not found' });
+                }
+
+                let newReview = await db.DateReview.create({
+                    userId: authData.user.id,
+                    placeId: placeId,
+                    review: review,
+                    rating: rating
+                });
+
+                res.send({ status: true, message: 'Review added successfully.', data: newReview });
+            } catch (err) {
+                console.error('Error adding review:', err);
+                res.status(500).send({ status: false, message: 'An error occurred while adding the review.', error: err.message });
+            }
         }
     });
 };

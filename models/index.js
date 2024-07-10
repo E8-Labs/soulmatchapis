@@ -50,6 +50,7 @@ import ProfileMatchesModel from "./profilematches.model.js";
 import ProfileQuestionsModel from "./user/ProfileQuestions.model.js";
 import UserAnswerModel from "./user/UserAnswer.model.js";
 import NotificationModel from './user/notification.model.js';
+import DateReview from "./date/datereview.js";
 
 
 db.user = UserModel(sequelize, Sequelize);
@@ -110,6 +111,10 @@ db.Category = CategoryModel(sequelize, Sequelize);
 db.DatePlace = DatePlaceModel(sequelize, Sequelize);
 
 db.DatePlace.associate(db);
+
+
+db.DateReview = DateReview(sequelize, Sequelize);
+
 
 db.Booking = BookingModel(sequelize, Sequelize);
 // if (db.DatePlace.associate) {
