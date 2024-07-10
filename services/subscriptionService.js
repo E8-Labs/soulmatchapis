@@ -3,8 +3,8 @@ const Op  = db.Sequelize.Op
 import moment from 'moment';
 import jwt from 'jsonwebtoken'; // Install this package
 
-export async function getSubscriptionDetails(userId) {
-  const user = await db.user.findByPk(userId);
+export async function getSubscriptionDetails(user) {
+  const user = await db.user.findByPk(user.id);
 
   if (!user) {
     throw new Error('User not found');
@@ -12,7 +12,10 @@ export async function getSubscriptionDetails(userId) {
 
   const subscription = await db.Subscription.findOne({
     where: {
-      userId: user.id,
+      [Op.or]: [
+        {originalTransactionId: user.originalTransactionId},
+        {originalPurchaseDate: user.originalPurchaseDate}
+      ],
       endDate: {
         [Op.gte]: new Date(),
       },

@@ -160,7 +160,7 @@ async function getUserData(user, currentUser = null) {
 
 
 
-    // const subscriptionDetails = await getSubscriptionDetails(user.id);
+    const subscriptionDetails = await getSubscriptionDetails(user);
 
     const UserFullResource = {
         id: user.id,
@@ -199,7 +199,7 @@ async function getUserData(user, currentUser = null) {
         blockedMe: blockedMe,
         blockedByMe: blockedByMe,
         status: user.status,
-        // subscription: subscriptionDetails
+        subscription: subscriptionDetails
     }
 
 

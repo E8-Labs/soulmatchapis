@@ -110,6 +110,11 @@ const UserModel = (sequelize, Sequelize) => {
         allowNull: true,
         default: null
       },
+      originalPurchaseDate:{ //miliseconds
+        type: Sequelize.STRING,
+        allowNull: true,
+        default: null
+      },
       status: {
         type: Sequelize.ENUM,
         values: ['active', 'suspended', 'deleted'],

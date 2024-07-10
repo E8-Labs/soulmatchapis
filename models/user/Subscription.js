@@ -10,7 +10,11 @@ const Subscription = (sequelize, Sequelize) => {
         //       key: 'id'
         //     }
         //   },
-        original_transaction_id:{
+        originalTransactionId:{
+          type: Sequelize.STRING,
+          default: ''
+        },
+        originalPurchaseDate:{
           type: Sequelize.STRING,
           default: ''
         },

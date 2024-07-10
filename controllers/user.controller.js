@@ -619,9 +619,7 @@ export const UpdateProfile = async (req, res) => {
                 }
             }
             else {
-                // res.send({ status: false, message: "No file uploaded", data: null })
-                // let state = req.body.state;
-                // user.state = state;
+                
 
                 if (typeof req.body.state !== 'undefined') {
                     user.state = req.body.state;
@@ -629,7 +627,9 @@ export const UpdateProfile = async (req, res) => {
                 if (typeof req.body.role !== 'undefined') {
                     user.role = req.body.role;
                 }
-
+                if (typeof req.body.originalPurchaseDate !== 'undefined') {
+                    user.originalPurchaseDate = req.body.originalPurchaseDate;
+                }
 
                 if (typeof req.body.height_feet !== 'undefined') {
                     user.height_feet = req.body.height_feet;
