@@ -9,6 +9,12 @@ export async function getSubscriptionDetails(user) {
   // if (!user) {
   //   throw new Error('User not found');
   // }
+  if(typeof user.originalTransactionId == "undefined" && typeof user.originalPurchaseDate == "undefined"){
+    return {
+      isSubscribed: false,
+      subscriptionDetails: null,
+    };
+  }
 
   const subscription = await db.Subscription.findOne({
     where: {

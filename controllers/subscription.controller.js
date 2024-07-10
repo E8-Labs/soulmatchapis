@@ -171,6 +171,20 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                 }
                 break;
 
+                case 'EXPIRED':
+                if (subscription) {
+                    subscription.status = 'expired';
+                    subscription.originalPurchaseDate = originalPurchaseDate;
+                    await subscription.save();
+                    await db.SubscriptionHistory.create({
+                        subscriptionId: subscription.id,
+                        status: 'expired',
+                        changeDate: new Date(),
+                    });
+                    // user.subscriptionStatus = 'canceled';
+                }
+                break;
+
             // Add more cases as needed
         }
 
