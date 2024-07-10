@@ -4,11 +4,11 @@ import moment from 'moment';
 import jwt from 'jsonwebtoken'; // Install this package
 
 export async function getSubscriptionDetails(user) {
-  const user = await db.user.findByPk(user.id);
+  // const user = await db.user.findByPk(user.id);
 
-  if (!user) {
-    throw new Error('User not found');
-  }
+  // if (!user) {
+  //   throw new Error('User not found');
+  // }
 
   const subscription = await db.Subscription.findOne({
     where: {
