@@ -1,5 +1,6 @@
 // resources/booking.resource.js
 import db from "../models/index.js";
+import ReviewResource from "./review.resource.js";
 // import UserProfileExtraLiteResource from "./userprofileextraextraliteresource.js";
 
 const DateResource = async (booking) => {
@@ -25,6 +26,11 @@ async function getDateData(booking) {
             placeId: booking.id
         }
     })
+
+    let reviewsRes = null
+    if(reviews){
+        reviewsRes = await ReviewResource(reviews)
+    }
     const result = await db.DateReview.findOne({
         attributes: [[db.Sequelize.fn('AVG', db.Sequelize.col('rating')), 'avgRating']],
         where: {
@@ -53,7 +59,7 @@ async function getDateData(booking) {
         "updatedAt": booking.updatedAt,
         "CategoryId": booking.CategoryId,
         Category: {name: cat.name, id: cat.id},
-        reviews: reviews,
+        reviews: reviewsRes || [],
 
     }
 
