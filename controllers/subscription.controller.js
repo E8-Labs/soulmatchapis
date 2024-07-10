@@ -109,6 +109,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
             purchaseDate = transactionInfo.purchaseDate;
             expiresDate = transactionInfo.expiresDate;
             notificationType = data.notificationType;
+            let subtype = data.subtype;
             originalPurchaseDate = transactionInfo.originalPurchaseDate;
             console.log("Not Type ", notificationType)
         // } else {
@@ -145,12 +146,15 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                     });
                 } else {
                     subscription.status = 'renewed';
+
                     subscription.originalPurchaseDate = originalPurchaseDate
                     subscription.endDate = new Date(expiresDate);
                     await subscription.save();
                 }
                 await db.SubscriptionHistory.create({
                     subscriptionId: subscription.id,
+                    nottype: notificationType,
+                    subtype: subtype,
                     status: 'renewed',
                     changeDate: new Date(),
                 });
@@ -163,6 +167,24 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                     subscription.originalPurchaseDate = originalPurchaseDate;
                     await subscription.save();
                     await db.SubscriptionHistory.create({
+                        nottype: notificationType,
+                        subtype: subtype,
+                        subscriptionId: subscription.id,
+                        status: 'canceled',
+                        changeDate: new Date(),
+                    });
+                    // user.subscriptionStatus = 'canceled';
+                }
+                break;
+
+                case 'DID_CHANGE_RENEWAL_STATUS':
+                if (subscription && subtype === "AUTO_RENEW_DISABLED") {
+                    subscription.status = 'canceled';
+                    subscription.originalPurchaseDate = originalPurchaseDate;
+                    await subscription.save();
+                    await db.SubscriptionHistory.create({
+                        nottype: notificationType,
+                        subtype: subtype,
                         subscriptionId: subscription.id,
                         status: 'canceled',
                         changeDate: new Date(),
@@ -177,6 +199,8 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                     subscription.originalPurchaseDate = originalPurchaseDate;
                     await subscription.save();
                     await db.SubscriptionHistory.create({
+                        nottype: notificationType,
+                        subtype: subtype,
                         subscriptionId: subscription.id,
                         status: 'expired',
                         changeDate: new Date(),
