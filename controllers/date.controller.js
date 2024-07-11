@@ -632,14 +632,32 @@ export const AddReview = async (req, res) => {
                     return res.status(404).send({ status: false, message: 'Date place not found' });
                 }
 
-                let newReview = await db.DateReview.create({
-                    userId: authData.user.id,
-                    placeId: placeId,
-                    review: review,
-                    rating: rating
-                });
-                let revRes = await ReviewResource(newReview)
-                res.send({ status: true, message: 'Review added successfully.', data: revRes });
+                let prevRev = await db.DateReview.findOne({
+                    where: {
+                        placeId: placeId,
+                        userId: authData.user.id
+                    }
+                })
+                let updated = false;
+                if(prevRev){
+                    prevRev.rating = rating;
+                    prevRev.review = review;
+                    let saved = prevRev.save();
+                    updated = true;
+                }
+                else{
+                    let newReview = await db.DateReview.create({
+                        userId: authData.user.id,
+                        placeId: placeId,
+                        review: review,
+                        rating: rating
+                    });
+                    prevRev = newReview
+                }
+
+                
+                let revRes = await ReviewResource(prevRev)
+                res.send({ status: true, message: updated ? "Review updated" : 'Review added', data: revRes });
             } catch (err) {
                 console.error('Error adding review:', err);
                 res.status(500).send({ status: false, message: 'An error occurred while adding the review.', error: err.message });

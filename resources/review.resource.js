@@ -24,7 +24,9 @@ async function getDateData(booking) {
         id: booking.id,
         rating: booking.rating,
         review: booking.review,
-        user: await UserProfileExtraLiteResource(user)
+        user: await UserProfileExtraLiteResource(user),
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
 
     }
 
