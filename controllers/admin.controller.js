@@ -22,6 +22,7 @@ import UserRole from "../models/userrole.js";
 
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
 import UserProfileLiteResource from "../resources/userprofileliteresource.js";
+import { fetchSubscriptionsData, fetchMonthlyRevenue } from "../services/revenueService.js";
 
 
 const countUniqueDownloads = async (days) => {
@@ -197,8 +198,22 @@ export const AdminDashboard = (req, res) => {
       //////console.log("Auth data ", authData)
       let userid = authData.user.id;
 
-      let totalDownloads = await uniqueDownloads(30);
-      let dailyActiveUsers = await fetchLoginActivity()
+      let monthlySubscriptionsData = await fetchSubscriptionsData("monthly")
+      let weeklySubscriptionsData = await fetchSubscriptionsData("weekly")
+      let yearlySubscriptionsData = await fetchSubscriptionsData("yearly")
+      let subscriptionsData = {monthly: monthlySubscriptionsData, yearly: yearlySubscriptionsData, weekly: weeklySubscriptionsData}
+
+
+      let monthlyRevenueData = await fetchMonthlyRevenue("monthly")
+      let weeklyRevenueData = await fetchMonthlyRevenue("weekly")
+      let yearlyRevenueData = await fetchMonthlyRevenue("yearly")
+      let revenueData = {monthly: monthlyRevenueData, yearly: yearlyRevenueData, weekly: weeklyRevenueData}
+
+
+      
+// console.log("Sub data ", subscriptionsData)
+      // let totalDownloads = await uniqueDownloads(30);
+      // let dailyActiveUsers = await fetchLoginActivity()
       const free = await db.user.count({
         where: {
           id: { [Op.gte]: 0 }
@@ -218,8 +233,13 @@ export const AdminDashboard = (req, res) => {
       let usersRes = await UserProfileLiteResource(users)
       res.send({
         status: true, message: "Dashboard ", data: {
-          downloads: totalDownloads, active_users: dailyActiveUsers,
-          paying: 0, free: free, recent_users: usersRes, planned_dates: totalDatesPlanned, unique_users_planned_dates: totalUniqueUsers
+          subscriptionsData: subscriptionsData,
+          revenueData: revenueData,
+          // downloads: totalDownloads, 
+          // active_users: dailyActiveUsers,
+          paying: 0, free: free, 
+          recent_users: usersRes, 
+          planned_dates: totalDatesPlanned, unique_users_planned_dates: totalUniqueUsers
         }
       })
 
