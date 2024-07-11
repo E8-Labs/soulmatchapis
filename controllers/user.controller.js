@@ -777,12 +777,13 @@ export const Discover = (req, res) => {
             const { minAge, maxAge, minHeight, maxHeight, gender, city, state } = req.body; // Filter options
             const matchesCount = await db.profileMatches.count({
                 where: {
-                  [Sequelize.Op.or]: [
+                  [db.Sequelize.Op.or]: [
                     { user_1_id: userId },
                     { user_2_id: userId }
                   ]
                 }
               });
+              
               if(count >= 3){
                 return res.send({status: false, message: "You've exceeded the maximum match limit", data: null})
               }

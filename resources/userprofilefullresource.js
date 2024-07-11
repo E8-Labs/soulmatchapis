@@ -166,7 +166,7 @@ async function getUserData(user, currentUser = null) {
 
     const matchesCount = await db.profileMatches.count({
         where: {
-          [Sequelize.Op.or]: [
+          [db.Sequelize.Op.or]: [
             { user_1_id: user.id },
             { user_2_id: user.id }
           ]
