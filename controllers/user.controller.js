@@ -784,7 +784,7 @@ export const Discover = (req, res) => {
                 }
               });
               
-              if(count >= 3){
+              if(matchesCount >= 3){
                 return res.send({status: false, message: "You've exceeded the maximum match limit", data: null})
               }
             try {
