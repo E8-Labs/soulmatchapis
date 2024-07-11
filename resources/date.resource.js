@@ -31,6 +31,8 @@ async function getDateData(booking) {
     if(reviews){
         reviewsRes = await ReviewResource(reviews)
     }
+
+
     const result = await db.DateReview.findOne({
         attributes: [[db.Sequelize.fn('AVG', db.Sequelize.col('rating')), 'avgRating']],
         where: {
@@ -38,6 +40,12 @@ async function getDateData(booking) {
         },
         raw: true
       });
+
+      let totalReviews = await db.DateReview.count({
+        where:{
+            placeId: booking.id
+        }
+      })
   
       const averageRating = result.avgRating;
     const BookingFullResource = {
@@ -60,6 +68,7 @@ async function getDateData(booking) {
         "CategoryId": booking.CategoryId,
         Category: {name: cat.name, id: cat.id},
         reviews: reviewsRes || [],
+        totalReviews: totalReviews,
 
     }
 

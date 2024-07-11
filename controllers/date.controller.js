@@ -16,6 +16,7 @@ import { createNotification } from "../utilities/notificationutility.js";
 import { Sequelize } from "sequelize";
 import DatePlaceModel from "../models/date/dateplace.model.js";
 import DateResource from "../resources/date.resource.js";
+import ReviewResource from "../resources/review.resource.js";
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
 // var Jimp = require("jimp");
@@ -637,8 +638,8 @@ export const AddReview = async (req, res) => {
                     review: review,
                     rating: rating
                 });
-
-                res.send({ status: true, message: 'Review added successfully.', data: newReview });
+                let revRes = await ReviewResource(newReview)
+                res.send({ status: true, message: 'Review added successfully.', data: revRes });
             } catch (err) {
                 console.error('Error adding review:', err);
                 res.status(500).send({ status: false, message: 'An error occurred while adding the review.', error: err.message });
