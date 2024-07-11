@@ -775,7 +775,17 @@ export const Discover = (req, res) => {
         if (authData) {
             const userId = authData.user.id; // User making the request
             const { minAge, maxAge, minHeight, maxHeight, gender, city, state } = req.body; // Filter options
-
+            const matchesCount = await db.profileMatches.count({
+                where: {
+                  [Sequelize.Op.or]: [
+                    { user_1_id: userId },
+                    { user_2_id: userId }
+                  ]
+                }
+              });
+              if(count >= 3){
+                return res.send({status: false, message: "You've exceeded the match limit", data: null})
+              }
             try {
                 // Fetch all user profiles except where specific conditions are met
                 const excludedUserIds = await db.profileLikes.findAll({

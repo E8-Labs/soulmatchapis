@@ -162,6 +162,17 @@ async function getUserData(user, currentUser = null) {
 
     const subscriptionDetails = await getSubscriptionDetails(user);
 
+
+
+    const matchesCount = await db.profileMatches.count({
+        where: {
+          [Sequelize.Op.or]: [
+            { user_1_id: user.id },
+            { user_2_id: user.id }
+          ]
+        }
+      });
+
     const UserFullResource = {
         id: user.id,
         name: user.firstname,
@@ -199,7 +210,8 @@ async function getUserData(user, currentUser = null) {
         blockedMe: blockedMe,
         blockedByMe: blockedByMe,
         status: user.status,
-        subscription: subscriptionDetails
+        subscription: subscriptionDetails,
+        totalMatches: matchesCount
     }
 
 
