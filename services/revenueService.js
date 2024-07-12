@@ -145,6 +145,79 @@ export const fetchMonthlyRevenue = async (subscriptionType) => {
 
 
 
+
+
+
+const getCurrentYearSubscriptionData = async () => {
+  const currentYear = new Date().getFullYear();
+  const startDate = new Date(currentYear, 0, 1); // January 1st of the current year
+  const endDate = new Date(currentYear + 1, 0, 1); // January 1st of the next year
+
+  const query = `
+      SELECT 
+          DATE_FORMAT(sh.changeDate, '%m-%Y') AS month,
+          COUNT(DISTINCT CASE WHEN s.plan = 'free' THEN s.id END) AS freeUsers,
+          COUNT(DISTINCT CASE WHEN s.plan = 'WeeklySubscriptionSoulmatch0623' THEN s.id END) AS weeklyUsers,
+          COUNT(DISTINCT CASE WHEN s.plan = 'MonthlySubscriptionSoulmatch0623' THEN s.id END) AS monthlyUsers,
+          COUNT(DISTINCT CASE WHEN s.plan = 'YearlySubscriptionSoulmatch0623' THEN s.id END) AS yearlyUsers
+      FROM 
+          SubscriptionHistories AS sh
+      JOIN 
+          Subscriptions AS s ON sh.subscriptionId = s.id
+      WHERE 
+          sh.changeDate BETWEEN :startDate AND :endDate
+      GROUP BY 
+          DATE_FORMAT(sh.changeDate, '%m-%Y')
+      ORDER BY 
+          sh.changeDate ASC;
+  `;
+
+  try {
+      const results = await db.sequelize.query(query, {
+          replacements: { startDate, endDate },
+          type: db.sequelize.QueryTypes.SELECT
+      });
+
+      return results;
+  } catch (error) {
+      console.error('Error fetching current year subscription data:', error);
+      throw error;
+  }
+};
+
+export const fetchCurrentYearSubscriptionData = async () => {
+  const data = await getCurrentYearSubscriptionData();
+  console.log(data);
+  return data
+};
+
+
+
+const getTotalUsersAndPayingUsers = async () => {
+  const query = `
+      SELECT 
+          (SELECT COUNT(*) FROM Subscriptions) AS totalUsers,
+          (SELECT COUNT(*) FROM Subscriptions WHERE plan IN ('WeeklySubscriptionSoulmatch0623', 'MonthlySubscriptionSoulmatch0623', 'YearlySubscriptionSoulmatch0623')) AS totalPayingUsers
+  `;
+
+  try {
+      const results = await db.sequelize.query(query, {
+          type: db.sequelize.QueryTypes.SELECT
+      });
+
+      return results[0];
+  } catch (error) {
+      console.error('Error fetching total users and total paying users:', error);
+      throw error;
+  }
+};
+
+export const fetchTotalPayingUsers = async () => {
+  const data = await getTotalUsersAndPayingUsers();
+  console.log(data);
+  return data.totalPayingUsers
+};
+
 // export default {
 //   getMonthlyRevenueData, fetchSubscriptionsData
 // };
