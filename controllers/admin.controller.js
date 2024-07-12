@@ -419,11 +419,16 @@ export const GetUsers = (req, res) => {
           limit: 100
         });
 
+        const total = await db.user.count({
+          where: {
+            id: { [Op.gte]: 0 }
+          }
+        });
         if (users.length > 0) {
           let userProfiles = await UserProfileLiteResource(users); // Ensure this function is defined in your project
-          res.send({ status: true, message: "Profiles found", data: userProfiles });
+          res.send({ status: true, message: "Profiles found", data: userProfiles, totalUsers: total });
         } else {
-          res.send({ status: false, message: "No profiles found", data: null });
+          res.send({ status: false, message: "No profiles found", data: null, totalUsers: total });
         }
       } catch (err) {
         console.error('Error fetching user profiles:', err);

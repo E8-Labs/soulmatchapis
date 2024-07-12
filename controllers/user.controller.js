@@ -881,7 +881,7 @@ export const Discover = (req, res) => {
                 // Find all other users based on filter criteria
                 const users = await db.user.findAll({
                     where: filterCriteria,
-                    limit: 100
+                    limit: 5
                 });
 
                 // Send the result
