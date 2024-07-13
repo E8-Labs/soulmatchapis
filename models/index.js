@@ -60,6 +60,9 @@ db.Subscription = Subscription(sequelize, Sequelize);
 db.SubscriptionHistory = SubscriptionHistory(sequelize, Sequelize);
 db.Boost = Boost(sequelize, Sequelize);
 
+db.user.hasMany(db.Boost, { foreignKey: 'userId', as: "Boosts" });
+db.Boost.belongsTo(db.user, { foreignKey: 'userId', as: "User" });
+
 //chat
 db.Chat = chatModel(sequelize, Sequelize);
 db.ChatUser = chatUserModel(sequelize, Sequelize);

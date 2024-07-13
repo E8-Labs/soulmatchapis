@@ -408,7 +408,7 @@ export const isProfileBoosted = async (userId) => {
         console.log("Exp ", boostExpirationTime)
         console.log("Current Time ", currentTime)
 
-        return currentTime <= boostExpirationTime;
+        return currentTime < boostExpirationTime;
     } catch (error) {
         console.error('Error checking if profile is boosted:', error);
         return false;

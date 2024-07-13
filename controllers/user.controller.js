@@ -770,23 +770,25 @@ export const DeleteAllLikesAndMatches = async (req, res) => {
 }
 
 
-export const Discover = (req, res) => {
+export const Discover = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             const userId = authData.user.id; // User making the request
             const { minAge, maxAge, minHeight, maxHeight, gender, city, state } = req.body; // Filter options
+            
             const matchesCount = await db.profileMatches.count({
                 where: {
-                  [db.Sequelize.Op.or]: [
-                    { user_1_id: userId },
-                    { user_2_id: userId }
-                  ]
+                    [db.Sequelize.Op.or]: [
+                        { user_1_id: userId },
+                        { user_2_id: userId }
+                    ]
                 }
-              });
-              
-              if(matchesCount >= 3){
-                return res.send({status: false, message: "You've exceeded the maximum match limit", data: null})
-              }
+            });
+
+            if (matchesCount >= 3) {
+                return res.send({ status: false, message: "You've exceeded the maximum match limit", data: null });
+            }
+
             try {
                 // Fetch all user profiles except where specific conditions are met
                 const excludedUserIds = await db.profileLikes.findAll({
@@ -813,30 +815,11 @@ export const Discover = (req, res) => {
                     raw: true
                 });
 
-                //Deleted users
-                // const deletedOrSuspended = await db.user.findAll({
-                //     where: {
-                //         [db.Sequelize.Op.or]: [
-                //             { status: "deleted" }, // Deleted Users
-                //             { status: "suspended" }   // Suspended
-                //         ]
-                //     },
-                //     attributes: ['id'],
-                //     raw: true
-                // });
-
                 // Flatten the list of user IDs to exclude
                 let idsToExclude = excludedUserIds.map(like => {
-                    // Include both 'from' and 'to' IDs to cover all conditions
                     return like.from === userId ? like.to : like.from;
                 });
 
-                // Add Deleted or Suspended Users to the list of excluded as well
-                // console.log("Excluded Users before delted or suspended ", idsToExclude.length)
-                // deletedOrSuspended.forEach(block => {
-                //     idsToExclude.push(block.blockedUserId);
-                // });
-                // console.log("Excluded Users after delted or suspended ", idsToExclude.length)
                 blockedUsers.forEach(block => {
                     if (block.blockingUserId === userId) {
                         idsToExclude.push(block.blockedUserId);
@@ -878,11 +861,52 @@ export const Discover = (req, res) => {
                     filterCriteria.state = state;
                 }
 
-                // Find all other users based on filter criteria
-                const users = await db.user.findAll({
+                // Get the current time
+                const now = new Date();
+
+                // Fetch boosted users first
+                const boostedUsers = await db.user.findAll({
                     where: filterCriteria,
+                    include: [{
+                        model: db.Boost,
+                        as: 'Boosts',
+                        required: true,
+                        where: {
+                            [db.Sequelize.Op.or]: [
+                                {
+                                    product: 'BoostSoulmatch1',
+                                    originalPurchaseDate: { [db.Sequelize.Op.gte]: now - 30 * 60 * 1000 }
+                                },
+                                {
+                                    product: 'BoostSoulmatch5',
+                                    originalPurchaseDate: { [db.Sequelize.Op.gte]: now - 150 * 60 * 1000 }
+                                },
+                                {
+                                    product: 'BoostSoulmatch10',
+                                    originalPurchaseDate: { [db.Sequelize.Op.gte]: now - 300 * 60 * 1000 }
+                                }
+                            ]
+                        }
+                    }],
                     limit: 5
                 });
+
+                // Fetch non-boosted users
+                const nonBoostedUsers = await db.user.findAll({
+                    where: {
+                        ...filterCriteria,
+                        id: { 
+                            [db.Sequelize.Op.notIn]: [
+                                ...idsToExclude,
+                                ...boostedUsers.map(user => user.id)
+                            ] 
+                        }
+                    },
+                    limit: 5 - boostedUsers.length
+                });
+
+                // Combine results
+                const users = [...boostedUsers, ...nonBoostedUsers];
 
                 // Send the result
                 let u = await UserProfileFullResource(users);
@@ -899,6 +923,10 @@ export const Discover = (req, res) => {
         }
     });
 };
+
+
+
+
 
 
 

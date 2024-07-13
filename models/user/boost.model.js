@@ -17,7 +17,9 @@ const Boost = (sequelize, Sequelize) => {
       }
     });
   
-    
+    // Boost.associate = (models) => {
+    //     Boost.belongsTo(models.User, { foreignKey: 'userId' });
+    // };
   
     return Boost;
   };
