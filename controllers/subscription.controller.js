@@ -81,7 +81,7 @@ export const StoreReceipt = async (req, res) => {
 //Sandbox mode
 export const AppleSubscriptionWebhook = async (req, res) => {
     const notification = req.body;
-    console.log("Notficatiion rev cat ", notification)
+    // console.log("Notficatiion rev cat ", notification)
     if (!notification) {
         return res.status(400).send('No notification body');
     }
@@ -99,16 +99,18 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         // v2 notification
         // const signedTransactionInfo = notification.data.signedTransactionInfo;
         const data = await verifyAppleSignedData(notification.signedPayload);
-        console.log("Data after decoding ", data)
+        // console.log("Data after decoding ", data)
+        notificationType = data.notificationType;
+        
         const transactionInfo = await verifyAppleSignedData(data.data.signedTransactionInfo);
-        const renewalInfo = await verifyAppleSignedData(data.data.signedRenewalInfo);
+        // const renewalInfo = await verifyAppleSignedData(data.data.signedRenewalInfo);
         console.log("Transaction info ", transactionInfo)
-        console.log("Renewal info ", renewalInfo)
+        // console.log("Renewal info ", renewalInfo)
         originalTransactionId = transactionInfo.originalTransactionId;
         productId = transactionInfo.productId;
         purchaseDate = transactionInfo.purchaseDate;
         expiresDate = transactionInfo.expiresDate;
-        notificationType = data.notificationType;
+        
         let subtype = data.subtype;
         let environment = transactionInfo.environment;
         let price = transactionInfo.price;
@@ -122,14 +124,16 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         //     expiresDate = notification.latest_receipt_info.expires_date;
         //     notificationType = notification.notification_type;
         // }
-
+        
         const user = await User.findOne({ where: { originalPurchaseDate } });
 
         if (!user) {
             // return res.status(404).send('User not found');
             console.log("User not found")
         }
-
+        if(notificationType === "ONE_TIME_CHARGE"){
+            return
+        }
         let subscription = await db.Subscription.findOne({ where: { originalTransactionId: originalTransactionId, plan: productId } });
 
         switch (notificationType) {
