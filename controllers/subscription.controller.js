@@ -342,6 +342,7 @@ export const ValidateInAppPurchase = async(req, res) => {
                     //     product: productId,
                         
                     // })
+                    let saved = boost.save();
                     res.json({
                         status: true,
                         message: "Profile boosted "
