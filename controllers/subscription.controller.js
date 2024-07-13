@@ -107,7 +107,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         const data = await verifyAppleSignedData(notification.signedPayload);
         // console.log("Data after decoding ", data)
         notificationType = data.notificationType;
-        
+
         const transactionInfo = await verifyAppleSignedData(data.data.signedTransactionInfo);
         // const renewalInfo = await verifyAppleSignedData(data.data.signedRenewalInfo);
         console.log("Transaction info ", transactionInfo)
@@ -116,7 +116,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         productId = transactionInfo.productId;
         purchaseDate = transactionInfo.purchaseDate;
         expiresDate = transactionInfo.expiresDate;
-        
+
         let subtype = data.subtype;
         let environment = transactionInfo.environment;
         let price = transactionInfo.price;
@@ -130,22 +130,22 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         //     expiresDate = notification.latest_receipt_info.expires_date;
         //     notificationType = notification.notification_type;
         // }
-        
-        
-        if(notificationType === "ONE_TIME_CHARGE"){
+
+
+        if (notificationType === "ONE_TIME_CHARGE") {
             let boost = await db.Boost.findOne({
                 where: {
                     originalPurchaseDate: originalPurchaseDate
                 }
             })
-            if(!boost){
+            if (!boost) {
                 boost = await db.Boost.create({
                     originalPurchaseDate: originalPurchaseDate,
                     product: productId,
 
                 })
             }
-            else{
+            else {
                 boost.product = productId;
                 let saved = boost.save();
             }
@@ -311,7 +311,7 @@ async function extractOriginalTransactionIdFromAppleReceipt(receipt, useSandbox 
 
 
 
-export const ValidateInAppPurchase = async(req, res) => {
+export const ValidateInAppPurchase = async (req, res) => {
     const { originalPurchaseDate, productId } = req.body;
     const REVENUECAT_API_KEY = process.env.RevenueCatApiKey
 
@@ -330,7 +330,7 @@ export const ValidateInAppPurchase = async(req, res) => {
                 //         product_id: productId,
                 //     }),
                 // });
-        
+
                 // const data = await response.json();
                 // console.log("Receipt validation from rev cat", data)
                 let boost = await db.Boost.findOne({
@@ -346,7 +346,7 @@ export const ValidateInAppPurchase = async(req, res) => {
                     // let boosted = await db.Boost.create({
                     //     userId: authData.user.id,
                     //     product: productId,
-                        
+
                     // })
                     let saved = boost.save();
                     res.json({
@@ -367,11 +367,11 @@ export const ValidateInAppPurchase = async(req, res) => {
                 });
             }
         }
-        else{
+        else {
 
         }
     })
-    
+
 };
 
 // module.exports = extractOriginalTransactionIdFromAppleReceipt;
@@ -392,7 +392,21 @@ export const isProfileBoosted = async (userId) => {
             return false; // No boost found
         }
 
-        const boostExpirationTime = new Date(latestBoost.originalPurchaseDate).getTime() + BOOST_DURATIONS[latestBoost.product];
+        // const purchaseDate = new Date(latestBoost.originalPurchaseDate).getTime();
+        const boostDuration = BOOST_DURATIONS[latestBoost.product];
+
+        if (!boostDuration) {
+            console.error('Unknown product ID:', latestBoost.product);
+            return false; // Unknown product ID
+        }
+
+        const boostExpirationTime = Number(latestBoost.originalPurchaseDate) + boostDuration;
+
+        // return currentTime <= boostExpirationTime;
+        console.log("Latest Boost ", latestBoost)
+        // const boostExpirationTime = new Date(latestBoost.originalPurchaseDate).getTime() + BOOST_DURATIONS[latestBoost.product];
+        console.log("Exp ", boostExpirationTime)
+        console.log("Current Time ", currentTime)
 
         return currentTime <= boostExpirationTime;
     } catch (error) {
