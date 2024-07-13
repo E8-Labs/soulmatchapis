@@ -99,7 +99,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         // v2 notification
         // const signedTransactionInfo = notification.data.signedTransactionInfo;
         const data = await verifyAppleSignedData(notification.signedPayload);
-
+        console.log("Data after decoding ", data)
         const transactionInfo = await verifyAppleSignedData(data.data.signedTransactionInfo);
         const renewalInfo = await verifyAppleSignedData(data.data.signedRenewalInfo);
         console.log("Transaction info ", transactionInfo)
