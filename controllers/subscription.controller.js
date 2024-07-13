@@ -23,6 +23,12 @@ const Op = db.Sequelize.Op;
 import fetch from 'node-fetch';
 import base64 from 'base-64';
 
+const BOOST_DURATIONS = {
+    'BoostSoulmatch1': 30 * 60 * 1000, // 30 minutes in milliseconds
+    'BoostSoulmatch5': 150 * 60 * 1000, // 150 minutes in milliseconds
+    'BoostSoulmatch10': 300 * 60 * 1000, // 300 minutes in milliseconds
+};
+
 const APPLE_RECEIPT_URL = 'https://buy.itunes.apple.com/verifyReceipt'; // For production
 const APPLE_SANDBOX_RECEIPT_URL = 'https://sandbox.itunes.apple.com/verifyReceipt'; // For sandbox
 
@@ -369,3 +375,28 @@ export const ValidateInAppPurchase = async(req, res) => {
 };
 
 // module.exports = extractOriginalTransactionIdFromAppleReceipt;
+
+
+export const isProfileBoosted = async (userId) => {
+    try {
+        const currentTime = new Date().getTime();
+
+        const latestBoost = await db.Boost.findOne({
+            where: {
+                userId: userId,
+            },
+            order: [['originalPurchaseDate', 'DESC']],
+        });
+
+        if (!latestBoost) {
+            return false; // No boost found
+        }
+
+        const boostExpirationTime = new Date(latestBoost.originalPurchaseDate).getTime() + BOOST_DURATIONS[latestBoost.product];
+
+        return currentTime <= boostExpirationTime;
+    } catch (error) {
+        console.error('Error checking if profile is boosted:', error);
+        return false;
+    }
+};

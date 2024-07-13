@@ -2,6 +2,7 @@ import db from "../models/index.js";
 
 import moment from "moment-timezone";
 import { getSubscriptionDetails } from "../services/subscriptionService.js";
+import { isProfileBoosted } from "../controllers/subscription.controller.js";
 // import LoanStatus from "../../models/loanstatus.js";
 // import PlaidTokenTypes from "../../models/plaidtokentypes.js";
 // import UserLoanFullResource from "../loan/loan.resource.js";
@@ -211,7 +212,8 @@ async function getUserData(user, currentUser = null) {
         blockedByMe: blockedByMe,
         status: user.status,
         subscription: subscriptionDetails,
-        totalMatches: matchesCount
+        totalMatches: matchesCount,
+        isProfileBoosted: await isProfileBoosted(user.id)
     }
 
 
