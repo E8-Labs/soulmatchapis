@@ -12,7 +12,7 @@ import {RegisterUser, LoginUser, GetUserProfile, UpdateProfile,
 
     import {UploadIntroVideoInVideoController, UploadIntroVideos} from '../controllers/video.controller.js'
 
-import { StoreReceipt, AppleSubscriptionWebhook } from "../controllers/subscription.controller.js";
+import { StoreReceipt, AppleSubscriptionWebhook, ValidateInAppPurchase } from "../controllers/subscription.controller.js";
 
 
 userRouter.post("/register", RegisterUser);
@@ -22,6 +22,7 @@ userRouter.post("/create_thumbs", processUsers);
 userRouter.get("/get_profile", verifyJwtToken, GetUserProfile);
 
 userRouter.post("/store_receipt", verifyJwtToken, StoreReceipt);
+userRouter.post("/validate_purchase", verifyJwtToken, ValidateInAppPurchase);
 userRouter.post("/subscription_event", AppleSubscriptionWebhook);
 
 userRouter.post("/sendTestNot", sendTestNot);

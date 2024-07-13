@@ -51,13 +51,14 @@ import ProfileQuestionsModel from "./user/ProfileQuestions.model.js";
 import UserAnswerModel from "./user/UserAnswer.model.js";
 import NotificationModel from './user/notification.model.js';
 import DateReview from "./date/datereview.js";
+import Boost from "./user/boost.model.js";
 
 
 db.user = UserModel(sequelize, Sequelize);
 
 db.Subscription = Subscription(sequelize, Sequelize);
 db.SubscriptionHistory = SubscriptionHistory(sequelize, Sequelize);
-
+db.Boost = Boost(sequelize, Sequelize);
 
 //chat
 db.Chat = chatModel(sequelize, Sequelize);

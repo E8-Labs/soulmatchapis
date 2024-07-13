@@ -280,4 +280,61 @@ async function extractOriginalTransactionIdFromAppleReceipt(receipt, useSandbox 
     }
 }
 
+
+
+export const ValidateInAppPurchase = async(req, res) => {
+    const { receipt, productId } = req.body;
+    const REVENUECAT_API_KEY = process.env.RevenueCatApiKey
+
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (authData) {
+            try {
+                // Validate the receipt with RevenueCat
+                const response = await fetch(`https://api.revenuecat.com/v1/receipts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${REVENUECAT_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        receipt: receipt,
+                        product_id: productId,
+                    }),
+                });
+        
+                const data = await response.json();
+                console.log("Receipt validation from rev cat", data)
+                if (data.success) {
+                    // Purchase is valid, grant access
+                    const accessDuration = 3600 * 1000; // 1 hour in milliseconds
+                    let boosted = await db.Boost.create({
+                        userId: authData.user.id,
+                        product: productId,
+                        
+                    })
+                    res.json({
+                        success: true,
+                        accessDuration: accessDuration,
+                    });
+                } else {
+                    res.status(400).json({
+                        success: false,
+                        message: 'Purchase validation failed',
+                    });
+                }
+            } catch (error) {
+                console.error('Error validating purchase:', error);
+                res.status(500).json({
+                    success: false,
+                    message: 'Server error',
+                });
+            }
+        }
+        else{
+
+        }
+    })
+    
+};
+
 // module.exports = extractOriginalTransactionIdFromAppleReceipt;
