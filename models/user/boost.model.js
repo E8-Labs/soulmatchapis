@@ -20,14 +20,18 @@ const Boost = (sequelize, Sequelize) => {
     //   },
       product: Sequelize.STRING,
     //   status: Sequelize.STRING,
-    startDate: {
+    // startDate: {
+    //     type: Sequelize.STRING,
+    //     defaultValue: ''
+    //   },
+    //   endDate: {
+    //     type: Sequelize.STRING,
+    //     defaultValue: ''
+    //   },
+      originalPurchaseDate:{
         type: Sequelize.STRING,
-        defaultValue: ''
-      },
-      endDate: {
-        type: Sequelize.STRING,
-        defaultValue: ''
-      },
+        defaultValue: '',
+      }
     });
   
     

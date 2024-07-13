@@ -125,14 +125,33 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         //     notificationType = notification.notification_type;
         // }
         
+        
+        if(notificationType === "ONE_TIME_CHARGE"){
+            let boost = await db.Boost.findOne({
+                where: {
+                    originalPurchaseDate: originalPurchaseDate
+                }
+            })
+            if(!boost){
+                boost = await db.Boost.create({
+                    originalPurchaseDate: originalPurchaseDate,
+                    product: productId,
+
+                })
+            }
+            else{
+                boost.product = productId;
+                let saved = boost.save();
+            }
+
+            return res.status(200).send('Notification received & processed');
+        }
+
         const user = await User.findOne({ where: { originalPurchaseDate } });
 
         if (!user) {
             // return res.status(404).send('User not found');
             console.log("User not found")
-        }
-        if(notificationType === "ONE_TIME_CHARGE"){
-            return
         }
         let subscription = await db.Subscription.findOne({ where: { originalTransactionId: originalTransactionId, plan: productId } });
 
@@ -287,49 +306,56 @@ async function extractOriginalTransactionIdFromAppleReceipt(receipt, useSandbox 
 
 
 export const ValidateInAppPurchase = async(req, res) => {
-    const { receipt, productId } = req.body;
+    const { originalPurchaseDate, productId } = req.body;
     const REVENUECAT_API_KEY = process.env.RevenueCatApiKey
 
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (authData) {
             try {
                 // Validate the receipt with RevenueCat
-                const response = await fetch(`https://api.revenuecat.com/v1/receipts`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${REVENUECAT_API_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        receipt: receipt,
-                        product_id: productId,
-                    }),
-                });
+                // const response = await fetch(`https://api.revenuecat.com/v1/receipts`, {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //         'Authorization': `Bearer ${REVENUECAT_API_KEY}`,
+                //     },
+                //     body: JSON.stringify({
+                //         receipt: receipt,
+                //         product_id: productId,
+                //     }),
+                // });
         
-                const data = await response.json();
-                console.log("Receipt validation from rev cat", data)
-                if (data.success) {
+                // const data = await response.json();
+                // console.log("Receipt validation from rev cat", data)
+                let boost = await db.Boost.findOne({
+                    where: {
+                        originalPurchaseDate: originalPurchaseDate
+                    }
+                })
+
+                if (boost) {
                     // Purchase is valid, grant access
-                    const accessDuration = 3600 * 1000; // 1 hour in milliseconds
-                    let boosted = await db.Boost.create({
-                        userId: authData.user.id,
-                        product: productId,
+                    boost.userId = authData.user.id;
+                    // const accessDuration = 3600 * 1000; // 1 hour in milliseconds
+                    // let boosted = await db.Boost.create({
+                    //     userId: authData.user.id,
+                    //     product: productId,
                         
-                    })
+                    // })
                     res.json({
-                        success: true,
-                        accessDuration: accessDuration,
+                        status: true,
+                        message: "Profile boosted "
                     });
                 } else {
                     res.status(400).json({
-                        success: false,
+                        status: false,
                         message: 'Purchase validation failed',
                     });
                 }
             } catch (error) {
                 console.error('Error validating purchase:', error);
                 res.status(500).json({
-                    success: false,
+                    status: false,
                     message: 'Server error',
                 });
             }
