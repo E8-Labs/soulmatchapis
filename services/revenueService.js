@@ -67,7 +67,8 @@ const getMonthlySubscriptions = async (subscriptionType) => {
   const query = `
       SELECT 
           COUNT(*) AS numberOfSubscriptions, 
-          DATE_FORMAT(startDate, '%m-%Y') AS date
+          DATE_FORMAT(startDate, '%m-%Y') AS date,
+          DATE_FORMAT(startDate, '%b') AS monthName
       FROM 
           Subscriptions
       WHERE
@@ -98,12 +99,14 @@ export const fetchSubscriptionsData = async (subscriptionType) => {
 };
 
 
+//subscriptions
 const getMonthlyRevenue = async (subscriptionType) => {
   const planName = getPlanName(subscriptionType);
 
   const query = `
         SELECT 
             DATE_FORMAT(sh.changeDate, '%m-%Y') AS date,
+            DATE_FORMAT(sh.changeDate, '%b') AS monthName,
             SUM(
                 CASE 
                     WHEN s.plan = 'WeeklySubscriptionSoulmatch0623' THEN 5.99
@@ -144,6 +147,42 @@ export const fetchMonthlyRevenue = async (subscriptionType) => {
 };
 
 
+export const getMonthlyRevenueBoost = async () => {
+  // const planName = getPlanName(subscriptionType);
+
+  const query = `
+        SELECT 
+            DATE_FORMAT(bs.createdAt, '%m-%Y') AS date,
+            DATE_FORMAT(bs.createdAt, '%b') AS monthName,
+            SUM(
+                CASE 
+                    WHEN bs.product = 'BoostSoulmatch1' THEN 10.99
+                    WHEN bs.product = 'BoostSoulmatch5' THEN 29.95
+                    WHEN bs.product = 'BoostSoulmatch10' THEN 19.9
+                    ELSE 0
+                END
+            ) AS totalRevenue
+        FROM 
+            Boosts AS bs
+        
+        GROUP BY 
+            DATE_FORMAT(bs.createdAt, '%m-%Y')
+        ORDER BY 
+            bs.createdAt DESC;
+    `;
+
+    try {
+        const results = await db.sequelize.query(query, {
+            // replacements: { planName },
+            type: db.sequelize.QueryTypes.SELECT
+        });
+
+        return results;
+    } catch (error) {
+        console.error('Error fetching boost revenue:', error);
+        throw error;
+    }
+};
 
 
 
@@ -156,6 +195,7 @@ const getCurrentYearSubscriptionData = async () => {
   const query = `
       SELECT 
           DATE_FORMAT(sh.changeDate, '%m-%Y') AS month,
+          DATE_FORMAT(sh.changeDate, '%b') AS monthName,
           COUNT(DISTINCT CASE WHEN s.plan = 'free' THEN s.id END) AS freeUsers,
           COUNT(DISTINCT CASE WHEN s.plan = 'WeeklySubscriptionSoulmatch0623' THEN s.id END) AS weeklyUsers,
           COUNT(DISTINCT CASE WHEN s.plan = 'MonthlySubscriptionSoulmatch0623' THEN s.id END) AS monthlyUsers,

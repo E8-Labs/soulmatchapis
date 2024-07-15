@@ -23,7 +23,8 @@ import UserRole from "../models/userrole.js";
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
 import UserProfileLiteResource from "../resources/userprofileliteresource.js";
 import { fetchSubscriptionsData, fetchMonthlyRevenue, 
-  fetchCurrentYearSubscriptionData, fetchTotalPayingUsers } from "../services/revenueService.js";
+  fetchCurrentYearSubscriptionData, fetchTotalPayingUsers, 
+  getMonthlyRevenueBoost} from "../services/revenueService.js";
 
 
 const countUniqueDownloads = async (days) => {
@@ -204,6 +205,7 @@ export const AdminDashboard = (req, res) => {
       let yearlySubscriptionsData = await fetchSubscriptionsData("yearly")
       let subscriptionsData = {monthly: monthlySubscriptionsData, yearly: yearlySubscriptionsData, weekly: weeklySubscriptionsData}
 
+      const profileBoostRevenue = await getMonthlyRevenueBoost()
 
       let monthlyRevenueData = await fetchMonthlyRevenue("monthly")
       let weeklyRevenueData = await fetchMonthlyRevenue("weekly")
@@ -239,7 +241,7 @@ export const AdminDashboard = (req, res) => {
           subscriptionsData: subscriptionsData,
           revenueData: revenueData,
           payingAndFree: payingAndFree,
-          // active_users: dailyActiveUsers,
+          boostRevenue: profileBoostRevenue,
           paying: payingUsersData, free: free - payingUsersData, 
           recent_users: usersRes, 
           planned_dates: totalDatesPlanned, unique_users_planned_dates: totalUniqueUsers
