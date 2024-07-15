@@ -167,7 +167,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
             case 'SUBSCRIBED':
                 if (!subscription) {
                     subscription = await db.Subscription.create({
-                        // userId: user.id,
+                        userId: user ? user.id : null,
                         originalPurchaseDate: originalPurchaseDate,
                         originalTransactionId: originalTransactionId,
                         plan: productId,

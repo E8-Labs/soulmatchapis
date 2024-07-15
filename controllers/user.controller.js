@@ -629,6 +629,15 @@ export const UpdateProfile = async (req, res) => {
                 }
                 if (typeof req.body.originalPurchaseDate !== 'undefined') {
                     user.originalPurchaseDate = req.body.originalPurchaseDate;
+                    let sub = await db.Subscription.findOne({
+                        where:{
+                            originalPurchaseDate: req.body.originalPurchaseDate
+                        }
+                    })
+                    if(sub){
+                        sub.userId = authData.user.id;
+                        sub.save();
+                    }
                 }
 
                 if (typeof req.body.height_feet !== 'undefined') {

@@ -2,14 +2,14 @@
 // models/ReportedUsers.js
 const Subscription = (sequelize, Sequelize) => {
   const Subscription = sequelize.define("Subscription", {
-    // userId: {
-    //     type: Sequelize.INTEGER,
-    //     allowNull: true,
-    //     references: {
-    //       model: 'Users',
-    //       key: 'id'
-    //     }
-    //   },
+    userId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Users',
+          key: 'id'
+        }
+      },
     originalTransactionId: {
       type: Sequelize.STRING,
       default: ''
