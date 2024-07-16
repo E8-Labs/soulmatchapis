@@ -1,7 +1,7 @@
  const NotificationType = {
     TypeMessage: "Message",
     TypeNewUser: "NewUser",
-    TypeNewUser: "ReportedUser",
+    TypeReportedUser: "ReportedUser",
     TypeLike: "Like", 
     TypeDislike: "Dislike", 
     TypeMatch: "Match",
