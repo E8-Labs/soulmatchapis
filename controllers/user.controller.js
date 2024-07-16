@@ -399,10 +399,6 @@ export const LoginUser = async (req, res) => {
                     }
                     else {
                         let u = await UserProfileFullResource(user);
-                        // let isCustomer = await findCustomer(user)
-                        // //console.log("Already found ", isCustomer)
-                        // let customer = await createCustomer(user);
-                        // //console.log("Create customer response ", customer)
                         let loginRecorded = await db.dailyLogin.create({
                             UserId: user.id,
                             type: "Login"
@@ -416,7 +412,6 @@ export const LoginUser = async (req, res) => {
             }
         });
     }
-    // //////console.log(user);
 
 }
 
@@ -729,11 +724,12 @@ export const GetUserProfile = (req, res) => {
             }
             const user = await User.findByPk(userid);
 
-            let loginRecorded = await db.dailyLogin.create({
-                UserId: user.id,
-                type: "GetProfile"
-            })
+            
             if (user) {
+                let loginRecorded = await db.dailyLogin.create({
+                    UserId: user.id,
+                    type: "GetProfile"
+                })
                 let u = await UserProfileFullResource(user);
                 res.send({ status: true, message: "Profile ", data: u })
             }
