@@ -1602,7 +1602,7 @@ export const SendEmailVerificationCode = async (req, res) => {
             <div class="code">${randomCode}</div>
         </div>
         <div class="footer">
-            <p>If you did not request a password reset, please ignore this email. If you have any questions, please <a href="mailto:support@example.com">contact us</a>.</p>
+            <p>If you did not request a password reset, please ignore this email. If you have any questions, please <a href="mailto:salman@e8-labs.com">contact us</a>.</p>
         </div>
     </div>
 </body>

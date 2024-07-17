@@ -503,7 +503,7 @@ export const SendEmailInviteToDate = async (req, res) => {
             <p><b>Guests:</b> ${guests}</p>
         </div>
         <div class="footer">
-            <p>Thank you for using our service. If you have any questions, please <a href="mailto:support@example.com">contact us</a>.</p>
+            <p>Thank you for using our service. If you have any questions, please <a href="mailto:salman@e8-labs.com">contact us</a>.</p>
         </div>
     </div>
 </body>

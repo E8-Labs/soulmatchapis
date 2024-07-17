@@ -7,8 +7,6 @@
     TypeMatch: "Match",
     TypeDateInvite: "DateInvite",
     TypeDateInviteToAdmin: "DateInviteToAdmin",
-
-
 }
 
 export default NotificationType;

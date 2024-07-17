@@ -25,6 +25,9 @@ import UserProfileLiteResource from "../resources/userprofileliteresource.js";
 import { fetchSubscriptionsData, fetchMonthlyRevenue, 
   fetchCurrentYearSubscriptionData, fetchTotalPayingUsers, 
   getMonthlyRevenueBoost} from "../services/revenueService.js";
+import { SendUserSuspendedDeletedEmail } from "../services/emailService.js";
+
+
 
 
 const countUniqueDownloads = async (days) => {
@@ -560,7 +563,7 @@ export const SendPasswordResetEmail = (req, res) => {
             <div class="code">${randomCode}</div>
         </div>
         <div class="footer">
-            <p>If you did not request a password reset, please ignore this email. If you have any questions, please <a href="mailto:support@example.com">contact us</a>.</p>
+            <p>If you did not request a password reset, please ignore this email. If you have any questions, please <a href="mailto:salman@e8-labs.com">contact us</a>.</p>
         </div>
     </div>
 </body>
@@ -626,118 +629,133 @@ export const IgnoreFlaggedUser = async (req, res) => {
   })
 }
 
-export const deleteUserById = (req, res) => {
+export const deleteUserById = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       const adminUserId = authData.user.id; // User making the request
       const userIdToDelete = req.body.userId; // User being deleted
+      let transaction;
 
       try {
-        const transaction = await db.sequelize.transaction();
+        // transaction = await db.sequelize.transaction();
+
         // Check if the requesting user is an admin
         const adminUser = await db.user.findByPk(adminUserId);
         if (!adminUser || adminUser.role !== 'admin') {
+          // await transaction.rollback();
           return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
         }
 
         // Check if the user to be deleted exists
         const userToDelete = await db.user.findByPk(userIdToDelete);
         if (!userToDelete) {
+          // await transaction.rollback();
           return res.status(404).send({ status: false, message: 'User not found.' });
         }
 
-
-
-        //Delete all the data of the user
-        let likesDeleted = await db.profileLikes.destroy({
+        // Delete all the data of the user
+        await db.profileLikes.destroy({
           where: {
             [Op.or]: {
               from: userIdToDelete,
-              to: userIdToDelete
-            }
+              to: userIdToDelete,
+            },
           },
-          transaction
-        })
+          // transaction,
+        });
 
-        let matchesDeleted = await db.profileMatches.destroy({
+        await db.profileMatches.destroy({
           where: {
             [Op.or]: {
               user_1_id: userIdToDelete,
-              user_2_id: userIdToDelete
-            }
+              user_2_id: userIdToDelete,
+            },
           },
-          transaction
-        })
+          // transaction,
+        });
 
-        let ReportsDeleted = await db.ReportedUsers.destroy({
+        await db.ReportedUsers.destroy({
           where: {
             [Op.or]: {
               reportedUserId: userIdToDelete,
-              reportingUserId: userIdToDelete
-            }
+              reportingUserId: userIdToDelete,
+            },
           },
-          transaction
-        })
+          // transaction,
+        });
 
-        let BlocksDeleted = await db.BlockedUsers.destroy({
+        await db.BlockedUsers.destroy({
           where: {
             [Op.or]: {
               blockedUserId: userIdToDelete,
-              blockingUserId: userIdToDelete
-            }
+              blockingUserId: userIdToDelete,
+            },
           },
-          transaction
-        })
+          // transaction,
+        });
 
-        let NotificationsDeleted = await db.NotificationModel.destroy({
+        await db.NotificationModel.destroy({
           where: {
             [Op.or]: {
               from: userIdToDelete,
-              to: userIdToDelete
-            }
+              to: userIdToDelete,
+            },
           },
-          transaction
-        })
+          // transaction,
+        });
 
         const chatUsers = await db.ChatUser.findAll({
           where: { UserId: userIdToDelete },
           attributes: ['chatId'],
           raw: true,
-          transaction
+          // transaction,
         });
 
-        const chatIds = chatUsers.map(cu => cu.chatId);
+        const chatIds = chatUsers.map((cu) => cu.chatId);
 
         // Delete all messages associated with the user's chats
         await db.Message.destroy({
           where: { chatId: chatIds },
-          transaction
+          // transaction,
         });
 
         // Delete all ChatUser associations
         await db.ChatUser.destroy({
           where: { UserId: userIdToDelete },
-          transaction
+          // transaction,
         });
 
         // Delete all chats where the user is the only participant
         await db.Chat.destroy({
           where: { id: chatIds },
-          transaction
+          // transaction,
         });
 
-        await db.user.update({ status: "deleted" }, {
-          where: {
-            id: userIdToDelete
-          },
-          transaction
-        })
+        await db.user.update(
+          { status: 'deleted' },
+          {
+            where: {
+              id: userIdToDelete,
+            },
+            // transaction,
+          }
+        );
 
-        await transaction.commit();
+        await SendUserSuspendedDeletedEmail({ user: userToDelete, type: 'deleted' });
+        // await transaction.commit();
+
         res.send({ status: true, message: 'User deleted successfully.' });
       } catch (err) {
+        if (transaction && !transaction.finished) {
+          // await transaction.rollback();
+        }
+        
         console.error('Error deleting user:', err);
-        res.status(500).send({ status: false, message: 'An error occurred while deleting the user.', error: err.message });
+        res.status(500).send({
+          status: false,
+          message: 'An error occurred while deleting the user.',
+          error: err.message,
+        });
       }
     } else if (error) {
       console.error('JWT verification error:', error);
@@ -747,6 +765,9 @@ export const deleteUserById = (req, res) => {
     }
   });
 };
+
+
+
 
 export const suspendUserById = (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -770,6 +791,8 @@ export const suspendUserById = (req, res) => {
         // Suspend the user
         userToSuspend.status = 'suspended';
         await userToSuspend.save();
+
+        await SendUserSuspendedDeletedEmail({user: userToSuspend, type: "suspended"})
 
         res.send({ status: true, message: 'User suspended successfully.', data: userToSuspend });
       } catch (err) {
