@@ -3,7 +3,7 @@ import multer from 'multer';
 const dateRouter = express.Router();
 import {verifyJwtToken}  from "../middleware/jwtmiddleware.js";
 import { addDatePlace, listDatePlaces, addBooking, addCategory, deleteCategory, loadCategories, deleteDatePlace,
-    UpdateDatePlace, SendEmailInviteToDate, AddReview } from "../controllers/date.controller.js";
+    UpdateDatePlace, SendEmailInviteToDate, AddReview, GetDatePlace } from "../controllers/date.controller.js";
 
 
 
@@ -20,6 +20,7 @@ dateRouter.post("/update_date_place", verifyJwtToken, UpdateDatePlace);
 
 dateRouter.get("/get_categories", verifyJwtToken, loadCategories);
 dateRouter.get("/get_date_places", verifyJwtToken, listDatePlaces);
+dateRouter.get("/get_date_detail", verifyJwtToken, GetDatePlace);
 
 
 

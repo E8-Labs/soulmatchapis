@@ -87,26 +87,8 @@ export const addDatePlace = (req, res) => {
                     rating: 5
                 });
                 let Cat = await db.Category.findByPk(categoryId)
-                let backData = await BookingResource(datePlace)
-                // {
-                //     id: datePlace.id,
-                //     name,
-                //     imageUrl,
-                //     CategoryId: categoryId,
-                //     minBudget,
-                //     maxBudget,
-                //     openTime,
-                //     closeTime,
-                //     address,
-                //     latitude,
-                //     longitude,
-                //     description,
-                //     city, 
-                //     state,
-                //     rating: 5,
-                //     Category: {name: Cat.name, id: Cat.id}
-                // }
-                // datePlace.Category = {name: Cat.name, id: Cat.id};
+                let backData = await DateResource(datePlace)
+                
 
                 res.send({ status: true, message: 'Date place added successfully.', data: backData });
             });
@@ -116,6 +98,23 @@ export const addDatePlace = (req, res) => {
         }
     });
 };
+
+export const GetDatePlace = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        let date = await db.DatePlace.findByPk(req.query.dateId)
+        if(date){
+            let dateRes = await DateResource(date)
+            return res.json({status: true, message: "date place", data: dateRes})
+        }
+        else{
+            return res.json({status: false, message: "date place", data: null})
+        }
+    })
+}
 
 
 export const UpdateDatePlace = async (req, res) => {
@@ -191,7 +190,7 @@ export const UpdateDatePlace = async (req, res) => {
             await datePlace.save();
 
             // let Cat = await db.Category.findByPk(categoryId)
-                let backData =  await BookingResource(datePlace)
+                let backData =  await DateResource(datePlace)
                 // {
                 //     id: datePlace.id,
                 //     name: name || datePlace.name,
