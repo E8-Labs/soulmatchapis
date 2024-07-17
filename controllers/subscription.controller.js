@@ -206,6 +206,17 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         status: 'canceled',
                         changeDate: new Date(),
                     });
+                    let user = await db.user.findOne({
+                        where:{
+                            originalPurchaseDate: originalPurchaseDate
+                        }
+                    })
+                    if(!user && subscription.userId != null){
+                        console.log("Getting user by id in cancelled webhook")
+                        user = await db.user.findByPk(subscription.userId)
+                    }
+                    user.plan_status = "free";
+                    let saved = await user.save();
                     // user.subscriptionStatus = 'canceled';
                 }
                 break;
@@ -224,6 +235,17 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         environment: environment,
                         changeDate: new Date(),
                     });
+                    let user = await db.user.findOne({
+                        where:{
+                            originalPurchaseDate: originalPurchaseDate
+                        }
+                    })
+                    if(!user && subscription.userId != null){
+                        console.log("Getting user by id in auto renewal disabled webhook")
+                        user = await db.user.findByPk(subscription.userId)
+                    }
+                    user.plan_status = "free";
+                    let saved = await user.save();
                     // user.subscriptionStatus = 'canceled';
                 }
                 break;
@@ -242,6 +264,18 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         environment: environment,
                         changeDate: new Date(),
                     });
+                    let user = await db.user.findOne({
+                        where:{
+                            originalPurchaseDate: originalPurchaseDate
+                        }
+                    })
+                    if(!user && subscription.userId != null){
+                        console.log("Getting user by id in expired webhook")
+                        user = await db.user.findByPk(subscription.userId)
+                    }
+                    user.plan_status = "free";
+                    let saved = await user.save();
+                    
                     // user.subscriptionStatus = 'canceled';
                 }
                 break;

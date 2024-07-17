@@ -3,6 +3,20 @@ const Op  = db.Sequelize.Op
 import moment from 'moment';
 import jwt from 'jsonwebtoken'; // Install this package
 
+
+export const getPlanNameFromSubscriptionId = (plan) => {
+  switch (plan) {
+    case 'WeeklySubscriptionSoulmatch0623':
+      return 'weekly';
+    case 'MonthlySubscriptionSoulmatch0623':
+      return 'monthly';
+    case 'YearlySubscriptionSoulmatch0623':
+      return 'yearly';
+    default:
+      return "free"
+      // throw new Error('Invalid subscription type');
+  }
+};
 export async function getSubscriptionDetails(user) {
   // const user = await db.user.findByPk(user.id);
 

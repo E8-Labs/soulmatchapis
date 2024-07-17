@@ -412,7 +412,7 @@ export const GetUsers = (req, res) => {
         searchQuery.state = state;
       }
       if (plan) {
-        searchQuery.plan_status = plan;
+        // searchQuery.plan_status = plan;
       }
       searchQuery.role = {[Op.ne]: 'admin'}
       searchQuery.status = 'active'

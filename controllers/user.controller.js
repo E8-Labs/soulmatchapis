@@ -26,6 +26,7 @@ import NotificationResource from "../resources/notification.resource.js";
 import { createNotification } from "../utilities/notificationutility.js";
 import { Sequelize } from "sequelize";
 import { sendNot, sendNotWithUser } from "./push.controller.js";
+import { getPlanNameFromSubscriptionId } from "../services/subscriptionService.js";
 
 const generateThumbnail = (videoPath, thumbnailPath) => {
     return new Promise((resolve, reject) => {
@@ -551,8 +552,11 @@ export const UpdateProfile = async (req, res) => {
                             originalPurchaseDate: req.body.originalPurchaseDate
                         }
                     })
+
                     if(sub){
+                        let planName = getPlanNameFromSubscriptionId(sub.plan)
                         sub.userId = authData.user.id;
+                        user.plan_status = planName
                         sub.save();
                     }
                 }
