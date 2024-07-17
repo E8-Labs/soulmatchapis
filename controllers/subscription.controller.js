@@ -164,7 +164,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         //     console.log("User not found")
         // }
         let subscription = await db.Subscription.findOne({ where: { originalTransactionId: originalTransactionId, plan: productId } });
-
+        let user = null;
         switch (notificationType) {
             case 'INITIAL_BUY':
             case 'DID_RENEW':
