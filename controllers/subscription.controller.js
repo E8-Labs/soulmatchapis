@@ -123,6 +123,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
         let subtype = data.subtype;
         let environment = transactionInfo.environment;
         let price = transactionInfo.price;
+        let currency = transactionInfo.currency;
         originalPurchaseDate = transactionInfo.originalPurchaseDate;
         console.log("Not Type ", notificationType)
         // } else {
@@ -177,10 +178,11 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         status: 'active',
                         startDate: new Date(purchaseDate),
                         endDate: new Date(expiresDate),
+                        
                     });
                 } else {
                     subscription.status = 'renewed';
-
+                    
                     subscription.originalPurchaseDate = originalPurchaseDate
                     subscription.endDate = new Date(expiresDate);
                     await subscription.save();
@@ -192,6 +194,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                     price: price,
                     environment: environment,
                     status: 'renewed',
+                    currency: currency,
                     changeDate: new Date(),
                 });
                 // user.subscriptionStatus = 'renewed';
@@ -207,6 +210,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         subtype: subtype,
                         subscriptionId: subscription.id,
                         status: 'canceled',
+                        currency: currency,
                         changeDate: new Date(),
                     });
                     let user = await db.user.findOne({
@@ -235,6 +239,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         subscriptionId: subscription.id,
                         status: 'canceled',
                         price: price,
+                        currency: currency,
                         environment: environment,
                         changeDate: new Date(),
                     });
@@ -264,6 +269,7 @@ export const AppleSubscriptionWebhook = async (req, res) => {
                         subscriptionId: subscription.id,
                         status: 'expired',
                         price: price,
+                        currency: currency,
                         environment: environment,
                         changeDate: new Date(),
                     });

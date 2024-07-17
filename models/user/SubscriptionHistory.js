@@ -24,6 +24,10 @@ const SubscriptionHistory = (sequelize, Sequelize) => {
       type: Sequelize.DOUBLE,
       defaultValue: 0,
     },
+    currency: {
+      type: Sequelize.STRING,
+      defaultValue: 'USD',
+    },
     status: Sequelize.STRING,
     nottype: {
       type: Sequelize.STRING,
