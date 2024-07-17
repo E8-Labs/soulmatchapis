@@ -1090,13 +1090,21 @@ export const getUserNotifications = async (req, res) => {
                     offset: offset,
                     limit: 50,
                     include: [{
-                        model: db.user,
-                        as: "fromUser",
-                        attributes: ['id', 'first_name', 'last_name', 'profile_image']
+                      model: db.user,
+                      as: 'fromUser',
+                      attributes: ['id', 'first_name', 'last_name', 'profile_image'],
+                      where: {
+                        id: {
+                          [Op.ne]: null
+                        }
+                      }
                     }]
-                });
+                  });
+                  
 
-                res.send({ status: true, message: 'Notifications fetched successfully.', data: notifications });
+                let notRes = await NotificationResource(notifications, authData.user)
+
+                res.send({ status: true, message: 'Notifications fetched successfully.', data: notRes });
             } catch (err) {
                 console.error('Error fetching notifications:', err);
                 res.status(500).send({ status: false, message: 'An error occurred while fetching notifications.', error: err.message });

@@ -25,7 +25,7 @@ const UserProfileExtraLiteResource = async (user, currentUser = null) => {
 }
 
 async function getUserData(user, currentUser = null) {
-
+// console.log("Get profile ", user)
 
     var blockedByMe = false;
     if(currentUser){
