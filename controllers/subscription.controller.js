@@ -87,7 +87,7 @@ export const StoreReceipt = async (req, res) => {
 //Sandbox mode
 export const AppleSubscriptionWebhook = async (req, res) => {
     const notification = req.body;
-    // console.log("Notficatiion rev cat ", notification)
+    console.log("Notficatiion rev cat ")
     if (!notification) {
         return res.status(400).send('No notification body');
     }
