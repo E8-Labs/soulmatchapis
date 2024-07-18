@@ -26,6 +26,8 @@ const DateReview = (sequelize, Sequelize) => {
         allowNull: false
       }
     });
+
+    
   
     return DateReview;
   };

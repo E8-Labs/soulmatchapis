@@ -219,7 +219,6 @@ export const UpdateDatePlace = async (req, res) => {
 }
 
 
-
 export const listDatePlaces = async (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (error) {
@@ -237,59 +236,64 @@ export const listDatePlaces = async (req, res) => {
             }
 
             const limit = 40;
-            let searchQuery = {};
+            let searchQuery = `WHERE 1=1`;
 
             if (req.query.search) {
-                const searchTerm = req.query.search;
-                searchQuery = {
-                    [Op.or]: [
-                        { description: { [Op.like]: `%${searchTerm}%` } },
-                        { address: { [Op.like]: `%${searchTerm}%` } },
-                        { name: { [Op.like]: `%${searchTerm}%` } }
-                    ]
-                };
+                const searchTerm = `%${req.query.search}%`;
+                searchQuery += ` AND (dp.description LIKE :searchTerm OR dp.address LIKE :searchTerm OR dp.name LIKE :searchTerm)`;
             }
 
             if (req.query.category) {
-                searchQuery.CategoryId = req.query.category;
+                searchQuery += ` AND dp.CategoryId = :category`;
             }
 
             if (req.query.city) {
-                searchQuery.city = { [Op.like]: `%${req.query.city}%` };
+                searchQuery += ` AND dp.city LIKE :city`;
             }
 
             if (req.query.state) {
-                searchQuery.state = { [Op.like]: `%${req.query.state}%` };
+                searchQuery += ` AND dp.state LIKE :state`;
             }
 
             if (req.query.minBudget) {
-                searchQuery.minBudget = { [Op.lte]: parseFloat(req.query.minBudget) };
+                searchQuery += ` AND dp.minBudget <= :minBudget`;
             }
 
             if (req.query.maxBudget) {
-                searchQuery.maxBudget = { [Op.gte]: parseFloat(req.query.maxBudget) };
+                searchQuery += ` AND dp.maxBudget >= :maxBudget`;
             }
 
-            if (req.query.minRating) {
-                searchQuery.rating = { [Op.gte]: parseFloat(req.query.minRating) };
-            }
+            const query = `
+                SELECT dp.*, AVG(dr.rating) AS avgRating, c.name AS categoryName
+                FROM DatePlaces dp
+                LEFT JOIN DateReviews dr ON dp.id = dr.placeId
+                LEFT JOIN Categories c ON dp.CategoryId = c.id
+                ${searchQuery}
+                GROUP BY dp.id
+                HAVING 1=1
+                ${req.query.minRating ? `AND avgRating >= :minRating` : ''}
+                ${req.query.maxRating ? `AND avgRating <= :maxRating` : ''}
+                ORDER BY dp.id DESC
+                LIMIT :limit OFFSET :offset;
+            `;
 
-            if (req.query.maxRating) {
-                searchQuery.rating = { [Op.lte]: parseFloat(req.query.maxRating) };
-            }
-
-            const datePlacesData = await db.DatePlace.findAll({
-                where: searchQuery,
-                offset: offset,
-                limit: limit,
-                include: [
-                    {
-                        model: db.Category,
-                        attributes: ['name', 'id']
-                    }
-                ]
+            const datePlacesData = await db.sequelize.query(query, {
+                replacements: {
+                    searchTerm: `%${req.query.search || ''}%`,
+                    category: req.query.category,
+                    city: `%${req.query.city || ''}%`,
+                    state: `%${req.query.state || ''}%`,
+                    minBudget: parseFloat(req.query.minBudget),
+                    maxBudget: parseFloat(req.query.maxBudget),
+                    minRating: parseFloat(req.query.minRating),
+                    maxRating: parseFloat(req.query.maxRating),
+                    limit: limit,
+                    offset: offset
+                },
+                type: db.Sequelize.QueryTypes.SELECT
             });
-            const datePlaces = await DateResource(datePlacesData)
+
+            const datePlaces = await DateResource(datePlacesData);
 
             if (adminUser.role === 'admin' || showAll) {
                 res.send({ status: true, message: "Date places fetched successfully", data: datePlaces });
@@ -330,6 +334,10 @@ export const listDatePlaces = async (req, res) => {
         }
     });
 };
+
+
+
+
 export const addBooking = (req, res) => {
     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
         if (error) {

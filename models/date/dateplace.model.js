@@ -62,6 +62,7 @@ const DatePlaceModel = (sequelize, Sequelize) => {
                 allowNull: false
             }
         });
+        
     };
 
     return DatePlace;
