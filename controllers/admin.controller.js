@@ -634,6 +634,7 @@ export const deleteUserById = async (req, res) => {
     if (authData) {
       const adminUserId = authData.user.id; // User making the request
       const userIdToDelete = req.body.userId; // User being deleted
+      let permanent = req.body.permanentDelete || false
       let transaction;
 
       try {
@@ -731,15 +732,26 @@ export const deleteUserById = async (req, res) => {
           // transaction,
         });
 
-        await db.user.update(
-          { status: 'deleted' },
-          {
+        if(permanent){
+          console.log("Permanently deleted")
+          await db.user.destroy({
             where: {
-              id: userIdToDelete,
-            },
-            // transaction,
-          }
-        );
+              id: userIdToDelete
+            }
+          })
+        }
+        else{
+          console.log("Temporarily deleted")
+          await db.user.update(
+            { status: 'deleted' },
+            {
+              where: {
+                id: userIdToDelete,
+              },
+              // transaction,
+            }
+          );
+        }
 
         await SendUserSuspendedDeletedEmail({ user: userToDelete, type: 'deleted' });
         // await transaction.commit();
