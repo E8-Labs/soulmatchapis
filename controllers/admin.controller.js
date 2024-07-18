@@ -734,6 +734,15 @@ export const deleteUserById = async (req, res) => {
 
         if(permanent){
           console.log("Permanently deleted")
+          await db.userAnswers.destroy({
+            where: { userId: userIdToDelete },
+            // transaction,
+          });
+          await db.userMedia.destroy({
+            where: { userId: userIdToDelete },
+            // transaction,
+          });
+          
           await db.user.destroy({
             where: {
               id: userIdToDelete
