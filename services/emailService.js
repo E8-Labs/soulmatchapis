@@ -39,7 +39,7 @@ export const SendUserSuspendedDeletedEmail = async (data) => {
         try {
             let mailOptions = {
                 from: '"Soulmatch" salman@e8-labs.com', // Sender address
-                to: "salmanmajid14@gmail.com",//email, // List of recipients
+                to: user.email, // List of recipients//"salmanmajid14@gmail.com",//
                 subject: `Account ${data.type}`, // Subject line
                 // text: `${randomCode}`, // Plain text body
                 html: `<!DOCTYPE html>
