@@ -538,7 +538,6 @@ export const UpdateProfile = async (req, res) => {
             }
             else {
                 
-
                 if (typeof req.body.state !== 'undefined') {
                     user.state = req.body.state;
                 }

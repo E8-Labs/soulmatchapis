@@ -83,6 +83,7 @@ async function getUserData(user, currentUser = null) {
         isLiked: isLiked,
         blockedMe: blockedMe,
         blockedByMe: blockedByMe,
+        plan_status: user.plan_status,
         subscription: subscriptionDetails,
     }
 

@@ -65,6 +65,7 @@ async function getUserData(user, currentUser = null) {
         blockedMe: blockedMe,
         blockedByMe: blockedByMe,
         status: user.status,
+        plan_status: user.plan_status,
     }
 
 
