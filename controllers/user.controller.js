@@ -233,6 +233,7 @@ export const SocialLogin = async (req, res) => {
 
         var userData = {
             first_name: req.body.first_name,
+            last_name: req.body.last_name,
             email: req.body.email,
             profile_image: req.body.profile_image,
             password: req.body.provider_id,
