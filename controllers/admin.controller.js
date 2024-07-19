@@ -8,7 +8,7 @@ import moment from "moment-timezone";
 import axios from "axios";
 import chalk from "chalk";
 import nodemailer from 'nodemailer'
-
+import pusher from '../utilities/pusher.js'
 import crypto from 'crypto'
 // import { fetchOrCreateUserToken } from "./plaid.controller.js";
 // const fs = require("fs");
@@ -763,6 +763,9 @@ export const deleteUserById = async (req, res) => {
         }
 
         await SendUserSuspendedDeletedEmail({ user: userToDelete, type: 'deleted' });
+        if(adminUser.role === "admin"){
+          pusher.trigger(`UserDeletedSuspended-${userIdToDelete}`, `deleted`, { message: "User is deleted by admin" });
+        }
         // await transaction.commit();
 
         res.send({ status: true, message: 'User deleted successfully.' });
@@ -814,7 +817,9 @@ export const suspendUserById = (req, res) => {
         await userToSuspend.save();
 
         await SendUserSuspendedDeletedEmail({user: userToSuspend, type: "suspended"})
-
+        if(adminUser.role === "admin"){
+          pusher.trigger(`UserDeletedSuspended-${userIdToSuspend}`, `suspended`, { message: "User is suspended by admin" });
+        }
         res.send({ status: true, message: 'User suspended successfully.', data: userToSuspend });
       } catch (err) {
         console.error('Error suspending user:', err);
