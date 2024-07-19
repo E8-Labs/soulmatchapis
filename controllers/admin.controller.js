@@ -222,7 +222,7 @@ export const AdminDashboard = (req, res) => {
 // console.log("Sub data ", subscriptionsData)
       // let totalDownloads = await uniqueDownloads(30);
       // let dailyActiveUsers = await fetchLoginActivity()
-      const free = await db.user.count({
+      const total = await db.user.count({
         where: {
           id: { [Op.gte]: 0 }
         }
@@ -245,7 +245,7 @@ export const AdminDashboard = (req, res) => {
           revenueData: revenueData,
           payingAndFree: payingAndFree,
           boostRevenue: profileBoostRevenue,
-          paying: payingUsersData, free: free - payingUsersData, 
+          paying: payingUsersData, free: total - payingUsersData, 
           recent_users: usersRes, 
           planned_dates: totalDatesPlanned, unique_users_planned_dates: totalUniqueUsers
         }

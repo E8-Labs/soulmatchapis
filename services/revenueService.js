@@ -237,7 +237,7 @@ const getTotalUsersAndPayingUsers = async () => {
   const query = `
       SELECT 
           (SELECT COUNT(*) FROM Subscriptions) AS totalUsers,
-          (SELECT COUNT(*) FROM Subscriptions WHERE plan IN ('WeeklySubscriptionSoulmatch0623', 'MonthlySubscriptionSoulmatch0623', 'YearlySubscriptionSoulmatch0623')) AS totalPayingUsers
+          (SELECT COUNT(*) FROM Subscriptions WHERE status = 'active' AND plan IN ('WeeklySubscriptionSoulmatch0623', 'MonthlySubscriptionSoulmatch0623', 'YearlySubscriptionSoulmatch0623')) AS totalPayingUsers
   `;
 
   try {
