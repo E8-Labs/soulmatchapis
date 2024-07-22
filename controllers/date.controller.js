@@ -156,7 +156,16 @@ export const UpdateDatePlace = async (req, res) => {
                 datePlace.imageUrl = s3Data.Location;
             }
 
-            // Prepare update data
+            // Convert categoryId to an integer if it is provided
+            let parsedCategoryId;
+            if (categoryId != null && categoryId !== undefined) {
+                parsedCategoryId = parseInt(categoryId);
+                if (isNaN(parsedCategoryId)) {
+                    return res.status(400).send({ status: false, message: 'Invalid categoryId provided.' });
+                }
+            }
+
+            // Update the date place details using the update method
             const updateData = {
                 name: name || datePlace.name,
                 city: city || datePlace.city,
@@ -169,17 +178,17 @@ export const UpdateDatePlace = async (req, res) => {
                 latitude: latitude || datePlace.latitude,
                 longitude: longitude || datePlace.longitude,
                 description: description || datePlace.description,
-                imageUrl: datePlace.imageUrl
+                imageUrl: datePlace.imageUrl,
+                categoryId: parsedCategoryId || datePlace.categoryId
             };
 
-            if (categoryId != null && typeof categoryId !== 'undefined') {
-                updateData.categoryId = parseInt(categoryId);
-            }
+            console.log("Update data: ", updateData);
 
-            // Update the date place details using the update method
-            await datePlace.update(updateData);
+            await db.DatePlace.update(updateData, {
+                where: { id: id }
+            });
 
-            console.log("Updated categoryId: ", datePlace.categoryId);
+            console.log("Updated categoryId (post-update): ", updateData.categoryId);
 
             // Fetch the updated instance including the associated Category
             const updatedDatePlace = await db.DatePlace.findByPk(id, { include: [db.Category] });
@@ -191,6 +200,7 @@ export const UpdateDatePlace = async (req, res) => {
         }
     });
 }
+
 
 
 
