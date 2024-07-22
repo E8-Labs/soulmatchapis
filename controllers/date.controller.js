@@ -164,7 +164,12 @@ export const UpdateDatePlace = async (req, res) => {
             datePlace.name = name || datePlace.name;
             datePlace.city = city || datePlace.city;
             datePlace.state = state || datePlace.state;
-            datePlace.categoryId = categoryId || datePlace.categoryId;
+            if(typeof categoryId == "string"){
+                datePlace.categoryId = parseInt(categoryId) || datePlace.categoryId;
+            }
+            else{
+                datePlace.categoryId = categoryId || datePlace.categoryId;
+            }
             let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
             datePlace.Category = {name: Cat.name, id: Cat.id};
             console.log("Parsing min budget ", minBudget)
