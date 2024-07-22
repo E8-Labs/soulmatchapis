@@ -117,94 +117,6 @@ export const GetDatePlace = async (req, res) => {
 }
 
 
-export const UpdateDatePlace = async (req, res) => {
-    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-        if (error) {
-            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
-        }
-
-        const adminUserId = authData.user.id;
-
-        try {
-            const adminUser = await db.user.findByPk(adminUserId);
-            if (!adminUser || adminUser.role !== 'admin') {
-                return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
-            }
-
-            const { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state } = req.body;
-            console.log("Received data: ", req.body);
-
-            // Find the date place by ID
-            const datePlace = await db.DatePlace.findByPk(id);
-
-            if (!datePlace) {
-                return res.status(404).send({ status: false, message: 'Date place not found.' });
-            }
-
-            // If a file is uploaded, upload it to AWS S3
-            if (req.file) {
-                const file = req.file;
-                const params = {
-                    Bucket: process.env.Bucket,
-                    Key: `date_places/${Date.now()}_${file.originalname}`,
-                    Body: file.buffer,
-                    ContentDisposition: 'inline',
-                    ContentType: file.mimetype
-                };
-
-                const s3Data = await s3.upload(params).promise();
-                datePlace.imageUrl = s3Data.Location;
-            }
-
-            // Convert categoryId to an integer if it is provided
-            let parsedCategoryId;
-            if (categoryId != null && categoryId !== undefined) {
-                parsedCategoryId = parseInt(categoryId);
-                if (isNaN(parsedCategoryId)) {
-                    return res.status(400).send({ status: false, message: 'Invalid categoryId provided.' });
-                }
-            }
-
-            // Update the date place details using the update method
-            const updateData = {
-                name: name || datePlace.name,
-                city: city || datePlace.city,
-                state: state || datePlace.state,
-                minBudget: minBudget != null ? parseInt(minBudget) : datePlace.minBudget,
-                maxBudget: maxBudget != null ? parseInt(maxBudget) : datePlace.maxBudget,
-                openTime: openTime || datePlace.openTime,
-                closeTime: closeTime || datePlace.closeTime,
-                address: address || datePlace.address,
-                latitude: latitude || datePlace.latitude,
-                longitude: longitude || datePlace.longitude,
-                description: description || datePlace.description,
-                imageUrl: datePlace.imageUrl,
-                categoryId: parsedCategoryId || datePlace.categoryId
-            };
-
-            console.log("Update data: ", updateData);
-
-            await db.DatePlace.update(updateData, {
-                where: { id: id }
-            });
-
-            console.log("Updated categoryId (post-update): ", updateData.categoryId);
-
-            // Fetch the updated instance including the associated Category
-            const updatedDatePlace = await db.DatePlace.findByPk(id, { include: [db.Category] });
-
-            res.send({ status: true, message: 'Date place updated successfully.', data: updatedDatePlace });
-        } catch (err) {
-            console.error('Error updating date place:', err);
-            res.status(500).send({ status: false, message: 'An error occurred while updating the date place.', error: err.message });
-        }
-    });
-}
-
-
-
-
-
 // export const UpdateDatePlace = async (req, res) => {
 //     JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
 //         if (error) {
@@ -219,12 +131,11 @@ export const UpdateDatePlace = async (req, res) => {
 //                 return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
 //             }
 
-//             // const {  } = req.params;
 //             const { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state } = req.body;
-//             const data = { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state }
-//             console.log("Data is ", data)
+//             console.log("Received data: ", req.body);
+
 //             // Find the date place by ID
-//             let datePlace = await db.DatePlace.findByPk(id);
+//             const datePlace = await db.DatePlace.findByPk(id);
 
 //             if (!datePlace) {
 //                 return res.status(404).send({ status: false, message: 'Date place not found.' });
@@ -241,74 +152,163 @@ export const UpdateDatePlace = async (req, res) => {
 //                     ContentType: file.mimetype
 //                 };
 
-//                 const data = await s3.upload(params).promise();
-//                 datePlace.imageUrl = data.Location;
-//             }
-//             else{
-//                 datePlace.imageUrl = datePlace.imageUrl;
+//                 const s3Data = await s3.upload(params).promise();
+//                 datePlace.imageUrl = s3Data.Location;
 //             }
 
-//             // Update the date place details
-//             datePlace.name = name || datePlace.name;
-//             datePlace.city = city || datePlace.city;
-//             datePlace.state = state || datePlace.state;
-//             console.log("Category id type ", typeof categoryId)
-//             if (categoryId != null && typeof categoryId !== 'undefined') {
-//                 datePlace.categoryId = parseInt(categoryId);
-//                 console.log("Updated categoryId: ", datePlace.categoryId);
+//             // Convert categoryId to an integer if it is provided
+//             let parsedCategoryId;
+//             if (categoryId != null && categoryId !== undefined) {
+//                 parsedCategoryId = parseInt(categoryId);
+//                 if (isNaN(parsedCategoryId)) {
+//                     return res.status(400).send({ status: false, message: 'Invalid categoryId provided.' });
+//                 }
 //             }
-//             let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
-//             // datePlace.Category = {name: Cat.name, id: Cat.id};
-//             // console.log("Parsing min budget ", minBudget)
-//             // console.log("Already min budget ", datePlace.minBudget)
 
-//             console.log("Parsing max budget ", maxBudget)
-//             console.log("Already max budget ", datePlace.maxBudget)
-//             datePlace.minBudget = parseInt(minBudget);
-//             datePlace.maxBudget = parseInt(maxBudget);
+//             // Update the date place details using the update method
+//             const updateData = {
+//                 name: name || datePlace.name,
+//                 city: city || datePlace.city,
+//                 state: state || datePlace.state,
+//                 minBudget: minBudget != null ? parseInt(minBudget) : datePlace.minBudget,
+//                 maxBudget: maxBudget != null ? parseInt(maxBudget) : datePlace.maxBudget,
+//                 openTime: openTime || datePlace.openTime,
+//                 closeTime: closeTime || datePlace.closeTime,
+//                 address: address || datePlace.address,
+//                 latitude: latitude || datePlace.latitude,
+//                 longitude: longitude || datePlace.longitude,
+//                 description: description || datePlace.description,
+//                 imageUrl: datePlace.imageUrl,
+//                 CategoryId: parsedCategoryId || datePlace.categoryId
+//             };
 
-//             // console.log("Parsed min budget ", datePlace.minBudget)
-//             // console.log("before min budget ", datePlace.minBudget)
+//             console.log("Update data: ", updateData);
 
-//             // console.log("Parsed max budget ", datePlace.maxBudget)
-//             // console.log("Before max budget ", datePlace.maxBudget)
-//             datePlace.openTime = openTime || datePlace.openTime;
-//             datePlace.closeTime = closeTime || datePlace.closeTime;
-//             datePlace.address = address || datePlace.address;
-//             datePlace.latitude = latitude || datePlace.latitude;
-//             datePlace.longitude = longitude || datePlace.longitude;
-//             datePlace.description = description || datePlace.description;
+//             await db.DatePlace.update(updateData, {
+//                 where: { id: id }
+//             });
 
-//             await datePlace.save();
+//             console.log("Updated categoryId (post-update): ", updateData.CategoryId);
 
-//             // let Cat = await db.Category.findByPk(categoryId)
-//                 let backData =  await DateResource(datePlace)
-//                 // {
-//                 //     id: datePlace.id,
-//                 //     name: name || datePlace.name,
-//                 //     city: city || datePlace.city,
-//                 //     state: state || datePlace.state,
-//                 //     categoryId: categoryId || datePlace.categoryId,
-//                 //     minBudget : parseInt(minBudget),
-//                 //     maxBudget : parseInt(maxBudget),
-//                 //     openTime : openTime || datePlace.openTime,
-//                 //     closeTime : closeTime || datePlace.closeTime,
-//                 //     address : address || datePlace.address,
-//                 //     latitude : latitude || datePlace.latitude,
-//                 //     longitude : longitude || datePlace.longitude,
-//                 //     description : description || datePlace.description,
-//                 //     Category: {name: Cat.name, id: Cat.id},
-//                 //     imageUrl: datePlace.imageUrl
-//                 // }
-//                 console.log("Back data is ", datePlace)
+//             // Fetch the updated instance including the associated Category
+//             const updatedDatePlace = await db.DatePlace.findByPk(id, { include: [db.Category] });
 
-//             res.send({ status: true, message: 'Date place updated successfully.', data: backData });
+//             res.send({ status: true, message: 'Date place updated successfully.', data: updatedDatePlace });
 //         } catch (err) {
 //             console.error('Error updating date place:', err);
 //             res.status(500).send({ status: false, message: 'An error occurred while updating the date place.', error: err.message });
 //         }
 //     });
-// }
+}
+
+
+
+
+
+export const UpdateDatePlace = async (req, res) => {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+        if (error) {
+            return res.status(403).send({ status: false, message: 'Unauthenticated user', data: null });
+        }
+
+        const adminUserId = authData.user.id;
+
+        try {
+            const adminUser = await db.user.findByPk(adminUserId);
+            if (!adminUser || adminUser.role !== 'admin') {
+                return res.status(403).send({ status: false, message: 'You are not authorized to perform this action.' });
+            }
+
+            // const {  } = req.params;
+            const { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state } = req.body;
+            const data = { id, name, categoryId, minBudget, maxBudget, openTime, closeTime, address, latitude, longitude, description, city, state }
+            console.log("Data is ", data)
+            // Find the date place by ID
+            let datePlace = await db.DatePlace.findByPk(id);
+
+            if (!datePlace) {
+                return res.status(404).send({ status: false, message: 'Date place not found.' });
+            }
+
+            // If a file is uploaded, upload it to AWS S3
+            if (req.file) {
+                const file = req.file;
+                const params = {
+                    Bucket: process.env.Bucket,
+                    Key: `date_places/${Date.now()}_${file.originalname}`,
+                    Body: file.buffer,
+                    ContentDisposition: 'inline',
+                    ContentType: file.mimetype
+                };
+
+                const data = await s3.upload(params).promise();
+                datePlace.imageUrl = data.Location;
+            }
+            else{
+                datePlace.imageUrl = datePlace.imageUrl;
+            }
+
+            // Update the date place details
+            datePlace.name = name || datePlace.name;
+            datePlace.city = city || datePlace.city;
+            datePlace.state = state || datePlace.state;
+            console.log("Category id type ", typeof categoryId)
+            if (categoryId != null && typeof categoryId !== 'undefined') {
+                datePlace.CategoryId = parseInt(categoryId);
+                console.log("Updated categoryId: ", datePlace.CategoryId);
+            }
+            let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
+            // datePlace.Category = {name: Cat.name, id: Cat.id};
+            // console.log("Parsing min budget ", minBudget)
+            // console.log("Already min budget ", datePlace.minBudget)
+
+            console.log("Parsing max budget ", maxBudget)
+            console.log("Already max budget ", datePlace.maxBudget)
+            datePlace.minBudget = parseInt(minBudget);
+            datePlace.maxBudget = parseInt(maxBudget);
+
+            // console.log("Parsed min budget ", datePlace.minBudget)
+            // console.log("before min budget ", datePlace.minBudget)
+
+            // console.log("Parsed max budget ", datePlace.maxBudget)
+            // console.log("Before max budget ", datePlace.maxBudget)
+            datePlace.openTime = openTime || datePlace.openTime;
+            datePlace.closeTime = closeTime || datePlace.closeTime;
+            datePlace.address = address || datePlace.address;
+            datePlace.latitude = latitude || datePlace.latitude;
+            datePlace.longitude = longitude || datePlace.longitude;
+            datePlace.description = description || datePlace.description;
+
+            await datePlace.save();
+
+            // let Cat = await db.Category.findByPk(categoryId)
+                let backData =  await DateResource(datePlace)
+                // {
+                //     id: datePlace.id,
+                //     name: name || datePlace.name,
+                //     city: city || datePlace.city,
+                //     state: state || datePlace.state,
+                //     categoryId: categoryId || datePlace.categoryId,
+                //     minBudget : parseInt(minBudget),
+                //     maxBudget : parseInt(maxBudget),
+                //     openTime : openTime || datePlace.openTime,
+                //     closeTime : closeTime || datePlace.closeTime,
+                //     address : address || datePlace.address,
+                //     latitude : latitude || datePlace.latitude,
+                //     longitude : longitude || datePlace.longitude,
+                //     description : description || datePlace.description,
+                //     Category: {name: Cat.name, id: Cat.id},
+                //     imageUrl: datePlace.imageUrl
+                // }
+                console.log("Back data is ", datePlace)
+
+            res.send({ status: true, message: 'Date place updated successfully.', data: backData });
+        } catch (err) {
+            console.error('Error updating date place:', err);
+            res.status(500).send({ status: false, message: 'An error occurred while updating the date place.', error: err.message });
+        }
+    });
+}
 
 
 export const listDatePlaces = async (req, res) => {
