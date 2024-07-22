@@ -199,7 +199,7 @@ export const GetDatePlace = async (req, res) => {
 //             res.status(500).send({ status: false, message: 'An error occurred while updating the date place.', error: err.message });
 //         }
 //     });
-}
+// }
 
 
 
@@ -283,23 +283,7 @@ export const UpdateDatePlace = async (req, res) => {
 
             // let Cat = await db.Category.findByPk(categoryId)
                 let backData =  await DateResource(datePlace)
-                // {
-                //     id: datePlace.id,
-                //     name: name || datePlace.name,
-                //     city: city || datePlace.city,
-                //     state: state || datePlace.state,
-                //     categoryId: categoryId || datePlace.categoryId,
-                //     minBudget : parseInt(minBudget),
-                //     maxBudget : parseInt(maxBudget),
-                //     openTime : openTime || datePlace.openTime,
-                //     closeTime : closeTime || datePlace.closeTime,
-                //     address : address || datePlace.address,
-                //     latitude : latitude || datePlace.latitude,
-                //     longitude : longitude || datePlace.longitude,
-                //     description : description || datePlace.description,
-                //     Category: {name: Cat.name, id: Cat.id},
-                //     imageUrl: datePlace.imageUrl
-                // }
+                
                 console.log("Back data is ", datePlace)
 
             res.send({ status: true, message: 'Date place updated successfully.', data: backData });
