@@ -156,12 +156,11 @@ export const UpdateDatePlace = async (req, res) => {
                 datePlace.imageUrl = s3Data.Location;
             }
 
-            // Update the date place details using the update method
-            await datePlace.update({
+            // Prepare update data
+            const updateData = {
                 name: name || datePlace.name,
                 city: city || datePlace.city,
                 state: state || datePlace.state,
-                categoryId: categoryId != null ? parseInt(categoryId) : datePlace.categoryId,
                 minBudget: minBudget != null ? parseInt(minBudget) : datePlace.minBudget,
                 maxBudget: maxBudget != null ? parseInt(maxBudget) : datePlace.maxBudget,
                 openTime: openTime || datePlace.openTime,
@@ -171,7 +170,14 @@ export const UpdateDatePlace = async (req, res) => {
                 longitude: longitude || datePlace.longitude,
                 description: description || datePlace.description,
                 imageUrl: datePlace.imageUrl
-            });
+            };
+
+            if (categoryId != null && typeof categoryId !== 'undefined') {
+                updateData.categoryId = parseInt(categoryId);
+            }
+
+            // Update the date place details using the update method
+            await datePlace.update(updateData);
 
             console.log("Updated categoryId: ", datePlace.categoryId);
 
@@ -185,6 +191,7 @@ export const UpdateDatePlace = async (req, res) => {
         }
     });
 }
+
 
 
 // export const UpdateDatePlace = async (req, res) => {
