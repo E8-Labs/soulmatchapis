@@ -173,19 +173,19 @@ export const UpdateDatePlace = async (req, res) => {
                 datePlace.categoryId = categoryId || datePlace.categoryId;
             }
             let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
-            datePlace.Category = {name: Cat.name, id: Cat.id};
-            console.log("Parsing min budget ", minBudget)
-            console.log("Already min budget ", datePlace.minBudget)
+            // datePlace.Category = {name: Cat.name, id: Cat.id};
+            // console.log("Parsing min budget ", minBudget)
+            // console.log("Already min budget ", datePlace.minBudget)
 
             console.log("Parsing max budget ", maxBudget)
             console.log("Already max budget ", datePlace.maxBudget)
             datePlace.minBudget = parseInt(minBudget);
             datePlace.maxBudget = parseInt(maxBudget);
 
-            console.log("Parsed min budget ", datePlace.minBudget)
+            // console.log("Parsed min budget ", datePlace.minBudget)
             // console.log("before min budget ", datePlace.minBudget)
 
-            console.log("Parsed max budget ", datePlace.maxBudget)
+            // console.log("Parsed max budget ", datePlace.maxBudget)
             // console.log("Before max budget ", datePlace.maxBudget)
             datePlace.openTime = openTime || datePlace.openTime;
             datePlace.closeTime = closeTime || datePlace.closeTime;
