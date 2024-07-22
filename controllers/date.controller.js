@@ -164,9 +164,9 @@ export const UpdateDatePlace = async (req, res) => {
             datePlace.name = name || datePlace.name;
             datePlace.city = city || datePlace.city;
             datePlace.state = state || datePlace.state;
-            console.log("Category id ", typeof categoryId)
+            console.log("Category id type ", typeof categoryId)
             if(typeof categoryId == "string"){
-
+                console.log("Category id is", parseInt(categoryId))
                 datePlace.categoryId = parseInt(categoryId) || datePlace.categoryId;
             }
             else{
