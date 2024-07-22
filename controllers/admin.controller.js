@@ -22,9 +22,11 @@ import UserRole from "../models/userrole.js";
 
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
 import UserProfileLiteResource from "../resources/userprofileliteresource.js";
-import { fetchSubscriptionsData, fetchMonthlyRevenue, 
-  fetchCurrentYearSubscriptionData, fetchTotalPayingUsers, 
-  getMonthlyRevenueBoost} from "../services/revenueService.js";
+import {
+  fetchSubscriptionsData, fetchMonthlyRevenue,
+  fetchCurrentYearSubscriptionData, fetchTotalPayingUsers,
+  getMonthlyRevenueBoost
+} from "../services/revenueService.js";
 import { SendUserSuspendedDeletedEmail } from "../services/emailService.js";
 
 
@@ -206,20 +208,20 @@ export const AdminDashboard = (req, res) => {
       let monthlySubscriptionsData = await fetchSubscriptionsData("monthly")
       let weeklySubscriptionsData = await fetchSubscriptionsData("weekly")
       let yearlySubscriptionsData = await fetchSubscriptionsData("yearly")
-      let subscriptionsData = {monthly: monthlySubscriptionsData, yearly: yearlySubscriptionsData, weekly: weeklySubscriptionsData}
+      let subscriptionsData = { monthly: monthlySubscriptionsData, yearly: yearlySubscriptionsData, weekly: weeklySubscriptionsData }
 
       const profileBoostRevenue = await getMonthlyRevenueBoost()
 
       let monthlyRevenueData = await fetchMonthlyRevenue("monthly")
       let weeklyRevenueData = await fetchMonthlyRevenue("weekly")
       let yearlyRevenueData = await fetchMonthlyRevenue("yearly")
-      let revenueData = {monthly: monthlyRevenueData, yearly: yearlyRevenueData, weekly: weeklyRevenueData}
+      let revenueData = { monthly: monthlyRevenueData, yearly: yearlyRevenueData, weekly: weeklyRevenueData }
 
 
       let payingAndFree = await fetchCurrentYearSubscriptionData();
       let payingUsersData = await fetchTotalPayingUsers()
-      
-// console.log("Sub data ", subscriptionsData)
+
+      // console.log("Sub data ", subscriptionsData)
       // let totalDownloads = await uniqueDownloads(30);
       // let dailyActiveUsers = await fetchLoginActivity()
       const total = await db.user.count({
@@ -245,8 +247,8 @@ export const AdminDashboard = (req, res) => {
           revenueData: revenueData,
           payingAndFree: payingAndFree,
           boostRevenue: profileBoostRevenue,
-          paying: payingUsersData, free: total - payingUsersData, 
-          recent_users: usersRes, 
+          paying: payingUsersData, free: total - payingUsersData,
+          recent_users: usersRes,
           planned_dates: totalDatesPlanned, unique_users_planned_dates: totalUniqueUsers
         }
       })
@@ -404,17 +406,34 @@ export const GetUsers = (req, res) => {
           ]
         };
       }
+      // if (city) {
+      //   searchQuery.city = { [Op.like]: `%${city}%` }//city;
+      // }
+
+      // if (state) {
+      //   searchQuery.state = { [Op.like]: `%${state}%` }//state;
+      // }
+      const orConditions = [];
+
       if (city) {
-        searchQuery.city = { [Op.like]: `%${city}%` }//city;
+        orConditions.push({ city: { [Op.like]: `%${city}%` } });
       }
 
       if (state) {
-        searchQuery.state = { [Op.like]: `%${state}%` }//state;
+        orConditions.push({ state: { [Op.like]: `%${state}%` } });
+      }
+
+      if (orConditions.length > 0) {
+        if (searchQuery[Op.or]) {
+          searchQuery[Op.or].push({ [Op.or]: orConditions });
+        } else {
+          searchQuery[Op.or] = orConditions;
+        }
       }
       if (plan) {
         searchQuery.plan_status = plan;
       }
-      searchQuery.role = {[Op.ne]: 'admin'}
+      searchQuery.role = { [Op.ne]: 'admin' }
       searchQuery.status = 'active'
       console.log("Search query is ", searchQuery)
       try {
@@ -732,7 +751,7 @@ export const deleteUserById = async (req, res) => {
           // transaction,
         });
 
-        if(permanent){
+        if (permanent) {
           console.log("Permanently deleted")
           await db.userAnswers.destroy({
             where: { userId: userIdToDelete },
@@ -742,14 +761,14 @@ export const deleteUserById = async (req, res) => {
             where: { userId: userIdToDelete },
             // transaction,
           });
-          
+
           await db.user.destroy({
             where: {
               id: userIdToDelete
             }
           })
         }
-        else{
+        else {
           console.log("Temporarily deleted")
           await db.user.update(
             { status: 'deleted' },
@@ -763,7 +782,7 @@ export const deleteUserById = async (req, res) => {
         }
 
         await SendUserSuspendedDeletedEmail({ user: userToDelete, type: 'deleted' });
-        if(adminUser.role === "admin"){
+        if (adminUser.role === "admin") {
           pusher.trigger(`UserDeletedSuspended-${userIdToDelete}`, `deleted`, { message: "User is deleted by admin" });
         }
         // await transaction.commit();
@@ -773,7 +792,7 @@ export const deleteUserById = async (req, res) => {
         if (transaction && !transaction.finished) {
           // await transaction.rollback();
         }
-        
+
         console.error('Error deleting user:', err);
         res.status(500).send({
           status: false,
@@ -816,8 +835,8 @@ export const suspendUserById = (req, res) => {
         userToSuspend.status = 'suspended';
         await userToSuspend.save();
 
-        await SendUserSuspendedDeletedEmail({user: userToSuspend, type: "suspended"})
-        if(adminUser.role === "admin"){
+        await SendUserSuspendedDeletedEmail({ user: userToSuspend, type: "suspended" })
+        if (adminUser.role === "admin") {
           pusher.trigger(`UserDeletedSuspended-${userIdToSuspend}`, `suspended`, { message: "User is suspended by admin" });
         }
         res.send({ status: true, message: 'User suspended successfully.', data: userToSuspend });
