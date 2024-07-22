@@ -405,11 +405,11 @@ export const GetUsers = (req, res) => {
         };
       }
       if (city) {
-        searchQuery.city = city;
+        searchQuery.city = { [Op.like]: `%${city}%` }//city;
       }
 
       if (state) {
-        searchQuery.state = state;
+        searchQuery.state = { [Op.like]: `%${state}%` }//state;
       }
       if (plan) {
         searchQuery.plan_status = plan;
