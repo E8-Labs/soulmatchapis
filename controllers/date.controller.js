@@ -165,12 +165,9 @@ export const UpdateDatePlace = async (req, res) => {
             datePlace.city = city || datePlace.city;
             datePlace.state = state || datePlace.state;
             console.log("Category id type ", typeof categoryId)
-            if(typeof categoryId == "string"){
-                console.log("Category id is", parseInt(categoryId))
-                datePlace.categoryId = parseInt(categoryId) || datePlace.categoryId;
-            }
-            else if (categoryId != null && typeof categoryId != 'undefined') {
-                datePlace.categoryId = categoryId || datePlace.categoryId;
+            if (categoryId != null && typeof categoryId !== 'undefined') {
+                datePlace.categoryId = parseInt(categoryId);
+                console.log("Updated categoryId: ", datePlace.categoryId);
             }
             let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
             // datePlace.Category = {name: Cat.name, id: Cat.id};
