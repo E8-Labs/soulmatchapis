@@ -169,7 +169,7 @@ export const UpdateDatePlace = async (req, res) => {
                 console.log("Category id is", parseInt(categoryId))
                 datePlace.categoryId = parseInt(categoryId) || datePlace.categoryId;
             }
-            else{
+            else if (categoryId != null && typeof categoryId != 'undefined') {
                 datePlace.categoryId = categoryId || datePlace.categoryId;
             }
             let Cat = await db.Category.findByPk(categoryId || datePlace.categoryId)
@@ -215,7 +215,7 @@ export const UpdateDatePlace = async (req, res) => {
                 //     Category: {name: Cat.name, id: Cat.id},
                 //     imageUrl: datePlace.imageUrl
                 // }
-                console.log("Back data is ")
+                console.log("Back data is ", datePlace)
 
             res.send({ status: true, message: 'Date place updated successfully.', data: backData });
         } catch (err) {
