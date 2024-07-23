@@ -446,7 +446,8 @@ export const GetUsers = (req, res) => {
 
         const total = await db.user.count({
           where: {
-            id: { [Op.gte]: 0 }
+            id: { [Op.gte]: 0 },
+            status: "active"
           }
         });
         if (users.length > 0) {
