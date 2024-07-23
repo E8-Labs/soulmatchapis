@@ -226,7 +226,8 @@ export const AdminDashboard = (req, res) => {
       // let dailyActiveUsers = await fetchLoginActivity()
       const total = await db.user.count({
         where: {
-          id: { [Op.gte]: 0 }
+          id: { [Op.gte]: 0 },
+          status: "active"
         }
       });
 

@@ -349,7 +349,7 @@ export const listDatePlaces = async (req, res) => {
                 HAVING 1=1
                 ${req.query.minRating ? `AND avgRating >= :minRating` : ''}
                 ${req.query.maxRating ? `AND avgRating <= :maxRating` : ''}
-                ORDER BY dp.id DESC
+                ORDER BY dp.id ASC
                 LIMIT :limit OFFSET :offset;
             `;
 
