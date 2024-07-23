@@ -441,6 +441,7 @@ export const GetUsers = (req, res) => {
         const users = await db.user.findAll({
           where: searchQuery,
           offset: Number(offset),
+          order: [["first_name", "ASC"]],
           limit: 100
         });
 
