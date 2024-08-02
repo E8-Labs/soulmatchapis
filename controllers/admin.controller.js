@@ -232,6 +232,9 @@ export const AdminDashboard = (req, res) => {
       });
 
       let users = await db.user.findAll({
+        where: {
+          status: 'active'
+        },
         limit: 8
       })
       const totalDatesPlanned = await db.Booking.count();
