@@ -226,14 +226,17 @@ export const AdminDashboard = (req, res) => {
       // let dailyActiveUsers = await fetchLoginActivity()
       const total = await db.user.count({
         where: {
-          id: { [Op.gte]: 0 },
-          status: "active"
+          
+          status: "active",
+
+
         }
       });
 
       let users = await db.user.findAll({
         where: {
-          status: 'active'
+          status: 'active',
+          role: "user"
         },
         limit: 8
       })
@@ -403,6 +406,8 @@ export const GetUsers = (req, res) => {
       if (req.query.search) {
         const searchTerm = req.query.search;
         searchQuery = {
+          // role: "user",
+          // status: "active",
           [Op.or]: [
             { first_name: { [Op.like]: `%${searchTerm}%` } },
             { last_name: { [Op.like]: `%${searchTerm}%` } },
@@ -451,7 +456,8 @@ export const GetUsers = (req, res) => {
         const total = await db.user.count({
           where: {
             id: { [Op.gte]: 0 },
-            status: "active"
+            status: "active",
+            role: 'user'
           }
         });
         if (users.length > 0) {

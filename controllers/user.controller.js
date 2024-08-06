@@ -78,6 +78,7 @@ export const RegisterUser = async (req, res) => {
                 device_id: req.body.device_id,
             };
 
+            
             try {
                 if (req.file) {
                     const fileContent = req.file.buffer;
@@ -88,7 +89,7 @@ export const RegisterUser = async (req, res) => {
                     userData.full_profile_image = fullProfileImageUrl;
 
                     // Create and upload thumbnail
-                    const thumbnailUrl = await createThumbnailAndUpload(fileContent, fieldname);
+                    const thumbnailUrl = await createThumbnailAndUpload(fileContent, fieldname, "profiles");
                     userData.profile_image = thumbnailUrl;
 
                     // Save user to the database
