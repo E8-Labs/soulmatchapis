@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
@@ -10,12 +10,9 @@ import nodeCron from "node-cron";
 import chalk from "chalk";
 import moment from "moment-timezone";
 
-
-
 import { verifyJwtToken } from "./middleware/jwtmiddleware.js";
 
-
-console.log('Environment variables loaded:', process.env.MYSQL_DB_HOST, process.env.AWS_SECRET_ACCESS_KEY, process.env.AWS_REGION);
+// console.log('Environment variables loaded:', process.env.MYSQL_DB_HOST, process.env.AWS_SECRET_ACCESS_KEY, process.env.AWS_REGION);
 
 const upload = multer();
 
@@ -29,19 +26,15 @@ const upload = multer();
 //   },
 // });
 
-const uploadImg = upload.single("image");//multer({storage: storage}).single('image');
+const uploadImg = upload.single("image"); //multer({storage: storage}).single('image');
 const uploadFiles = multer().fields([
-  { name: 'media', maxCount: 1 },
-  { name: 'thumbnail', maxCount: 1 }
+  { name: "media", maxCount: 1 },
+  { name: "thumbnail", maxCount: 1 },
 ]);
-
-
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-
 
 import db from "./models/index.js";
 import chatRouter from "./routes/chat.router.js";
@@ -53,7 +46,6 @@ import dateRouter from "./routes/date.router.js";
 // db.Message.drop()
 // db.Chat.drop()
 
-
 // db.sequelize.authenticate().then(() => {
 //   //console.log("Connected to the database!");
 // })
@@ -63,19 +55,15 @@ import dateRouter from "./routes/date.router.js";
 //   });
 
 // sync
-db.sequelize.sync({ alter: true })//{alter: true}
-
-
+db.sequelize.sync({ alter: true }); //{alter: true}
 
 app.use("/api/users", uploadImg, userRouter);
 app.use("/api/media", uploadFiles, mediaRouter);
-app.use("/api/chat", uploadFiles, chatRouter);//verifyJwtToken
-app.use("/api/admin", verifyJwtToken, adminRouter);//verifyJwtToken
+app.use("/api/chat", uploadFiles, chatRouter); //verifyJwtToken
+app.use("/api/admin", verifyJwtToken, adminRouter); //verifyJwtToken
 
 app.use("/api/admin/dates", uploadImg, dateRouter);
 
-
-
-const server = app.listen(process.env.Port, () => {
+const server = app.listen(process.env.Port, "0.0.0.0", () => {
   //////console.log("Started listening on " + process.env.Port);
-})
+});
